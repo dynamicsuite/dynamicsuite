@@ -1,0 +1,25 @@
+<div id="ds-body">
+    <section id="ds-nav-container">
+        <header id="ds-nav-header">
+            <a id="ds-nav-header-text" href="{{nav-header-path}}">{{nav-header-text}}</a>
+        </header>
+        <ul id="ds-nav">
+            {{nav-links}}
+        </ul>
+        <footer id="ds-nav-footer">
+            <a id="ds-nav-footer-text" href="/dynamicsuite/about">Dynamic Suite {{nav-footer-version}}</a>
+        </footer>
+    </section>
+    <section id="ds-view-container">
+        <header id="ds-view-header">
+        <span id="ds-nav-mobile-toggle">
+            <i class="fas fa-bars"></i>
+        </span>
+            <h1 id="ds-view-header-text">{{view-header}}</h1>
+            <a id="ds-view-logout" href="{{login-path}}"{{hide-logout}}>
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </header>
+        <section id="ds-view">{{view-body}}</section>
+    </section>
+</div>

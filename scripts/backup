@@ -1,0 +1,216 @@
+#!/usr/bin/env php
+<?php
+/*
+ * Dynamic Suite
+ * Copyright (C) 2019 Dynamic Suite Team
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
+
+namespace DynamicSuite;
+
+set_time_limit(0);
+ini_set('memory_limit', -1);
+
+// Create environment
+require_once realpath(__DIR__ . '/create_environment.php');
+
+/** @var Instance $ds */
+
+// Load config
+$cfg = new Config('dynamicsuite');
+
+// Check for backup directory
+if (!@file_exists($cfg->backup_dir) && !@mkdir($cfg->backup_dir)) {
+    CLI::err("Error creating backup directory: $cfg->backup_dir", false);
+    CLI::err("Does the current user have permissions for $cfg->backup_dir?");
+}
+
+// Usage
+function printUsage(): void
+{
+    CLI::out('Backups usage:');
+    CLI::out('  ./backup list');
+    CLI::out('  ./backup [-f] create {name}');
+    CLI::out('  ./backup [-f] restore {name} [target]');
+    CLI::out('  ./backup [-f] delete {name}');
+}
+
+// Script usage
+if (!isset($argv[1])) {
+    printUsage();
+}
+
+// List backups
+elseif ($argv[1] === 'list') {
+    $backups = [];
+    foreach (scandir($cfg->backup_dir) as $file) {
+        if ($file === '.' || $file === '..' || strpos($file, '.tgz') === false) continue;
+        $backups[$file] = [
+            'backup' => substr($file, 0, -4),
+            'created' => date('Y-m-d H:i:s', filectime("$cfg->backup_dir/$file")),
+            'size' => round((filesize("$cfg->backup_dir/$file") / pow(1024, 2)), 2) . ' MB'
+        ];
+    }
+    $table = CLI::table(['backup', 'created', 'size'], $backups);
+    CLI::out($table === 'No Data' ? "No backups in $cfg->backup_dir" : $table);
+}
+
+// Create backup
+elseif ($argv[1] === 'create') {
+
+    // Missing name
+    if (!isset($argv[2])) {
+        CLI::err('Missing backup name', false);
+        printUsage();
+        exit;
+    }
+
+    $ds_dir = DS_ROOT_DIR;
+    $name = $argv[2];
+
+    // Check for old backup
+    if (file_exists("$cfg->backup_dir/$name.tgz")) {
+        if (CLI::yn("Backup $name already exists, replace?")) {
+            CLI::out("Unlinking old backup: $cfg->backup_dir/$name.tgz...");
+            if (!@unlink("$cfg->backup_dir/$name.tgz")) {
+                CLI::err("Could not unlink old backup $cfg->backup_dir/$name.tgz");
+            }
+        } else {
+            CLI::err('Backup canceled');
+        }
+    }
+
+    // Archive files
+    CLI::out('Archiving files...');
+    $copy_err = exec("cp -r \"$ds_dir\" \"$cfg->backup_dir/$name\" 2>&1 >/dev/null");
+    if ($copy_err) CLI::err($copy_err);
+
+    // Dump database
+    CLI::out('Dumping database...');
+    $db_host = CLI::splitDSN($cfg->db_dsn, 'host');
+    $db_name = CLI::splitDSN($cfg->db_dsn, 'dbname');
+    $db_err = exec(
+        "mysqldump " .
+        "--user=\"$cfg->db_user\" " .
+        "--password=\"$cfg->db_pass\" " .
+        "--host=\"$db_host\" " .
+        "\"$db_name\" > \"$cfg->backup_dir/$name/sql/$name.sql\""
+    );
+    if ($db_err) CLI::err($db_err);
+
+    // Compress archive
+    CLI::out('Compressing archive...');
+    $archive_err = exec(
+        "tar -zcf " .
+        "\"$cfg->backup_dir/$name.tgz\" " .
+        "-C \"$cfg->backup_dir/$name/\" . " .
+        " 2>&1 >/dev/null");
+    if ($archive_err) CLI::err($archive_err);
+
+    // Clean up temporary files
+    CLI::out('Cleaning up...');
+    $clean_err = exec("rm -rf \"$cfg->backup_dir/$name\" 2>&1 >/dev/null");
+    if ($clean_err) CLI::err($clean_err);
+
+    // Complete
+    CLI::out('Backup Complete!');
+    CLI::out("Backup archived as: $cfg->backup_dir/$name.tgz");
+
+    // Remove old backups
+    CLI::out("Removing backups older than $cfg->backup_days_keep days...");
+    $time = time();
+    foreach (scandir($cfg->backup_dir) as $file) {
+        if ($file === '.' || $file === '..' || strpos($file, '.tgz') === false) continue;
+        if (
+            is_file("$cfg->backup_dir/$file") &&
+            $time - filemtime("$cfg->backup_dir/$file") >= 60 * 60 * 24 * $cfg->backup_days_keep
+        ) unlink("$cfg->backup_dir/$file");
+    }
+
+}
+
+// Restore Backup
+elseif ($argv[1] === 'restore' && isset($argv[2])) {
+
+    // Missing name
+    if (!isset($argv[2])) {
+        CLI::err('Missing backup name', false);
+        printUsage();
+        exit;
+    } else {
+        $name = $argv[2];
+    }
+
+    // Check target
+    if (isset($argv[3])) {
+        $target = $argv[3];
+    } else {
+        CLI::out('A target was not defined, using current instance...');
+        $target = DS_ROOT_DIR;
+    }
+
+    // Check for backup
+    if (!file_exists("$cfg->backup_dir/$name.tgz")) {
+        CLI::err("Backup $name does not exist");
+    }
+
+    // Confirm
+    CLI::out('The next operation will restore the following backup (backup -> target):');
+    CLI::out("  $name -> $target");
+    CLI::out('This will override any files in the target directory.');
+    if (!CLI::yn('Restore backup?')) {
+        CLI::err('Restore canceled');
+    }
+
+    // Unpack
+    CLI::out("Restoring backup $name to $target...");
+    $unpack_err = exec("tar -xf \"$cfg->backup_dir/$name.tgz\" -C \"$target/\" 2>&1 >/dev/null");
+    if ($unpack_err) CLI::err($unpack_err);
+
+    // Database
+    CLI::out('Files have been restored, but the database is untouched.');
+    CLI::out('Restoring the database will clear any data and replace it');
+    CLI::out('with the data from the backup. The database credentials');
+    CLI::out("found in:");
+    CLI::out("  $target/config/dynamicsuite.json");
+    CLI::out('will be used to perform the operation.');
+    CLI::out('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    CLI::out('@@@ !!!THIS WILL WIPE ANY DATA IN THE CURRENT TABLES!!! @@@');
+    CLI::out('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    if (!CLI::yn('Restore database?')) {
+        CLI::out('Database restore skipped');
+        CLI::out('Restore complete');
+        exit;
+    }
+    $db_host = CLI::in('Database host', CLI::splitDSN($cfg->db_dsn, 'host'));
+    $db_user = CLI::in('Database user', $cfg->db_user);
+    $db_pass = CLI::in('Database pass', $cfg->db_pass);
+    $db_name = CLI::in('Database name', CLI::splitDSN($cfg->db_dsn, 'dbname'));
+    CLI::out('Restoring database...');
+    $db_err = exec(
+        "mysql " .
+        "--user=\"$db_user\" " .
+        "--password=\"$db_pass\" " .
+        "--host=\"$db_host\" " .
+        "\"$db_name\" < \"$target/sql/$name.sql\""
+    );
+    if ($db_err) CLI::err($db_err);
+
+}
+
+// Unknown/invalid option
+else {
+    printUsage();
+}

@@ -1,0 +1,516 @@
+#!/usr/bin/env php
+<?php
+/*
+ * Dynamic Suite
+ * Copyright (C) 2019 Dynamic Suite Team
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
+
+namespace DynamicSuite;
+use PharData, Exception;
+
+set_time_limit(0);
+ini_set('memory_limit', -1);
+
+// Create environment
+require_once realpath(__DIR__ . '/create_environment.php');
+
+/** @var Instance $ds */
+
+// Load config
+$cfg = new Config('dynamicsuite');
+
+// Check directories
+if (!@is_dir($cfg->pkg_db_dir) && !@mkdir($cfg->pkg_db_dir)) {
+    CLI::err("Error creating package database: $cfg->pkg_db_dir");
+}
+if (!@is_dir($cfg->pkg_build_dir) && !@mkdir($cfg->pkg_build_dir)) {
+    CLI::err("Error creating package build directory: $cfg->pkg_build_dir");
+}
+
+// Usage
+function printUsage(): void
+{
+    CLI::out('Packages:');
+    CLI::out('  ./packages list-repos              List remote package repositories');
+    CLI::out('  ./packages list-installed          List installed packages');
+    CLI::out('  ./packages list-available          List available remote packages');
+    CLI::out('  ./packages list-blacklisted        List blacklisted packages');
+    CLI::out('  ./packages install {package_id...} Install a package, or a list of packages');
+    CLI::out('  ./packages remove {package_id...}  Remove a package, or a list of packages');
+    CLI::out('  ./packages upgrade                 Upgrade all packages');
+    CLI::out('  ./packages cleanup                 Cleanup temporary files and un-used prerequisites');
+}
+
+// Create manifest database handle
+define('MANIFEST', (function () {
+    global $cfg;
+    $error = false;
+    if (!@is_readable("$cfg->pkg_db_dir/manifest.json") && !@touch("$cfg->pkg_db_dir/manifest.json")) $error = true;
+    if (!$error && !$fp = @fopen("$cfg->pkg_db_dir/manifest.json", 'r+')) $error = true;
+    if (!$error && isset($fp) && !@flock($fp, LOCK_EX | LOCK_NB)) CLI::err('Cannot get manifest lock. File in use?');
+    if ($error) {
+        CLI::err('Error loading manifest handle in "r+" mode, are permissions correct?', false);
+        CLI::err("Path: $cfg->pkg_db_dir/manifest.json");
+    }
+    return $fp ?? null;
+})());
+
+// Write to the manifest
+function writeManifest(array $manifest): void
+{
+    $content = @json_encode($manifest, JSON_PRETTY_PRINT);
+    if (!is_string($content)) CLI::err('Manifest data malformed');
+    if (@ftruncate(MANIFEST, 0) === false) CLI::err('Error clearing old manifest for writing');
+    if (@fseek(MANIFEST, 0) === -1) CLI::err('Error seeking to beginning of manifest');
+    if (@fwrite(MANIFEST, $content) === false) CLI::err('Error writing to manifest');
+}
+
+$local_manifest = @json_decode(@file_get_contents("$cfg->pkg_db_dir/manifest.json"), true);
+if (!is_array($local_manifest) || (is_array($local_manifest) && !array_key_exists('dynamicsuite', $local_manifest))) {
+    $local_manifest['dynamicsuite'] = [
+        'name' => 'Dynamic Suite',
+        'author' => 'Dynamic Suite',
+        'description' => 'Dynamic Suite application framework',
+        'license' => 'GPLv3',
+        'depends' => [],
+        'dependants' => [],
+        'installed_on' => date('Y-m-d H:i:s'),
+        'manually_installed' => true
+    ];
+}
+$local_manifest['dynamicsuite']['version'] = (function () {
+    $init = fopen('scripts/create_environment.php', 'r');
+    $version = '0.0.0';
+    while (!feof($init)) {
+        $line = fgets($init);
+        if (strpos($line, 'DS_VERSION') === false) continue;
+        preg_match('/\d+(\.\d+)+/', $line, $match);
+        if ($match) $version = $match[0];
+        break;
+    }
+    fclose($init);
+    return $version;
+})();
+foreach ($local_manifest as $package_id => $entry) {
+    if (
+        !is_array($entry) ||
+        !array_key_exists('name', $entry) || !is_string($entry['name']) ||
+        !array_key_exists('author', $entry) || !is_string($entry['author']) ||
+        !array_key_exists('version', $entry) || !is_string($entry['version']) ||
+        !array_key_exists('description', $entry) || !is_string($entry['description']) ||
+        !array_key_exists('license', $entry) || !is_string($entry['license']) ||
+        !array_key_exists('depends', $entry) || !is_array($entry['depends']) ||
+        !array_key_exists('dependants', $entry) || !is_array($entry['dependants']) ||
+        !array_key_exists('installed_on', $entry) || !is_string($entry['installed_on']) ||
+        !array_key_exists('manually_installed', $entry) || !is_bool($entry['manually_installed'])
+    ) {
+        if (CLI::yn("Invalid key-value pair found in manifest. Key: $package_id. Remove bad entry?")) {
+            unset($local_manifest[$package_id]);
+        }
+    }
+}
+
+// Get the manifests of all repositories and combine them
+function getRemoteManifest(): array
+{
+    global $cfg;
+    $manifest = [];
+    foreach ($cfg->pkg_repos as $repo => $auth) {
+        CLI::out("[GET $repo] Downloading manifest...");
+        $uses_auth = false;
+        if (is_string($auth)) {
+            $auth = explode(':', $auth);
+            if (!isset($auth[0], $auth[1]) && is_string($auth[0]) && is_string($auth[1])) {
+                CLI::err("[$repo] Authorization key formatted invalid", false);
+                continue;
+            }
+            $uses_auth = true;
+        }
+        $ch = curl_init("$repo/manifest");
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        if ($uses_auth) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'X-DS-ACCOUNT-ID: ' . $auth[0],
+                'X-DS-KEY: ' . $auth[1]
+            ));
+        }
+        $output = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        switch ($code) {
+            case 0:
+                CLI::err("[$code][$repo] Repository not found", false);
+                break;
+            case 200:
+                $output = @json_decode($output, true);
+                if (!is_array($output)) {
+                    CLI::err("[$code][$repo] A malformed response was returned", false);
+                    break;
+                }
+                if ($output['status'] === '200') {
+                    foreach ($output['data'] as $k => $v) {
+                        $output['data'][$k]['url'] = "$repo/download/$k/{$v['version']}";
+                        $output['data'][$k]['auth'] = $uses_auth ? "{$auth[0]}:{$auth[1]}" : null;
+                    }
+                    $manifest = array_merge($manifest, $output['data']);
+                }
+                break;
+            case 401:
+                CLI::err("[$code][$repo] Repository requires authorization", false);
+                break;
+            case 404:
+                CLI::err("[$code][$repo] Repository malformed", false);
+                break;
+            case 500:
+                CLI::err("[$code][$repo] Repository returned an internal error", false);
+                break;
+            default:
+                CLI::err("[$code][$repo] And unknowns response was returned", false);
+                break;
+        }
+
+        curl_close($ch);
+    }
+    return $manifest;
+}
+
+// Explode a dependency string
+// 0 - package id; 1 - comparator; 2 - version
+function explodeDepend(string $depend): array
+{
+    $depend = explode(' ', $depend);
+    if (count($depend) !== 3) CLI::err("Malformed dependency '$depend'");
+    return $depend;
+}
+
+// Recursively build package dependencies
+function buildDepends(array $depends, array &$local_manifest, array &$remote_manifest): array
+{
+    global $cfg;
+    $plan = [];
+    foreach ($depends as $depend) {
+        $exploded = explodeDepend($depend);
+        if (in_array($exploded[0], $cfg->pkg_blacklist)) {
+            CLI::err("Package {$exploded[0]} on blacklist, cannot continue");
+        }
+        if (!array_key_exists($exploded[0], $remote_manifest)) {
+            CLI::err("Dependency could not be met for $depend", false);
+            CLI::err('Dependency not found in manifest');
+        }
+        if (!version_compare($remote_manifest[$exploded[0]]['version'], $exploded[2], $exploded[1])) {
+            CLI::err("Dependency could not be met for $depend", false);
+            CLI::err("Available: {$remote_manifest[$exploded[0]]['version']}, required: {$exploded[1]} {$exploded[2]}");
+        }
+        if (!empty($remote_manifest[$exploded[0]]['depends'])) {
+            foreach ($remote_manifest[$exploded[0]]['depends'] as $duplicate_check) {
+                $duplicate_check = explodeDepend($duplicate_check);
+                if ($exploded[0] === $duplicate_check[0]) {
+                    CLI::err('A package cannot depend on itself, contact package author:', false);
+                    CLI::err("Package: {$exploded[0]}", false);
+                    CLI::err("Contact: {$remote_manifest[$exploded[0]]['author']}");
+                }
+            }
+            $plan = array_merge($plan, buildDepends(
+                $remote_manifest[$exploded[0]]['depends'],
+                $local_manifest,
+                $remote_manifest
+            ));
+        }
+        if (
+            array_key_exists($exploded[0], $local_manifest) &&
+            version_compare($local_manifest[$exploded[0]]['version'], $remote_manifest[$exploded[0]]['version'], '>=')
+        ) {
+            continue;
+        }
+        if (array_key_exists($exploded[0], $local_manifest)) {
+            $manually_installed = $local_manifest[$exploded[0]]['manually_installed'];
+        } else {
+            $manually_installed = false;
+        }
+        $plan[$exploded[0]] = $remote_manifest[$exploded[0]];
+        $plan[$exploded[0]]['manually_installed'] = $manually_installed;
+    }
+    return $plan;
+}
+
+// Execute an install plan
+function executeInstallPlan(array $plan): void
+{
+    global $cfg, $local_manifest;
+    CLI::out('The following packages and dependencies will be installed or upgraded:');
+    array_walk($plan, function ($v, $k) {
+        CLI::out("  $k-{$v['version']}");
+    });
+    CLI::out(
+        'Estimated download: ' .
+        number_format(array_sum(array_map(function ($v) { return $v['size']; }, $plan)) / 1000) .
+        ' kB'
+    );
+    if (!CLI::yn('Continue to download and install?')) CLI::err('Cancelled');
+    foreach ($plan as $package_id => $entry) {
+
+        if ($package_id === 'dynamicsuite') {
+            $init = fopen('scripts/create_environment.php', 'r');
+            while (!feof($init)) {
+                $line = fgets($init);
+                if (strpos($line, 'DS_APCU') === false) continue;
+                $apcu = strpos($line, 'false') === false ? true : false;
+                break;
+            }
+            fclose($init);
+        }
+        CLI::out("[$package_id] Downloading...");
+        $ch = curl_init($entry['url']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        if ($entry['auth']) {
+            $auth = explode(':', $entry['auth']);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'X-DS-ACCOUNT-ID: ' . $auth[0],
+                'X-DS-KEY: ' . $auth[1]
+            ));
+        }
+        $output = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $dl_file = "$cfg->pkg_build_dir/$package_id-{$entry['version']}";
+        if ($code === 200) {
+            if (file_exists("$dl_file.tgz")) {
+                unlink("$dl_file.tgz");
+            }
+            if (!file_put_contents("$dl_file.tgz", $output)) {
+                CLI::err("[$package_id] Error saving file");
+            }
+            if (($hash = hash_file('sha256', "$dl_file.tgz")) !== $entry['sha256']) {
+                CLI::err("[$package_id] File corrupt ($hash != {$entry['sha256']})");
+            }
+        } else {
+            CLI::err("[$package_id] Error downloading file ($code)");
+        }
+        try {
+            CLI::out("[$package_id] Unpacking...");
+            $ph = new PharData("$dl_file.tgz");
+            if (file_exists("$dl_file.tar")) {
+                unlink("$dl_file.tar");
+            }
+            $ph->decompress();
+            if ($package_id !== 'dynamicsuite') {
+                if (!file_exists("packages/$package_id")) mkdir("packages/$package_id");
+                $ph->extractTo("packages/$package_id", null, true);
+            } else {
+                $ph->extractTo(getcwd(), null, true);
+            }
+        } catch (Exception $exception) {
+            CLI::err($exception->getMessage());
+        }
+        if ($package_id !== 'dynamicsuite' && file_exists("packages/$package_id/scripts/install.php")) {
+            CLI::out("[$package_id] Running package installation script...");
+            require_once "packages/$package_id/scripts/install.php";
+        } elseif ($package_id === 'dynamicsuite') {
+            CLI::out("[$package_id] Updating APCU state");
+            $script = file_get_contents('scripts/create_environment.php');
+            $state = isset($apcu) && $apcu ? 'true' : 'false';
+            $script = str_replace("define('DS_APCU', false);", "define('DS_APCU', $state);", $script);
+            file_put_contents('scripts/create_environment.php', $script);
+            CLI::out("[$package_id] Running upgrade script");
+            require_once "scripts/upgrade.php";
+        }
+        unset($entry['size'], $entry['sha256'], $entry['url'], $entry['auth']);
+        $entry['dependants'] = [];
+        $entry['installed_on'] = date('Y-m-d H:i:s');
+        $local_manifest[$package_id] = $entry;
+    }
+}
+
+// Execute the removal of a package
+function executeRemove(string $package_id): void
+{
+    global $cfg, $local_manifest;
+    if (in_array($package_id, $cfg->pkg_blacklist)) {
+        CLI::err("Package $package_id is on the blacklist and cannot be removed");
+    }
+    if ($package_id === 'dynamicsuite') {
+        CLI::err('Cannot remove package dynamicsuite');
+    }
+    if (!array_key_exists($package_id, $local_manifest)) {
+        CLI::err("Package $package_id is not installed");
+    }
+    if (!empty($local_manifest[$package_id]['dependants'])) {
+        CLI::err("Package $package_id cannot be removed because of the following dependants:", false);
+        CLI::err(implode(', ', $local_manifest[$package_id]['dependants']));
+    }
+    CLI::out("Removing $package_id...");
+    if (file_exists("packages/$package_id/scripts/uninstall.php")) {
+        require_once "packages/$package_id/scripts/uninstall.php";
+    }
+    // Remove directory
+    $remove_err = exec("rm -rf \"packages/$package_id\" 2>&1 >/dev/null");
+    if ($remove_err) {
+        CLI::err("Error removing $package_id: $remove_err");
+    }
+    // Remove dependency
+    foreach ($local_manifest as $local_package_id => $entry) {
+        if (in_array($package_id, $entry['dependants'])) {
+            unset(
+                $local_manifest[$local_package_id]['dependants']
+                    [array_search($package_id, $local_manifest[$local_package_id]['dependants'])]
+            );
+        }
+    }
+    // Clear up manifest and config
+    unset($local_manifest[$package_id]);
+    $global_packages = $cfg->packages;
+    if (in_array($package_id, $global_packages)) {
+        unset($global_packages[array_search($package_id, $global_packages)]);
+    }
+    writePackagesToGlobalConfig($global_packages);
+}
+
+// Write the packages to load to the global config
+function writePackagesToGlobalConfig(array $packages): void
+{
+    $json = @json_decode(@file_get_contents('config/dynamicsuite.json'), true);
+    if (!is_array($json)) CLI::err('Error reading global config');
+    $json['packages'] = array_values($packages);
+    $encode = @json_encode($json, JSON_PRETTY_PRINT);
+    if (!$encode) CLI::err('Error encoding global config');
+    if (!@file_put_contents('config/dynamicsuite.json', $encode)) CLI::err('Error writing global config');
+}
+
+if (!isset($argv[1])) {
+    printUsage();
+}
+
+// List active package repositories
+elseif ($argv[1] === 'list-repos') {
+    foreach ($cfg->pkg_repos as $repo => $auth) {
+        CLI::out(($auth ? '[PRIVATE]' : '[PUBLIC]') . " $repo");
+    }
+}
+
+// List packages that have been installed
+elseif ($argv[1] === 'list-installed') {
+    CLI::out(count($local_manifest) . ' packages installed');
+    foreach ($local_manifest as $package_id => $entry) CLI::out("$package_id-{$entry['version']}");
+}
+
+// List available packages in repositories
+elseif ($argv[1] === 'list-available') {
+    $available = getRemoteManifest();
+    CLI::out(count($available) . ' packages available');
+    foreach ($available as $package_id => $entry) CLI::out("$package_id-{$entry['version']}");
+}
+
+// List blacklisted packages
+elseif ($argv[1] === 'list-blacklisted') {
+    if (count($cfg->pkg_blacklist) === 0) CLI::out('No packages in blacklist');
+    foreach ($cfg->pkg_blacklist as $blacklisted) CLI::out($blacklisted);
+}
+
+// Install or upgrade a package
+elseif (($argv[1] === 'install' && $argc > 2) || $argv[1] === 'upgrade') {
+    $requested_package_ids = $argv[1] === 'install' ? array_slice($argv, 2) : array_keys($local_manifest);
+    $remote_manifest = getRemoteManifest();
+    $remote_check = array_diff($requested_package_ids, array_keys($remote_manifest));
+    if ($remote_check) CLI::err('Package(s) not found in repositories: ' . implode(', ', $remote_check));
+    $plan = [];
+    CLI::out('Building plan...');
+    foreach ($requested_package_ids as $package_id) {
+        if ($argv[1] === 'install' && in_array($package_id, $cfg->pkg_blacklist)) {
+            CLI::err("Package $package_id on blacklist, cannot continue");
+        }
+        if (
+            array_key_exists($package_id, $local_manifest) &&
+            version_compare($local_manifest[$package_id]['version'], $remote_manifest[$package_id]['version'], '>=')
+        ) {
+            if ($argv[1] === 'install') {
+                CLI::out("Package '$package_id' is already installed and on a greater or newer version than available");
+            }
+            continue;
+        }
+        if ($remote_manifest[$package_id]['depends']) {
+            $depends = buildDepends($remote_manifest[$package_id]['depends'], $local_manifest, $remote_manifest);
+            foreach ($depends as $depend => $metadata) {
+                if ($depend === $package_id) continue;
+                if (!array_key_exists($depend, $plan)) $plan = $plan + [$depend => $metadata];
+            }
+        }
+        $remote_manifest[$package_id]['manually_installed'] = true;
+        $plan = $plan + [$package_id => $remote_manifest[$package_id]];
+    }
+    if (empty($plan) && $argv[1] === 'install') CLI::err('No packages to install');
+    if (empty($plan) && $argv[1] === 'upgrade') CLI::err('All packages up-to-date');
+    executeInstallPlan($plan);
+    foreach ($local_manifest as $package_id => $entry) {
+        if (empty($entry['depends'])) continue;
+        foreach ($entry['depends'] as $depend) {
+            $depend = explodeDepend($depend);
+            if(!isset($local_manifest[$depend[0]])) continue;
+            if (!in_array($package_id, $local_manifest[$depend[0]]['dependants'])) {
+                $local_manifest[$depend[0]]['dependants'][] = $package_id;
+            }
+        }
+    }
+    $global_packages = $cfg->packages;
+    foreach (array_keys($plan) as $package_id) {
+        if (!in_array($package_id, $global_packages)) $global_packages[] = $package_id;
+    }
+    writePackagesToGlobalConfig($global_packages);
+}
+
+elseif ($argv[1] === 'remove' && $argc > 2) {
+    $requested_package_ids = array_slice($argv, 2);
+    CLI::out('The following packages will be removed:');
+    CLI::out('  ' . implode(', ', $requested_package_ids));
+    if (CLI::yn('Continue?')) {
+        foreach ($requested_package_ids as $package_id) executeRemove($package_id);
+    }
+}
+
+// Cleanup temporary files and dangling packages
+elseif ($argv[1] === 'cleanup') {
+    if ($cfg->pkg_build_dir === '/' || strlen($cfg->pkg_build_dir) === 0) CLI::err('Package build directory empty');
+    $remove_err = exec("rm -rf \"$cfg->pkg_build_dir\" 2>&1 >/dev/null");
+    if ($remove_err) {
+        CLI::err("Error removing $cfg->pkg_build_dir: $remove_err");
+    }
+    $to_remove = [];
+    foreach ($local_manifest as $package_id => $entry) {
+        if ($package_id === 'dynamicsuite') continue;
+        if (in_array($package_id, $cfg->pkg_blacklist)) continue;
+        if ($entry['manually_installed']) continue;
+        if (empty($entry['dependants'])) {
+            $to_remove[] = $package_id;
+        }
+    }
+    if (count($to_remove) > 0) {
+        CLI::out('The following packages are no longer needed and may be removed:');
+        CLI::out('  ' . implode(', ', $to_remove));
+        if (CLI::yn('Remove these packages?')) {
+            foreach ($to_remove as $package_id) executeRemove($package_id);
+        }
+    }
+}
+
+// Usage
+else {
+    printUsage();
+}
+
+writeManifest($local_manifest);
+fclose(MANIFEST);

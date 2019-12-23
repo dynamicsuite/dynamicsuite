@@ -1,0 +1,6 @@
+.prettierignore
+.idea/*
+config/*
+logs/*
+packages/*
+.dspkg/*

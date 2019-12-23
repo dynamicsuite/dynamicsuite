@@ -1,0 +1,249 @@
+#!/usr/bin/env php
+<?php
+/*
+ * Dynamic Suite
+ * Copyright (C) 2019 Dynamic Suite Team
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
+
+namespace DynamicSuite;
+use PDOException;
+
+set_time_limit(0);
+ini_set('memory_limit', -1);
+
+require_once realpath(__DIR__ . '/create_instance.php');
+
+/** @var Instance $ds */
+
+// Print command usage
+function printUsage(): void
+{
+    CLI::out('Usage: ./groups [-fhlcmda] [options ...]');
+    CLI::out('Options:');
+    CLI::out('  -f                          Force "YES" at all prompts');
+    CLI::out('  -h, --help                  Display this help');
+    CLI::out('  -l, --list                  List all groups');
+    CLI::out('  -c, --create                Create a group');
+    CLI::out('  -m, --modify [string]       Modify a group');
+    CLI::out('  -d, --delete [string]       Delete a group');
+    CLI::out('  -a, --audit [string]        Audit a groups permissions');
+    CLI::out('  -p, --permissions [string]  Modify permissions for a group');
+    CLI::out('  --add [string]              Add a permission to a group');
+    CLI::out('  --remove [string]           Remove a permission from a group');
+    CLI::out('  --clear                     Clear all permissions from a group');
+}
+
+// Make sure cached data is synced
+function syncCache(): void
+{
+    if (!DS_APCU) {
+        CLI::out('Caching not enabled, skipping sync');
+        return;
+    }
+    CLI::out('Cached data has been changed');
+    if (CLI::yn('Restart apache and reset cache?')) {
+        $err = exec('apachectl restart');
+        if ($err) CLI::err($err);
+    }
+}
+
+/** @var Instance $ds */
+$options = getopt('fhlcm:d:a:p:', [
+    'help',
+    'list',
+    'create',
+    'modify:',
+    'delete:',
+    'audit:',
+    'permissions:',
+    'add:',
+    'remove:',
+    'clear'
+]);
+
+// Show help
+if (CLI::actionIs(['h', 'help'], $options)) {
+    printUsage();
+}
+
+// List groups
+elseif (CLI::actionIs(['l', 'list'], $options)) {
+    try {
+        $data = $ds->db->query((new Query())->select()->from('ds_groups'));
+        CLI::out(CLI::table([
+            'name',
+            'description'
+        ], $data));
+    } catch (PDOException $exception) {
+        CLI::err($exception->getMessage());
+    }
+}
+
+// Create a group
+elseif (CLI::actionIs(['c', 'create'], $options)) {
+    try {
+        $group = new Group();
+        $group->setName(CLI::in('Name'));
+        $group->setDescription(CLI::in('Description'));
+        $ds->groups->create($group);
+        $ds->events->create((new Event())
+            ->setPackageId('dynamicsuite')
+            ->setType(200)
+            ->setAffected($group->name)
+            ->setMessage('Group created')
+        );
+        syncCache();
+        CLI::out("Group added: $group->name");
+    } catch (PDOException $exception) {
+        CLI::err('Group not added', false);
+        CLI::err($exception->getMessage());
+    }
+}
+
+// Modify a group
+elseif (CLI::actionIs(['m', 'modify'], $options)) {
+    $group = isset($options['m']) && is_string($options['m'])
+        ? $options['m']
+        : $options['modify'];
+    try {
+        /** @var Group $group */
+        if (!$group = $ds->groups->find($group)) {
+            CLI::err('Group does not exist');
+        }
+        $group->setName(CLI::in('Name', $group->name));
+        $group->setDescription(CLI::in('Description', $group->description));
+        $ds->groups->modify($group);
+        $ds->events->create((new Event())
+            ->setPackageId('dynamicsuite')
+            ->setType(201)
+            ->setAffected($group->name)
+            ->setMessage('Group modified')
+        );
+        syncCache();
+        CLI::out("Group updated: $group->name");
+    } catch (PDOException $exception) {
+        CLI::err('Group not updated', false);
+        CLI::err($exception->getMessage());
+    }
+}
+
+// Delete a group
+elseif (CLI::actionIs(['d', 'delete'], $options)) {
+    $group = isset($options['d']) && is_string($options['d'])
+        ? $options['d']
+        : $options['delete'];
+    try {
+        /** @var Group $group */
+        if (!$group = $ds->groups->find($group)) {
+            CLI::err('Group does not exist');
+        }
+        $ds->groups->delete($group);
+        $ds->events->create((new Event())
+            ->setPackageId('dynamicsuite')
+            ->setType(202)
+            ->setAffected($group->name)
+            ->setMessage('Group deleted')
+        );
+        syncCache();
+        CLI::out("Group deleted: $group->name");
+    } catch (PDOException $exception) {
+        CLI::err('Group not deleted', false);
+        CLI::err($exception->getMessage());
+    }
+}
+
+// Audit a groups permissions
+elseif (CLI::actionIs(['a', 'audit'], $options)) {
+    $group = isset($options['a']) && is_string($options['a'])
+        ? $options['a']
+        : $options['audit'];
+    try {
+        /** @var Group $group */
+        if (!$group = $ds->groups->find($group)) {
+            CLI::err('Group does not exist');
+        }
+        $data = $ds->db->query((new Query())
+            ->select()
+            ->from('ds_view_group_permissions')
+            ->where('group_id', '=', $group->id)
+        );
+        CLI::out(CLI::table([
+            'package_id',
+            'name',
+            'description'
+        ], $data));
+    } catch (PDOException $exception) {
+        CLI::err($exception->getMessage());
+    }
+}
+
+// Modify group permissions
+elseif (CLI::actionIs(['p', 'permissions'], $options)) {
+    $group = isset($options['p']) && is_string($options['p'])
+        ? $options['p']
+        : $options['permissions'];
+    try {
+        /** @var Group $group */
+        if (!$group = $ds->groups->find($group)) {
+            CLI::err('Group does not exist');
+        }
+        if (isset($options['add'])) {
+            /** @var Permission $permission */
+            if (!$permission = $ds->permissions->find($options['add'])) {
+                CLI::err('Permission not found');
+            }
+            $ds->groups->addPermission($group, $permission);
+            $ds->events->create((new Event())
+                ->setPackageId('dynamicsuite')
+                ->setType(250)
+                ->setAffected($group->name)
+                ->setMessage("Permission $permission->shorthand added")
+            );
+        } elseif (isset($options['remove'])) {
+            /** @var Permission $permission */
+            if (!$permission = $ds->permissions->find($options['remove'])) {
+                CLI::err('Permission not found');
+            }
+            $ds->groups->removePermission($group, $permission);
+            $ds->events->create((new Event())
+                ->setPackageId('dynamicsuite')
+                ->setType(251)
+                ->setAffected($group->name)
+                ->setMessage("Permission $permission->shorthand removed")
+            );
+        } elseif (isset($options['clear'])) {
+            $ds->groups->replacePermissions($group, []);
+            $ds->events->create((new Event())
+                ->setPackageId('dynamicsuite')
+                ->setType(252)
+                ->setAffected($group->name)
+                ->setMessage('Permissions replaced')
+            );
+        } else {
+            CLI::err('Missing flags for permission modification', false);
+            printUsage();
+            exit;
+        }
+    } catch (PDOException $exception) {
+        CLI::err($exception->getMessage());
+    }
+}
+
+// Missing arguments
+else {
+    CLI::err('Invalid usage', false);
+    printUsage();
+}

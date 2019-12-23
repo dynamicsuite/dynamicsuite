@@ -1,0 +1,100 @@
+#!/usr/bin/env php
+<?php
+/*
+ * Dynamic Suite
+ * Copyright (C) 2019 Dynamic Suite Team
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
+
+namespace DynamicSuite;
+use PDOException;
+
+set_time_limit(0);
+ini_set('memory_limit', -1);
+
+// Create instance
+require_once realpath(__DIR__ . '/create_instance.php');
+
+/** @var Instance $ds */
+
+// Print command usage
+function printUsage(): void
+{
+    CLI::out('Usage: ./events [-fhlt] [options ...]');
+    CLI::out('Options:');
+    CLI::out('  -f                  Force "YES" at all prompts');
+    CLI::out('  -h, --help          Display this help');
+    CLI::out('  -l, --list          List events in the event log');
+    CLI::out('  -t, --truncate      Truncate the event log');
+    CLI::out('  --type [int]        Set the action to a specific type');
+    CLI::out('  --package [string]  Set the action to a specific package ID');
+    CLI::out('  --limit [int]       Set the action to limit row count');
+}
+
+$options = getopt('hlt', ['help', 'list', 'truncate', 'type:', 'package:', 'limit:']);
+
+// Show help
+if (CLI::actionIs(['h', 'help'], $options)) {
+    printUsage();
+}
+
+// List events
+elseif (CLI::actionIs(['l', 'list'], $options)) {
+    CLI::out('Recent Events');
+    $type = CLI::actionIs('type', $options) ? $options['type'] : false;
+    $package_id = CLI::actionIs('package', $options) ? $options['package'] : false;
+    $limit = CLI::actionIs('limit', $options) ? $options['limit'] : false;
+    try {
+        $query = (new Query())->select()->from('ds_events');
+        if ($type) $query->where('type', '=', (int) $type);
+        if ($package_id) $query->where('package_id', '=', $package_id);
+        $data = $ds->db->query($query->orderBy('timestamp', 'DESC')->limit($limit));
+        CLI::out(CLI::table([
+            'timestamp',
+            'package_id',
+            'type',
+            'created_by',
+            'ip',
+            'session',
+            'affected',
+            'message'
+        ], $data));
+    } catch (PDOException $exception) {
+        CLI::out($exception->getMessage());
+    }
+}
+
+// Truncate events
+elseif (CLI::actionIs(['t', 'truncate'], $options)) {
+    CLI::out('Truncating events');
+    $type = CLI::actionIs('type', $options) ? $options['type'] : false;
+    $package_id = CLI::actionIs('package', $options) ? $options['package'] : false;
+    if (!CLI::yn('Truncate event log?')) {
+        CLI::err('Truncate canceled');
+    }
+    try {
+        $ds->events->truncate($package_id ? $package_id : null, $type ? $type : null);
+        CLI::out('Events truncated');
+    } catch (PDOException $exception) {
+        CLI::out('Events not truncated');
+        CLI::out($exception->getMessage());
+    }
+}
+
+// Invalid usage
+else {
+    CLI::err('Invalid usage', false);
+    printUsage();
+}
