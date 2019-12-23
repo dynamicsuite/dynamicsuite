@@ -22,8 +22,8 @@ namespace DynamicSuite;
 require_once realpath(__DIR__ . '/create_environment.php');
 
 // Initialize the instance
-if (apcu_exists('dynamicsuite') && DS_APCU) {
-    $ds = apcu_fetch('dynamicsuite');
+if (apcu_exists(md5(DS_ROOT_DIR)) && DS_APCU) {
+    $ds = apcu_fetch(md5(DS_ROOT_DIR));
 } else {
     $ds = new Instance();
     if (DS_APCU) $ds->save();

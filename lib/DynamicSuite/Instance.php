@@ -178,7 +178,7 @@ class Instance extends ProtectedObject
     public function save()
     {
         if (isset($this->session)) unset($this->session);
-        if (DS_APCU) apcu_store('dynamicsuite', $this);
+        if (DS_APCU) apcu_store(md5(DS_ROOT_DIR), $this);
         $this->registerGlobal('session', new Session($this));
     }
 
