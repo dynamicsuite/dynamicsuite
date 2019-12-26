@@ -21,7 +21,7 @@ namespace DynamicSuite;
 
 // Set globals
 define('DS_START', microtime(true));
-define('DS_VERSION', '3.0.1');
+define('DS_VERSION', '3.0.2');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_APCU', false);
 define('DS_PHP_VERSION', '7.3.0');
@@ -29,9 +29,9 @@ ini_set('display_errors', 0);
 chdir(DS_ROOT_DIR);
 
 // Get forced flag state
-if (isset($argv) && array_key_exists('f', $argv)) {
+if (isset($argv) && in_array('-f', $argv)) {
     define('CLI_FORCE', true);
-    unset($argv[1]);
+    unset($argv[array_search('-f', $argv)]);
     $argv = array_values($argv);
 } else {
     define('CLI_FORCE', false);
