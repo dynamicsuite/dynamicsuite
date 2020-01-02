@@ -156,12 +156,14 @@ class Query extends ProtectedObject
     /**
      * Set the query to a SELECT query.
      *
-     * @param null|array $columns
+     * @param null|array|string $columns
      * @return Query
      */
-    public function select(array $columns = null): Query
+    public function select($columns = null): Query
     {
-        if ($columns) {
+        if (is_string($columns)) {
+            $this->columns([$columns]);
+        } elseif ($columns) {
             $this->columns($columns);
         }
         return $this->setType('SELECT');
