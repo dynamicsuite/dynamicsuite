@@ -11,7 +11,7 @@ CREATE TABLE `ds_events` (
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `package_id` varchar(64) DEFAULT NULL,
   `type` int(10) DEFAULT NULL,
-  `created_by` varchar(64) DEFAULT NULL,
+  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `ip` varchar(39) DEFAULT NULL,
   `session` char(64) DEFAULT NULL,
   `affected` varchar(64) DEFAULT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `ds_groups` (
   `group_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) DEFAULT NULL,
   `description` varchar(64) DEFAULT NULL,
-  `created_by` varchar(64) DEFAULT NULL,
+  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `created_on` datetime DEFAULT NULL,
   PRIMARY KEY (`group_id`),
   UNIQUE KEY `name` (`name`)
@@ -62,11 +62,11 @@ CREATE TABLE `ds_user_groups` (
 
 CREATE TABLE `ds_users` (
   `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) DEFAULT NULL,
+  `username` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `password` char(96) NOT NULL DEFAULT '',
   `inactive` tinyint(1) unsigned DEFAULT NULL,
   `inactive_time` datetime DEFAULT NULL,
-  `created_by` varchar(64) DEFAULT NULL,
+  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `created_on` datetime DEFAULT NULL,
   `login_attempts` tinyint(1) unsigned DEFAULT 0,
   `login_last_attempt` datetime DEFAULT NULL,
