@@ -227,6 +227,7 @@ class Permission extends ProtectedObject
      * Check to see if the package ID has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function packageIdChanged(): bool
     {
@@ -237,6 +238,7 @@ class Permission extends ProtectedObject
      * Check to see if the name has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function nameChanged(): bool
     {
@@ -247,6 +249,7 @@ class Permission extends ProtectedObject
      * Check to see if the description has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function descriptionChanged(): bool
     {
@@ -267,6 +270,7 @@ class Permission extends ProtectedObject
      * Get the group as an array.
      *
      * @return array
+     * @noinspection PhpUnused
      */
     public function asArray(): array
     {
