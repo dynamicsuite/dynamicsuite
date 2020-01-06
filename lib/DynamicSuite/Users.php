@@ -69,6 +69,7 @@ class Users extends InstanceMember
      *
      * @return User[]
      * @throws PDOException
+     * @noinspection PhpUnused
      */
     public function getAll(): array
     {

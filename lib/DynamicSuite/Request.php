@@ -106,6 +106,7 @@ class Request extends InstanceMember
      * @param string $value
      * @param bool $strict
      * @return bool
+     * @noinspection PhpUnused
      */
     public function uriKey(int $key, string $value, bool $strict = false): bool
     {
@@ -182,6 +183,7 @@ class Request extends InstanceMember
      *
      * @param int $factor
      * @return float
+     * @noinspection PhpUnused
      */
     public static function executionTime(int $factor = 1): float
     {

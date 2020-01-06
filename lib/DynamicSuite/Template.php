@@ -73,6 +73,7 @@ class Template
      *
      * @param string $content
      * @return Template
+     * @noinspection PhpUnused
      */
     public function prepend(string $content): Template
     {
@@ -85,6 +86,7 @@ class Template
      *
      * @param string $content
      * @return Template
+     * @noinspection PhpUnused
      */
     public function append(string $content): Template
     {

@@ -396,6 +396,7 @@ class User extends ProtectedObject
      * Check to see if the username has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function usernameChanged(): bool
     {
@@ -406,6 +407,7 @@ class User extends ProtectedObject
      * Check to see if the password has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function passwordChanged(): bool
     {
@@ -416,6 +418,7 @@ class User extends ProtectedObject
      * Check to see if the inactive state has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function inactiveChanged(): bool
     {
@@ -428,6 +431,7 @@ class User extends ProtectedObject
      * Password is omitted for security reasons.
      *
      * @return array
+     * @noinspection PhpUnused
      */
     public function asArray(): array
     {

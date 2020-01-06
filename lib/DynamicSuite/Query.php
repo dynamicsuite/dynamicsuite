@@ -173,6 +173,7 @@ class Query extends ProtectedObject
      * Set the query to a distinct query.
      *
      * @return Query
+     * @noinspection PhpUnused
      */
     public function distinct(): Query
     {
@@ -205,6 +206,7 @@ class Query extends ProtectedObject
      * Ignore flag for INSERT IGNORE queries.
      *
      * @return Query
+     * @noinspection PhpUnused
      */
     public function ignore(): Query
     {
