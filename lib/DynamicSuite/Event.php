@@ -280,6 +280,7 @@ class Event extends ProtectedObject
      * Get the event as an array.
      *
      * @return array
+     * @noinspection PhpUnused
      */
     public function asArray(): array
     {

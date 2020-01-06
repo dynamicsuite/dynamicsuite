@@ -207,6 +207,7 @@ class Group extends ProtectedObject
      * Check to see if the description has changed between modifications.
      *
      * @return bool
+     * @noinspection PhpUnused
      */
     public function descriptionChanged(): bool
     {
@@ -217,6 +218,7 @@ class Group extends ProtectedObject
      * Get the group as an array.
      *
      * @return array
+     * @noinspection PhpUnused
      */
     public function asArray(): array
     {

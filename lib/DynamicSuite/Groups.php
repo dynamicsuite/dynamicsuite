@@ -89,8 +89,13 @@ class Groups extends InstanceMember
      */
     public function create(Group $group): Group
     {
-        $group->validateForDatabase();
         $group->setCreatedOn(date('Y-m-d H:i:s'));
+        if (isset($this->ds->session)) {
+            $group->setCreatedBy($this->ds->session->user->username ?? null);
+        } else {
+            $group->setCreatedBy(null);
+        }
+        $group->validateForDatabase();
         $id = $this->ds->db->query((new Query())
             ->insert([
                 'name' => $group->pending_name,
