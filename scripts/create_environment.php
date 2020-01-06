@@ -32,6 +32,7 @@ chdir(DS_ROOT_DIR);
 if (isset($argv) && in_array('-f', $argv)) {
     define('CLI_FORCE', true);
     unset($argv[array_search('-f', $argv)]);
+    /** @noinspection PhpUnusedLocalVariableInspection */
     $argv = array_values($argv);
 } else {
     define('CLI_FORCE', false);
