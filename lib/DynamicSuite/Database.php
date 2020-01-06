@@ -176,6 +176,7 @@ class Database extends ProtectedObject
      * @param mixed $key
      * @param mixed $value
      * @return Database
+     * @noinspection PhpUnused
      */
     public function setOption($key, $value): Database
     {
