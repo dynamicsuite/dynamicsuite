@@ -236,6 +236,7 @@ class Groups extends InstanceMember
      * @param Group $group
      * @return Permission[]
      * @throws PDOException
+     * @noinspection PhpUnused
      */
     public function viewPermissions(Group $group): array
     {
