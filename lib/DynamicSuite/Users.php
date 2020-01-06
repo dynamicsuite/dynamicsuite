@@ -1,7 +1,7 @@
 <?php
 /*
  * Dynamic Suite
- * Copyright (C) 2019 Dynamic Suite Team
+ * Copyright (C) 2020 Dynamic Suite Team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
