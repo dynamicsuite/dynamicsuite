@@ -127,13 +127,6 @@ class PackageView extends ProtectedObject
     protected $nav_group;
 
     /**
-     * View icon class (for nav, etc).
-     *
-     * @var string
-     */
-    protected $icon;
-
-    /**
      * PackageView constructor.
      *
      * @param string $package_id

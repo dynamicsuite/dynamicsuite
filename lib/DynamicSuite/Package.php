@@ -260,6 +260,7 @@ class Package extends ProtectedObject
      * @param string $package_id
      * @param string $path
      * @return string
+     * @noinspection PhpUnused
      */
     public static function formatClientPath(string $package_id, string $path): string
     {
