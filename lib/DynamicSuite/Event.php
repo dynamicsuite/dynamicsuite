@@ -119,7 +119,7 @@ class Event extends ProtectedObject
      *
      * @var int
      */
-    const MAX_CREATED_BY_LENGTH = 64;
+    const MAX_CREATED_BY_LENGTH = 254;
 
     /**
      * Maximum length of the entities IP address that created the event.
@@ -140,7 +140,7 @@ class Event extends ProtectedObject
      *
      * @var int
      */
-    const MAX_AFFECTED_LENGTH = 64;
+    const MAX_AFFECTED_LENGTH = 254;
 
     /**
      * Maximum length that an event message can be.

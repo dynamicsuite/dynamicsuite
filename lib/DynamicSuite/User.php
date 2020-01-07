@@ -145,7 +145,7 @@ class User extends ProtectedObject
      *
      * @var int
      */
-    public const MAX_USERNAME_LENGTH = 64;
+    public const MAX_USERNAME_LENGTH = 254;
 
     /**
      * Maximum length that a user password can be.
@@ -159,7 +159,7 @@ class User extends ProtectedObject
      *
      * @var int
      */
-    public const MAX_CREATED_BY_LENGTH = 64;
+    public const MAX_CREATED_BY_LENGTH = 254;
 
     /**
      * Maximum amount of login attempts a user can have.

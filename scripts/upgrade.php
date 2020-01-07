@@ -24,15 +24,28 @@ ini_set('memory_limit', -1);
 
 require_once realpath(__DIR__ . '/create_environment.php');
 
-/** @var Instance $ds */
+$cfg = new Config('dynamicsuite');
+$host = CLI::splitDSN($cfg->db_dsn, 'host');
+$db_name = CLI::splitDSN($cfg->db_dsn, 'dbname');
 
 // 3.1.0 Database Changes
 if (version_compare(DS_VERSION, '3.1.0') === -1) {
-    $cfg = new Config('dynamicsuite');
-    CLI::out('Updating Tables...');
+    CLI::out('Updating Tables...   3.1.0');
     $sql = realpath(__DIR__ . '/../sql/3.1.0_changes.sql');
-    $host = CLI::splitDSN($cfg->db_dsn, 'host');
-    $db_name = CLI::splitDSN($cfg->db_dsn, 'dbname');
+    $err = exec(
+        "mysql " .
+        "--user=\"{$cfg->db_user}\" " .
+        "--password=\"{$cfg->db_pass}\" " .
+        "--host=\"$host\" " .
+        "--database=\"$db_name\" " .
+        "< \"$sql\"");
+    if ($err) CLI::err($err);
+}
+
+// 3.1.1 Database Changes
+if (version_compare(DS_VERSION, '3.1.1') === -1) {
+    CLI::out('Updating Tables...   3.1.1');
+    $sql = realpath(__DIR__ . '/../sql/3.1.1_changes.sql');
     $err = exec(
         "mysql " .
         "--user=\"{$cfg->db_user}\" " .

@@ -14,7 +14,7 @@ CREATE TABLE `ds_events` (
   `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `ip` varchar(39) DEFAULT NULL,
   `session` char(64) DEFAULT NULL,
-  `affected` varchar(64) DEFAULT NULL,
+  `affected` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `message` varchar(2048) DEFAULT NULL,
   PRIMARY KEY (`event_id`),
   KEY `timestamp` (`timestamp`),

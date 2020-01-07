@@ -103,7 +103,7 @@ class Group extends ProtectedObject
      *
      * @var int
      */
-    public const MAX_CREATED_BY_LENGTH = 64;
+    public const MAX_CREATED_BY_LENGTH = 254;
 
     /**
      * Group constructor.
