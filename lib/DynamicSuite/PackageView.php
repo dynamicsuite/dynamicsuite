@@ -242,7 +242,7 @@ class PackageView extends ProtectedObject
      */
     public function setNavName(string $nav_name = null): PackageView
     {
-        $this->nav_name = $nav_name ?? 'Unknown View';
+        $this->nav_name = $nav_name ?? $this->uri_path;
         return $this;
     }
 
