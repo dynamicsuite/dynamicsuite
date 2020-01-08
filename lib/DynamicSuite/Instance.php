@@ -141,7 +141,20 @@ class Instance extends ProtectedObject
             ->registerGlobal('permissions', new Permissions($this))
             ->registerGlobal('groups', new Groups($this))
             ->registerGlobal('users', new Users($this));
+        $this->pkg = new PackageBus();
         if (DS_APCU) $this->save();
+    }
+
+    /**
+     * Check if a global class is registered.
+     *
+     * @param string $global
+     * @return bool
+     * @noinspection PhpUnused
+     */
+    public function globalIsRegistered(string $global): bool
+    {
+        return isset($this->$global);
     }
 
     /**
@@ -158,26 +171,32 @@ class Instance extends ProtectedObject
     }
 
     /**
-     * Check to see if a package is registered as a sub-instance member.
+     * Check if a package class is registered.
      *
      * @param string $package_id
      * @return bool
+     * @noinspection PhpUnused
      */
     public function packageIsRegistered(string $package_id): bool
     {
-        return isset($this->pkg[$package_id]);
+        return isset($this->pkg->$package_id);
     }
 
     /**
      * Register a package class to the package bus.
      *
      * @param string $package_id
-     * @param $value
+     * @param mixed $value
+     * @param bool $save
+     * @param bool $override
      * @return Instance
+     * @noinspection PhpUnused
      */
-    public function registerPackage(string $package_id, $value): Instance
+    public function registerPackage(string $package_id, $value, bool $save = true, bool $override = false): Instance
     {
-        $this->pkg[$package_id] = $value;
+        if ($this->packageIsRegistered($package_id) && !$override) return $this;
+        $this->pkg->$package_id = $value;
+        if ($save) $this->save();
         return $this;
     }
 
@@ -188,9 +207,14 @@ class Instance extends ProtectedObject
      */
     public function save()
     {
-        if (isset($this->session)) unset($this->session);
+        if ($this->globalIsRegistered('session')) {
+            $session = $this->session;
+            unset($this->session);
+        } else {
+            $session = new Session($this);
+        }
         if (DS_APCU) apcu_store(md5(DS_ROOT_DIR), $this);
-        $this->registerGlobal('session', new Session($this));
+        $this->registerGlobal('session', $session);
     }
 
 }
