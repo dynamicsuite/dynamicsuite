@@ -158,6 +158,17 @@ class Instance extends ProtectedObject
     }
 
     /**
+     * Check to see if a package is registered as a sub-instance member.
+     *
+     * @param string $package_id
+     * @return bool
+     */
+    public function packageIsRegistered(string $package_id): bool
+    {
+        return isset($this->pkg[$package_id]);
+    }
+
+    /**
      * Register a package class to the package bus.
      *
      * @param string $package_id
