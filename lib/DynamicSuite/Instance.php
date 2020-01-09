@@ -33,7 +33,7 @@ namespace DynamicSuite;
  * @property Permissions $permissions
  * @property Groups $groups
  * @property Users $users
- * @property array $pkg
+ * @property PackageBus $pkg
  * @property Session $session
  */
 class Instance extends ProtectedObject
