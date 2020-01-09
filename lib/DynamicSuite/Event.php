@@ -460,7 +460,7 @@ class Event extends ProtectedObject
             $errors['filter_5'] = "$this->filter_5 > " . self::MAX_FILTER_LENGTH;
         }
         if (!empty($errors)) {
-            $message = 'User has data that exceeds database limits' . PHP_EOL;
+            $message = 'Event has data that exceeds database limits' . PHP_EOL;
             foreach ($errors as $k => $v) {
                 $message .= "  -- $k: $v" . PHP_EOL;
             }
