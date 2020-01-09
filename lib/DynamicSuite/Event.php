@@ -33,6 +33,12 @@ use PDOException;
  * @property string|null $session
  * @property string|null $affected
  * @property string $message
+ * @property int|null $filter_1
+ * @property int|null $filter_2
+ * @property int|null $filter_3
+ * @property int|null $filter_4
+ * @property int|null $filter_5
+ *
  */
 class Event extends ProtectedObject
 {
@@ -101,6 +107,40 @@ class Event extends ProtectedObject
     protected $message;
 
     /**
+     * Application filter #1.
+     * 
+     * @var int|null
+     */
+    protected $filter_1;
+
+    /**
+     * Application filter #2.
+     *
+     * @var int|null
+     */
+    protected $filter_2;
+    /**
+     * Application filter #3.
+     *
+     * @var int|null
+     */
+    protected $filter_3;
+
+    /**
+     * Application filter #4.
+     *
+     * @var int|null
+     */
+    protected $filter_4;
+
+    /**
+     * Application filter #5.
+     *
+     * @var int|null
+     */
+    protected $filter_5;
+
+    /**
      * Maximum length that an event package ID can be.
      *
      * @var int
@@ -166,6 +206,11 @@ class Event extends ProtectedObject
         if (isset($event['session'])) $this->session = $event['session'];
         if (isset($event['affected'])) $this->affected = $event['affected'];
         if (isset($event['message'])) $this->message = $event['message'];
+        if (isset($event['filter_1'])) $this->setFilter1($event['filter_1']);
+        if (isset($event['filter_2'])) $this->setFilter2($event['filter_2']);
+        if (isset($event['filter_3'])) $this->setFilter3($event['filter_3']);
+        if (isset($event['filter_4'])) $this->setFilter4($event['filter_4']);
+        if (isset($event['filter_5'])) $this->setFilter5($event['filter_5']);
     }
 
     /**
@@ -273,6 +318,66 @@ class Event extends ProtectedObject
     public function setMessage(string $message): Event
     {
         $this->message = $message;
+        return $this;
+    }
+
+    /**
+     * Set application filter #1.
+     * 
+     * @param int $filter_1
+     * @return Event
+     */
+    public function setFilter1(?int $filter_1 = null): Event
+    {
+        $this->filter_1 = $filter_1;
+        return $this;
+    }
+
+    /**
+     * Set application filter #2.
+     *
+     * @param int $filter_2
+     * @return Event
+     */
+    public function setFilter2(?int $filter_2 = null): Event
+    {
+        $this->filter_2 = $filter_2;
+        return $this;
+    }
+
+    /**
+     * Set application filter #3.
+     *
+     * @param int $filter_3
+     * @return Event
+     */
+    public function setFilter3(?int $filter_3 = null): Event
+    {
+        $this->filter_3 = $filter_3;
+        return $this;
+    }
+
+    /**
+     * Set application filter #4.
+     *
+     * @param int $filter_4
+     * @return Event
+     */
+    public function setFilter4(?int $filter_4 = null): Event
+    {
+        $this->filter_4 = $filter_4;
+        return $this;
+    }
+
+    /**
+     * Set application filter #5.
+     *
+     * @param int $filter_5
+     * @return Event
+     */
+    public function setFilter5(?int $filter_5 = null): Event
+    {
+        $this->filter_5 = $filter_5;
         return $this;
     }
 

@@ -90,7 +90,12 @@ class Events extends InstanceMember
                 'ip' => $event->ip,
                 'session' => $event->session,
                 'affected' => $event->affected,
-                'message' => $event->message
+                'message' => $event->message,
+                'filter_1' => $event->filter_1,
+                'filter_2' => $event->filter_2,
+                'filter_3' => $event->filter_3,
+                'filter_4' => $event->filter_4,
+                'filter_5' => $event->filter_5,
             ])
             ->into('ds_events')
         ));

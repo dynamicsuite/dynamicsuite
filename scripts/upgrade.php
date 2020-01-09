@@ -55,3 +55,17 @@ if (version_compare(DS_VERSION, '3.1.1') === -1) {
         "< \"$sql\"");
     if ($err) CLI::err($err);
 }
+
+// 3.4.0 Database Changes
+if (version_compare(DS_VERSION, '3.4.0') === -1) {
+    CLI::out('Updating Tables...   3.4.0');
+    $sql = realpath(__DIR__ . '/../sql/3.4.0_changes.sql');
+    $err = exec(
+        "mysql " .
+        "--user=\"{$cfg->db_user}\" " .
+        "--password=\"{$cfg->db_pass}\" " .
+        "--host=\"$host\" " .
+        "--database=\"$db_name\" " .
+        "< \"$sql\"");
+    if ($err) CLI::err($err);
+}
