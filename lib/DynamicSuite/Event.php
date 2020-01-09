@@ -190,6 +190,13 @@ class Event extends ProtectedObject
     const MAX_MESSAGE_LENGTH = 2048;
 
     /**
+     * Maximum length an application filter can be.
+     * 
+     * @var int
+     */
+    const MAX_FILTER_LENGTH = 4294967295;
+
+    /**
      * Event constructor.
      *
      * @param array|null $event
@@ -398,7 +405,12 @@ class Event extends ProtectedObject
             'ip' => $this->ip,
             'session' => $this->session,
             'affected' => $this->affected,
-            'message' => $this->message
+            'message' => $this->message,
+            'filter_1' => $this->filter_1,
+            'filter_2' => $this->filter_2,
+            'filter_3' => $this->filter_3,
+            'filter_4' => $this->filter_4,
+            'filter_5' => $this->filter_5,
         ];
     }
 
@@ -431,6 +443,21 @@ class Event extends ProtectedObject
         }
         if (strlen($this->message) > self::MAX_MESSAGE_LENGTH) {
             $errors['message'] = "$this->message > " .  self::MAX_MESSAGE_LENGTH . ' characters';
+        }
+        if ($this->filter_1 > self::MAX_FILTER_LENGTH) {
+            $errors['filter_1'] = "$this->filter_1 > " . self::MAX_FILTER_LENGTH;
+        }
+        if ($this->filter_2 > self::MAX_FILTER_LENGTH) {
+            $errors['filter_2'] = "$this->filter_2 > " . self::MAX_FILTER_LENGTH;
+        }
+        if ($this->filter_3 > self::MAX_FILTER_LENGTH) {
+            $errors['filter_3'] = "$this->filter_3 > " . self::MAX_FILTER_LENGTH;
+        }
+        if ($this->filter_4 > self::MAX_FILTER_LENGTH) {
+            $errors['filter_4'] = "$this->filter_4 > " . self::MAX_FILTER_LENGTH;
+        }
+        if ($this->filter_5 > self::MAX_FILTER_LENGTH) {
+            $errors['filter_5'] = "$this->filter_5 > " . self::MAX_FILTER_LENGTH;
         }
         if (!empty($errors)) {
             $message = 'User has data that exceeds database limits' . PHP_EOL;
