@@ -314,8 +314,8 @@ class Users extends InstanceMember
             ->update('ds_users')
             ->set([
                 'login_attempts' => $user->login_attempts,
-                'login_last_attempt' => date('Y-m-d H:i:s', strtotime($user->login_last_attempt)),
-                'login_last_success' => date('Y-m-d H:i:s', strtotime($user->login_last_success)),
+                'login_last_attempt' => $user->login_last_attempt,
+                'login_last_success' => $user->login_last_success,
                 'login_last_ip' => $user->login_last_ip
             ])
             ->where('user_id', '=', $user->id)
