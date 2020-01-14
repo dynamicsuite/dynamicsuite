@@ -18,6 +18,10 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\Session;
+use DynamicSuite\API\APIEndpoint;
+use DynamicSuite\API\APIResponse;
 use Error;
 
 ob_start();
@@ -41,14 +45,14 @@ if (defined('DS_VIEW')) {
         $ds->request->initViewable($ds->cfg->default_view);
     }
     if ($ds->view->setPackageView()) {
-        if (!is_readable($ds->view->package->entry_point)) {
-            trigger_error("Package view entry point not readable: {$ds->view->package->entry_point}", E_USER_WARNING);
+        if (!is_readable($ds->view->package->entry)) {
+            trigger_error("Package view entry point not readable: {$ds->view->package->entry}", E_USER_WARNING);
             $ds->view->error404();
         } else {
             try {
                 if (!$ds->view->package->public) {
                     if (!$ds->session->checkPermissions($ds->view->package->permissions)) {
-                        $ds->request->redirect($ds->cfg->login_view);
+                        $ds->request->redirect("{$ds->cfg->login_view}?ref={$ds->request->url_string}");
                     }
                     $ds->view->document->replace(['data-ds-session="0"' => 'data-ds-session="1"']);
                 }
@@ -66,7 +70,7 @@ if (defined('DS_VIEW')) {
                 });
                 foreach ($ds->view->package->resources->init as $script) include $script;
                 ob_start();
-                require_once $ds->view->package->entry_point;
+                require_once $ds->view->package->entry;
                 $ds->view->setViewResources();
                 if ($ds->view->package->hide_nav) {
                     $ds->view->document->replace(['{{body}}' => ob_get_clean()]);
@@ -80,15 +84,15 @@ if (defined('DS_VIEW')) {
                 $ds->view->error500();
             }
         }
-    } elseif ($ds->request->uriIs('/dynamicsuite/about')) {
+    } elseif ($ds->request->urlIs('/dynamicsuite/about')) {
         $ds->view->about();
     } else {
         if ($ds->cfg->error_404_log) {
-            error_log("404 Encountered {$ds->request->uri_string} from {$_SERVER['REMOTE_ADDR']}");
+            error_log("404 Encountered {$ds->request->url_string} from {$_SERVER['REMOTE_ADDR']}");
         }
         $ds->view->error404();
     }
-    die($ds->view->document->getContents());
+    die($ds->view->document->contents);
 }
 
 // Apis
@@ -99,7 +103,7 @@ elseif(defined('DS_API')) {
     } else {
         $response = $ds->api->call($request);
     }
-    header('Content-Type: ' . API::CONTENT_TYPE);
+    header('Content-Type: ' . APIEndpoint::CONTENT_TYPE);
     ob_clean();
     die(json_encode([
         'status' => $response->status,

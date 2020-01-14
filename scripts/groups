@@ -19,6 +19,10 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Util\CLI;
+use DynamicSuite\Data\Group;
+use DynamicSuite\Data\Event;
 use PDOException;
 
 set_time_limit(0);
@@ -47,18 +51,6 @@ function printUsage(): void
 }
 
 // Make sure cached data is synced
-function syncCache(): void
-{
-    if (!DS_APCU) {
-        CLI::out('Caching not enabled, skipping sync');
-        return;
-    }
-    CLI::out('Cached data has been changed');
-    if (CLI::yn('Restart apache and reset cache?')) {
-        $err = exec('apachectl restart');
-        if ($err) CLI::err($err);
-    }
-}
 
 /** @var Instance $ds */
 $options = getopt('fhlcm:d:a:p:', [
@@ -82,10 +74,12 @@ if (CLI::actionIs(['h', 'help'], $options)) {
 // List groups
 elseif (CLI::actionIs(['l', 'list'], $options)) {
     try {
-        $data = $ds->db->query((new Query())->select()->from('ds_groups'));
+        $data = $ds->groups->getAll();
         CLI::out(CLI::table([
             'name',
-            'description'
+            'description',
+            'created_by',
+            'created_on'
         ], $data));
     } catch (PDOException $exception) {
         CLI::err($exception->getMessage());
@@ -96,16 +90,15 @@ elseif (CLI::actionIs(['l', 'list'], $options)) {
 elseif (CLI::actionIs(['c', 'create'], $options)) {
     try {
         $group = new Group();
-        $group->setName(CLI::in('Name'));
-        $group->setDescription(CLI::in('Description'));
+        $group->name = CLI::in('Name');
+        $group->description = CLI::in('Description');
         $ds->groups->create($group);
-        $ds->events->create((new Event())
-            ->setPackageId('dynamicsuite')
-            ->setType(200)
-            ->setAffected($group->name)
-            ->setMessage('Group created')
-        );
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 200,
+            'affected' => $group->name,
+            'message' => 'Group created'
+        ]));
         CLI::out("Group added: $group->name");
     } catch (PDOException $exception) {
         CLI::err('Group not added', false);
@@ -119,20 +112,18 @@ elseif (CLI::actionIs(['m', 'modify'], $options)) {
         ? $options['m']
         : $options['modify'];
     try {
-        /** @var Group $group */
         if (!$group = $ds->groups->find($group)) {
             CLI::err('Group does not exist');
         }
-        $group->setName(CLI::in('Name', $group->name));
-        $group->setDescription(CLI::in('Description', $group->description));
+        $group->name = CLI::in('Name', $group->name);
+        $group->description = CLI::in('Description', $group->description);
         $ds->groups->modify($group);
-        $ds->events->create((new Event())
-            ->setPackageId('dynamicsuite')
-            ->setType(201)
-            ->setAffected($group->name)
-            ->setMessage('Group modified')
-        );
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 201,
+            'affected' => $group->name,
+            'message' => 'Group modified'
+        ]));
         CLI::out("Group updated: $group->name");
     } catch (PDOException $exception) {
         CLI::err('Group not updated', false);
@@ -146,18 +137,16 @@ elseif (CLI::actionIs(['d', 'delete'], $options)) {
         ? $options['d']
         : $options['delete'];
     try {
-        /** @var Group $group */
         if (!$group = $ds->groups->find($group)) {
             CLI::err('Group does not exist');
         }
         $ds->groups->delete($group);
-        $ds->events->create((new Event())
-            ->setPackageId('dynamicsuite')
-            ->setType(202)
-            ->setAffected($group->name)
-            ->setMessage('Group deleted')
-        );
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 202,
+            'affected' => $group->name,
+            'message' => 'Group deleted'
+        ]));
         CLI::out("Group deleted: $group->name");
     } catch (PDOException $exception) {
         CLI::err('Group not deleted', false);
@@ -171,15 +160,10 @@ elseif (CLI::actionIs(['a', 'audit'], $options)) {
         ? $options['a']
         : $options['audit'];
     try {
-        /** @var Group $group */
         if (!$group = $ds->groups->find($group)) {
             CLI::err('Group does not exist');
         }
-        $data = $ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_group_permissions')
-            ->where('group_id', '=', $group->id)
-        );
+        $data = $ds->groups->viewPermissions($group);
         CLI::out(CLI::table([
             'package_id',
             'name',
@@ -196,42 +180,39 @@ elseif (CLI::actionIs(['p', 'permissions'], $options)) {
         ? $options['p']
         : $options['permissions'];
     try {
-        /** @var Group $group */
         if (!$group = $ds->groups->find($group)) {
             CLI::err('Group does not exist');
         }
         if (isset($options['add'])) {
-            /** @var Permission $permission */
             if (!$permission = $ds->permissions->find($options['add'])) {
                 CLI::err('Permission not found');
             }
             $ds->groups->addPermission($group, $permission);
-            $ds->events->create((new Event())
-                ->setPackageId('dynamicsuite')
-                ->setType(250)
-                ->setAffected($group->name)
-                ->setMessage("Permission $permission->shorthand added")
-            );
+            $ds->events->create(new Event([
+                'package_id' => 'dynamicsuite',
+                'type' => 250,
+                'affected' => $group->name,
+                'message' => 'Permission ' . $permission->shorthand() . ' added'
+            ]));
         } elseif (isset($options['remove'])) {
-            /** @var Permission $permission */
             if (!$permission = $ds->permissions->find($options['remove'])) {
                 CLI::err('Permission not found');
             }
             $ds->groups->removePermission($group, $permission);
-            $ds->events->create((new Event())
-                ->setPackageId('dynamicsuite')
-                ->setType(251)
-                ->setAffected($group->name)
-                ->setMessage("Permission $permission->shorthand removed")
-            );
+            $ds->events->create(new Event([
+                'package_id' => 'dynamicsuite',
+                'type' => 251,
+                'affected' => $group->name,
+                'message' => 'Permission ' . $permission->shorthand() . ' removed'
+            ]));
         } elseif (isset($options['clear'])) {
             $ds->groups->replacePermissions($group, []);
-            $ds->events->create((new Event())
-                ->setPackageId('dynamicsuite')
-                ->setType(252)
-                ->setAffected($group->name)
-                ->setMessage('Permissions replaced')
-            );
+            $ds->events->create(new Event([
+                'package_id' => 'dynamicsuite',
+                'type' => 252,
+                'affected' => $group->name,
+                'message' => 'Permissions replaced'
+            ]));
         } else {
             CLI::err('Missing flags for permission modification', false);
             printUsage();

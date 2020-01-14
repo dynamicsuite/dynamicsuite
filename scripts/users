@@ -19,6 +19,10 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Util\CLI;
+use DynamicSuite\Data\User;
+use DynamicSuite\Data\Event;
 use PDOException;
 
 set_time_limit(0);
@@ -48,20 +52,6 @@ function printUsage(): void
     CLI::out('  --reset-login [string]        Reset login attempts for a user');
 }
 
-// Make sure cached data is synced
-function syncCache(): void
-{
-    if (!DS_APCU) {
-        CLI::out('Caching not enabled, skipping sync');
-        return;
-    }
-    CLI::out('Cached data has been changed');
-    if (CLI::yn('Restart apache and reset cache?')) {
-        $err = exec('apachectl restart');
-        if ($err) CLI::err($err);
-    }
-}
-
 /** @var Instance $ds */
 $options = getopt('fhlcm:d:g:', [
     'help',
@@ -86,7 +76,7 @@ if (CLI::actionIs(['h', 'help'], $options)) {
 // List users
 elseif (CLI::actionIs(['l', 'list'], $options)) {
     try {
-        $data = $ds->db->query((new Query())->select()->from('ds_users'));
+        $data = $ds->users->get();
         CLI::out(CLI::table([
             'username',
             'inactive',
@@ -105,23 +95,18 @@ elseif (CLI::actionIs(['l', 'list'], $options)) {
 
 // Create a user
 elseif (CLI::actionIs(['c', 'create'], $options)) {
-    $username = CLI::in('Username');
-    $password = CLI::in('Password');
-    $inactive = CLI::yn('User Inactive?');
     try {
         $user = new User();
-        $user->setUsername($username);
-        $user->changePassword($password);
-        $user->setInactive($inactive);
-        if ($inactive) $user->setInactiveTime(date('Y-m-d H:i:s'));
+        $user->username = CLI::in('Username');
+        $user->changePassword(CLI::in('Password'));
+        $user->setInactive(CLI::yn('User Inactive?'));
         $ds->users->create($user);
-        $ds->events->create((new Event())
-            ->setPackageId('dynamicsuite')
-            ->setType(300)
-            ->setAffected($user->username)
-            ->setMessage('User created')
-        );
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 300,
+            'affected' => $user->username,
+            'message' => 'User created'
+        ]));
         CLI::out("User added: $user->username");
     } catch (PDOException $exception) {
         CLI::err($exception->getMessage());
@@ -137,24 +122,23 @@ elseif (CLI::actionIs(['m', 'modify'], $options)) {
         if (!$user = $ds->users->find($username)) {
             CLI::err('User not found');
         }
-        $user->setUsername(CLI::in('Username', $user->username));
+        $user->username = CLI::in('Username', $user->username);
         $password = CLI::in('Password (Enter for no change)');
         if (!empty($password)) {
             $user->changePassword($password);
         }
-        if ($user->pending_inactive && CLI::yn('Activate?')) {
+        if ($user->inactive && CLI::yn('Activate?')) {
             $user->setInactive(false);
-        } elseif (!$user->pending_inactive && CLI::yn('Deactivate?')) {
+        } elseif (!$user->inactive && CLI::yn('Deactivate?')) {
             $user->setInactive(true);
         }
         $ds->users->modify($user);
-        $ds->events->create((new Event())
-            ->setPackageId('dynamicsuite')
-            ->setType(301)
-            ->setAffected($user->username)
-            ->setMessage('User modified')
-        );
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 301,
+            'affected' => $user->username,
+            'message' => 'User modified'
+        ]));
         CLI::out("User updated: $user->username");
     } catch (PDOException $exception) {
         CLI::err($exception->getMessage());
@@ -174,13 +158,12 @@ elseif (CLI::actionIs(['d', 'delete'], $options)) {
             CLI::err('Cancelling');
         }
         $ds->users->delete($user);
-        $ds->events->create((new Event())
-            ->setPackageId('dynamicsuite')
-            ->setType(302)
-            ->setAffected($user->username)
-            ->setMessage('User deleted')
-        );
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 302,
+            'affected' => $user->username,
+            'message' => 'User deleted'
+        ]));
         CLI::out('User deleted');
     } catch (PDOException $exception) {
         CLI::err($exception->getMessage());
@@ -193,11 +176,7 @@ elseif (CLI::actionIs('audit-groups', $options)) {
         if (!$user = $ds->users->find($options['audit-groups'])) {
             CLI::err('User not found');
         }
-        $data = $ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_user_groups')
-            ->where('user_id', '=', $user->id)
-        );
+        $data = $ds->users->viewGroups($user);
         CLI::out(CLI::table([
             'name',
             'description'
@@ -213,11 +192,7 @@ elseif (CLI::actionIs('audit-permissions', $options)) {
         if (!$user = $ds->users->find($options['audit-permissions'])) {
             CLI::err('User not found');
         }
-        $data = $ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_user_permissions')
-            ->where('user_id', '=', $user->id)
-        );
+        $data = $ds->users->viewPermissions($user);
         CLI::out(CLI::table([
             'package_id',
             'name',
@@ -238,37 +213,38 @@ elseif (CLI::actionIs(['g', 'groups'], $options)) {
             CLI::err('User not found');
         }
         if (isset($options['add'])) {
-            /** @var Group $group */
             if (!$group = $ds->groups->find($options['add'])) {
                 CLI::err('Group not found');
             }
             $ds->users->addGroup($user, $group);
-            $ds->events->create((new Event())
-                ->setPackageId('dynamicsuite')
-                ->setType(350)
-                ->setAffected($user->username)
-                ->setMessage("User added to group $group->name")
-            );
+            $ds->events->create(new Event([
+                'package_id' => 'dynamicsuite',
+                'type' => 350,
+                'affected' => $user->username,
+                'message' => "User added to group $group->name"
+            ]));
+            CLI::out('Group added');
         } elseif (isset($options['remove'])) {
-            /** @var Group $group */
             if (!$group = $ds->groups->find($options['remove'])) {
                 CLI::err('Group not found');
             }
             $ds->users->removeGroup($user, $group);
-            $ds->events->create((new Event())
-                ->setPackageId('dynamicsuite')
-                ->setType(351)
-                ->setAffected($user->username)
-                ->setMessage("User removed from group $group->name")
-            );
+            $ds->events->create(new Event([
+                'package_id' => 'dynamicsuite',
+                'type' => 351,
+                'affected' => $user->username,
+                'message' => "User removed from group $group->name"
+            ]));
+            CLI::out('Group removed');
         } elseif (isset($options['clear'])) {
             $ds->users->replaceGroups($user, []);
-            $ds->events->create((new Event())
-                ->setPackageId('dynamicsuite')
-                ->setType(353)
-                ->setAffected($user->username)
-                ->setMessage('Groups replaced')
-            );
+            $ds->events->create(new Event([
+                'package_id' => 'dynamicsuite',
+                'type' => 352,
+                'affected' => $user->username,
+                'message' => 'Groups cleared'
+            ]));
+            CLI::out('Groups cleared');
         } else {
             CLI::err('Missing flags for group modification', false);
             printUsage();
@@ -286,9 +262,14 @@ elseif (CLI::actionIs('reset-login', $options)) {
         if (!$user = $ds->users->find($username)) {
             CLI::err('User not found');
         }
-        $user->setLoginAttempts(0);
+        $user->login_attempts = 0;
         $ds->users->modify($user);
-        syncCache();
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 360,
+            'affected' => $user->username,
+            'message' => 'Login attempts reset'
+        ]));
         CLI::out('Login attempts reset');
     } catch (PDOException $exception) {
         CLI::err($exception->getMessage());

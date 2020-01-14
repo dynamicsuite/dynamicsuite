@@ -19,6 +19,10 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Util\CLI;
+use DynamicSuite\Data\Permission;
+use DynamicSuite\Data\Event;
 use PDOException;
 
 set_time_limit(0);
@@ -41,20 +45,6 @@ function printUsage(): void
     CLI::out('  -d, --delete [string]  Delete a permission');
 }
 
-// Make sure cached data is synced
-function syncCache(): void
-{
-    if (!DS_APCU) {
-        CLI::out('Caching not enabled, skipping sync');
-        return;
-    }
-    CLI::out('Cached data has been changed');
-    if (CLI::yn('Restart apache and reset cache?')) {
-        $err = exec('apachectl restart');
-        if ($err) CLI::err($err);
-    }
-}
-
 /** @var Instance $ds */
 $options = getopt('fhlcm:d:', ['help', 'list', 'create', 'modify:', 'delete:']);
 
@@ -66,11 +56,12 @@ if (CLI::actionIs(['h', 'help'], $options)) {
 // List permissions
 elseif (CLI::actionIs(['l', 'list'], $options)) {
     try {
-        $data = $ds->db->query((new Query())->select()->from('ds_permissions'));
+        $data = $ds->permissions->getAll();
         CLI::out(CLI::table([
             'package_id',
             'name',
-            'description'
+            'description',
+            'created_on'
         ], $data));
     } catch (PDOException $exception) {
         CLI::err($exception->getMessage());
@@ -81,12 +72,17 @@ elseif (CLI::actionIs(['l', 'list'], $options)) {
 elseif (CLI::actionIs(['c', 'create'], $options)) {
     try {
         $permission = new Permission();
-        $permission->setPackageId(CLI::in('Package ID'));
-        $permission->setName(CLI::in('Name'));
-        $permission->setDescription(CLI::in('Description'));
+        $permission->package_id = CLI::in('Package ID');
+        $permission->name = CLI::in('Name');
+        $permission->description = CLI::in('Description');
         $ds->permissions->create($permission);
-        syncCache();
-        CLI::out("Permission added: $permission->shorthand");
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 100,
+            'affected' => $permission->shorthand(),
+            'message' => 'Permission added'
+        ]));
+        CLI::out('Permission added: ' . $permission->shorthand());
     } catch (PDOException $exception) {
         CLI::err('Permission not added', false);
         CLI::err($exception->getMessage());
@@ -99,16 +95,20 @@ elseif (CLI::actionIs(['m', 'modify'], $options)) {
         ? $options['m']
         : $options['modify'];
     try {
-        /** @var Permission $permission */
         if (!$permission = $ds->permissions->find($shorthand)) {
             CLI::err('Permission not found');
         }
-        $permission->setPackageId(CLI::in('Package ID', $permission->package_id));
-        $permission->setName(CLI::in('Name', $permission->name));
-        $permission->setDescription(CLI::in('Description', $permission->description));
+        $permission->package_id = CLI::in('Package ID', $permission->package_id);
+        $permission->name = CLI::in('Name', $permission->name);
+        $permission->description = CLI::in('Description', $permission->description);
         $ds->permissions->modify($permission);
-        syncCache();
-        CLI::out("Permission updated: $permission->shorthand");
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 101,
+            'affected' => $permission->shorthand(),
+            'message' => 'Permission modified'
+        ]));
+        CLI::out('Permission updated: ' . $permission->shorthand());
     } catch (PDOException $exception) {
         CLI::err('Permission not updated', false);
         CLI::err($exception->getMessage());
@@ -126,8 +126,13 @@ elseif (CLI::actionIs(['d', 'delete'], $options)) {
             CLI::err('Permission not found');
         }
         $ds->permissions->delete($permission);
-        syncCache();
-        CLI::out("Permission deleted: $permission->shorthand");
+        $ds->events->create(new Event([
+            'package_id' => 'dynamicsuite',
+            'type' => 102,
+            'affected' => $permission->shorthand(),
+            'message' => 'Permission deleted'
+        ]));
+        CLI::out('Permission deleted: ' . $permission->shorthand());
     } catch (PDOException $exception) {
         CLI::out('Permission not deleted');
         CLI::out($exception->getMessage());

@@ -18,6 +18,8 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\Request;
 
 require_once realpath(__DIR__ . '/create_environment.php');
 

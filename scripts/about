@@ -19,6 +19,9 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Util\CLI;
+use DynamicSuite\Package\Structure;
 use PDO;
 
 set_time_limit(0);
@@ -44,11 +47,12 @@ CLI::out(' Client Ver: ' . $ds->db->conn->getAttribute(PDO::ATTR_CLIENT_VERSION)
 CLI::out(' Server Ver: ' . $ds->db->conn->getAttribute(PDO::ATTR_SERVER_VERSION));
 CLI::out('     Driver: ' . $ds->db->conn->getAttribute(PDO::ATTR_DRIVER_NAME));
 CLI::out('-- Packages');
+/** @var Structure $package */
 foreach ($ds->packages->loaded as $package) {
-    CLI::out(' ' . $package->id);
-    CLI::out('   Name:        ' . $package->name);
-    CLI::out('   Author:      ' . $package->author);
-    CLI::out('   Version:     ' . $package->version);
-    CLI::out('   Description: ' . $package->description);
-    CLI::out('   License:     ' . $package->license);
+    CLI::out(" $package->package_id");
+    CLI::out("  Name:        $package->name");
+    CLI::out("  Author:      $package->author");
+    CLI::out("  Version:     $package->version");
+    CLI::out("  Description: $package->description");
+    CLI::out("  License:     $package->license");
 }

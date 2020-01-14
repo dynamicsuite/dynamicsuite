@@ -15,18 +15,7 @@
  * along with this program if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-
-/* Color definitions */
-$primary: #15529d
-$secondary: #6A6A6A
-$warning: #ffc107
-$failure: #E24848
-$success: #38AF47
-$border: #ced4da
-$checkbox-bk: #EEE
-$checkbox-hov: #CCC
-$header-text: #fff
-$nav-text: #C7CBD1
+@import colors, fonts
 
 /* Keyframe for view content transition */
 @keyframes opacityTransition
@@ -41,7 +30,8 @@ $nav-text: #C7CBD1
 
 /* Set root theming */
 html
-  font-family: Arial, Helvetica, sans-serif
+  font-family: $primary-font
+  background: $background
 
 /* Navigation root container theme */
 #ds-nav-container
@@ -66,7 +56,7 @@ html
     @include hover-transition
 
   /* Selected nav elements (set with JS) to indicate current group */
-  &.ds-nav-selected
+  .ds-nav-selected
     background: lighten($primary, 10%) !important
 
   /* Superlink groups will not be anchors, so need pointer */
@@ -130,7 +120,6 @@ html
 
 /* Package view content */
 #ds-view
-  background: whitesmoke
   opacity: 0
   animation-name: opacityTransition
   animation-duration: 0.5s

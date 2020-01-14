@@ -21,10 +21,10 @@ namespace DynamicSuite;
 
 // Set globals
 define('DS_START', microtime(true));
-define('DS_VERSION', '3.4.1');
+define('DS_VERSION', '4.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_APCU', false);
-define('DS_PHP_VERSION', '7.3.0');
+define('DS_PHP_VERSION', '7.4.0');
 ini_set('display_errors', 0);
 chdir(DS_ROOT_DIR);
 

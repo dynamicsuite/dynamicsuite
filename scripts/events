@@ -19,6 +19,8 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Instance;
+use DynamicSuite\Util\CLI;
 use PDOException;
 
 set_time_limit(0);
@@ -53,14 +55,11 @@ if (CLI::actionIs(['h', 'help'], $options)) {
 // List events
 elseif (CLI::actionIs(['l', 'list'], $options)) {
     CLI::out('Recent Events');
-    $type = CLI::actionIs('type', $options) ? $options['type'] : false;
-    $package_id = CLI::actionIs('package', $options) ? $options['package'] : false;
-    $limit = CLI::actionIs('limit', $options) ? $options['limit'] : false;
+    $package_id = CLI::actionIs('package', $options) ? $options['package'] : null;
+    $type = CLI::actionIs('type', $options) ? $options['type'] : null;
+    $limit = CLI::actionIs('limit', $options) ? $options['limit'] : 255;
     try {
-        $query = (new Query())->select()->from('ds_events');
-        if ($type) $query->where('type', '=', (int) $type);
-        if ($package_id) $query->where('package_id', '=', $package_id);
-        $data = $ds->db->query($query->orderBy('timestamp', 'DESC')->limit($limit));
+        $data = $ds->events->get($package_id, $type, $limit);
         CLI::out(CLI::table([
             'timestamp',
             'package_id',
