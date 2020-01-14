@@ -24,7 +24,7 @@ namespace DynamicSuite\Util;
 /**
  * Class Template.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Util
  * @property string $contents
  */
 class Template

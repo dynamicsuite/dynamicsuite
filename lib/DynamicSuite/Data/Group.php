@@ -25,7 +25,7 @@ use DynamicSuite\Base\DatabaseItem;
 /**
  * Class Group.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  * @property int|null $group_id
  * @property string|null $name
  * @property string|null $description

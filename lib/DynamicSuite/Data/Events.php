@@ -28,7 +28,7 @@ use PDOException;
 /**
  * Class Events.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  */
 class Events extends InstanceMember
 {

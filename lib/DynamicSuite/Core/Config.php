@@ -26,7 +26,7 @@ use PDO;
 /**
  * Class Config.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Core
  * @property array $packages
  * @property string $charset
  * @property string $language

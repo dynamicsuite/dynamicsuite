@@ -24,7 +24,7 @@ namespace DynamicSuite\Base;
 /**
  * Class ArrayConvertible.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Base
  */
 abstract class ArrayConvertible
 {

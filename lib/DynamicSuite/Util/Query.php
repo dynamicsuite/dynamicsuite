@@ -26,7 +26,7 @@ use PDOException;
 /**
  * Class Query.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Util
  * @property string $type
  * @property bool $distinct
  * @property bool $ignore

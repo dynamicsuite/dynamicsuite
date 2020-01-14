@@ -29,7 +29,7 @@ use DynamicSuite\Package\View AS PackageView;
 /**
  * Class View.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\View
  * @property PackageView $package
  * @property Template $document
  * @property Template $stylesheet

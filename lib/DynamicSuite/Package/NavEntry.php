@@ -25,7 +25,7 @@ use DynamicSuite\Data\Permission;
 /**
  * Class NavEntry.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property string $name
  * @property string $icon
  * @property string $url

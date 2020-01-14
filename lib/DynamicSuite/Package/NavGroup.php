@@ -26,7 +26,7 @@ use DynamicSuite\Data\Permission;
 /**
  * Class NavGroup.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property string $group_id
  * @property string $name
  * @property string $icon

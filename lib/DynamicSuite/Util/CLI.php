@@ -24,7 +24,7 @@ namespace DynamicSuite\Util;
 /**
  * Class CLI.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Util
  */
 class CLI
 {

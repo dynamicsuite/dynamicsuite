@@ -25,7 +25,7 @@ use DynamicSuite\Base\DatabaseItem;
 /**
  * Class Permission.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  * @property int|null $permission_id
  * @property string|null $package_id
  * @property string|null $name

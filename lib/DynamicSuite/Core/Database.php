@@ -28,7 +28,7 @@ use PDOException;
 /**
  * Class Database.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Core
  * @property string $dsn
  * @property string $user
  * @property string $pass

@@ -25,7 +25,7 @@ use DynamicSuite\Base\ProtectedObject;
 /**
  * Class APIRequest.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\API
  * @property string $package_id
  * @property string $api_id
  * @property mixed $data

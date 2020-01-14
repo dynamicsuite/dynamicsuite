@@ -25,7 +25,7 @@ use DynamicSuite\Base\DatabaseItem;
 /**
  * Class Event.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  * @property int|null $event_id
  * @property string|null $timestamp
  * @property string|null $package_id

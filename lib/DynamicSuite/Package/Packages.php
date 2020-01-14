@@ -28,7 +28,7 @@ use TypeError;
 /**
  * Class Packages.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property array $loaded
  * @property Resources $resources
  * @property array $views

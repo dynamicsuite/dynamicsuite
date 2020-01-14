@@ -32,7 +32,7 @@ use DynamicSuite\API\APIEndpoint;
 /**
  * Class Instance.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Core
  * @property Config $cfg
  * @property Request $request
  * @property Packages $packages

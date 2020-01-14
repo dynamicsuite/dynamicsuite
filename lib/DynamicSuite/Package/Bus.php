@@ -20,4 +20,9 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Package;
+
+/**
+ * Class Bus
+ * @package DynamicSuite\Package
+ */
 class Bus {}

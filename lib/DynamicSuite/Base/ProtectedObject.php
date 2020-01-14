@@ -24,7 +24,7 @@ namespace DynamicSuite\Base;
 /**
  * Class ProtectedObject.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Base
  */
 abstract class ProtectedObject
 {

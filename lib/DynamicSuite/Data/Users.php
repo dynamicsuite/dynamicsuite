@@ -28,7 +28,7 @@ use PDOException;
 /**
  * Class Users.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  */
 class Users extends InstanceMember
 {

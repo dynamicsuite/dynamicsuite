@@ -25,7 +25,7 @@ use DynamicSuite\Base\ArrayConvertible;
 /**
  * Class View.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property string $package_id
  * @property string $url
  * @property string $entry

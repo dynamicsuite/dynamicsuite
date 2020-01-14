@@ -25,7 +25,7 @@ use DynamicSuite\Base\DatabaseItem;
 /**
  * Class User.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  * @property int|null $user_id
  * @property string|null $username
  * @property string|null $password

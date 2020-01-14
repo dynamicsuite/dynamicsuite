@@ -25,7 +25,7 @@ use DynamicSuite\Core\Instance;
 /**
  * Class InstanceMember.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Base
  * @property Instance $ds
  */
 abstract class InstanceMember extends ProtectedObject

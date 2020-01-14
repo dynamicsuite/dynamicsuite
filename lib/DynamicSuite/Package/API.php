@@ -25,7 +25,7 @@ use DynamicSuite\Base\ArrayConvertible;
 /**
  * Class API.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property string $package_id
  * @property string $api_id
  * @property string $entry

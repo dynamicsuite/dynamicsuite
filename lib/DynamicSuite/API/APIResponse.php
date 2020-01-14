@@ -25,7 +25,7 @@ use DynamicSuite\Base\ProtectedObject;
 /**
  * Class APIResponse.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\API
  * @property string|null $status
  * @property string|null $message
  * @property mixed $data

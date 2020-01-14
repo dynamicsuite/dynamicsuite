@@ -25,7 +25,7 @@ use DynamicSuite\Base\InstanceMember;
 /**
  * Class Request.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Core
  * @property string[] $url_array
  * @property string $url_string
  */

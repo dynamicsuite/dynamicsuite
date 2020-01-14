@@ -29,7 +29,7 @@ use PDOException;
 /**
  * Class Session.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Session
  * @property string|null $id
  * @property Permission[] $permissions
  * @property Group[] $groups

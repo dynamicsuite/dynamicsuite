@@ -28,7 +28,7 @@ use PDOException;
 /**
  * Class Groups.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Data
  */
 class Groups extends InstanceMember
 {

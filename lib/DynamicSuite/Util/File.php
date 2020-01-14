@@ -24,7 +24,7 @@ namespace DynamicSuite\Util;
 /**
  * Class File.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Util
  */
 class File
 {

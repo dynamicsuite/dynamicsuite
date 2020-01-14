@@ -25,7 +25,7 @@ use PDOException;
 /**
  * Class DatabaseItem.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Base
  */
 abstract class DatabaseItem extends ArrayConvertible
 {

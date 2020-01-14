@@ -26,7 +26,7 @@ use TypeError;
 /**
  * Class Resources.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property string|null $package_id
  * @property array $autoload
  * @property array $init

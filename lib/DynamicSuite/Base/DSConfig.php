@@ -24,7 +24,7 @@ namespace DynamicSuite\Base;
 /**
  * Class DSConfig.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Base
  */
 abstract class DSConfig extends ProtectedObject
 {

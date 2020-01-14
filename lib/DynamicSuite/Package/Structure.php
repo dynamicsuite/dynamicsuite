@@ -26,7 +26,7 @@ use TypeError;
 /**
  * Class Structure.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\Package
  * @property string $package_id
  * @property string $name
  * @property string $author

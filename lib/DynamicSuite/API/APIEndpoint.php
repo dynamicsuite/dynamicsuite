@@ -27,7 +27,7 @@ use DynamicSuite\Package\API;
 /**
  * Class APIEndpoint.
  *
- * @package DynamicSuite
+ * @package DynamicSuite\API
  * @property APIRequest|null $request
  * @property API|null $structure
  */
