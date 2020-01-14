@@ -211,7 +211,7 @@ elseif (CLI::actionIs(['p', 'permissions'], $options)) {
                 'package_id' => 'dynamicsuite',
                 'type' => 252,
                 'affected' => $group->name,
-                'message' => 'Permissions replaced'
+                'message' => 'Permissions cleared'
             ]));
         } else {
             CLI::err('Missing flags for permission modification', false);
