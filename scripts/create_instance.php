@@ -17,6 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 
+/** @noinspection PhpIncludeInspection */
+
 namespace DynamicSuite;
 use DynamicSuite\Core\Instance;
 use DynamicSuite\Core\Request;
@@ -45,7 +47,9 @@ spl_autoload_register(function ($class) {
 });
 
 // Run global package initialization scripts
-foreach ($ds->packages->resources->init as $path) include $path;
+foreach ($ds->packages->resources->init as $path) {
+    include $path;
+}
 
 // Set request type
 if (Request::isViewable()) {
