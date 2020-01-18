@@ -1,1 +1,0 @@
-ALTER TABLE `ds_events` CHANGE COLUMN `affected` `affected` VARCHAR(254) NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `session`;

@@ -16,10 +16,20 @@ CREATE TABLE `ds_events` (
   `session` char(64) DEFAULT NULL,
   `affected` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `message` varchar(2048) DEFAULT NULL,
+  `filter_1` int(10) unsigned NULL DEFAULT NULL,
+  `filter_2` int(10) unsigned NULL DEFAULT NULL,
+  `filter_3` int(10) unsigned NULL DEFAULT NULL,
+  `filter_4` int(10) unsigned NULL DEFAULT NULL,
+  `filter_5` int(10) unsigned NULL DEFAULT NULL,
   PRIMARY KEY (`event_id`),
   KEY `timestamp` (`timestamp`),
   KEY `package_id` (`package_id`),
-  KEY `type` (`type`)
+  KEY `type` (`type`),
+  KEY `filter_1` (`filter_1`),
+  KEY `filter_2` (`filter_2`),
+  KEY `filter_3` (`filter_3`),
+  KEY `filter_4` (`filter_4`),
+  KEY `filter_5` (`filter_5`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `ds_group_permissions` (
