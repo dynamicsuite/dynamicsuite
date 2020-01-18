@@ -17,6 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 
+/** @noinspection PhpIncludeInspection */
+
 namespace DynamicSuite;
 use DynamicSuite\Core\Instance;
 use DynamicSuite\Core\Session;
@@ -34,11 +36,13 @@ $ds->registerGlobal('session', new Session($ds));
 
 // Views
 if (defined('DS_VIEW')) {
-    $ua = htmlentities($_SERVER['HTTP_USER_AGENT'], ENT_QUOTES, 'UTF-8');
-    if (preg_match('~MSIE|Internet Explorer~i', $ua) || (strpos($ua, 'Trident/7.0; rv:11.0') !== false)) {
-        die('Sorry, Internet Explorer is not supported.');
-    }
-    unset($ua);
+    // Dynamic suite does not work with IE, so check for it
+    (function() {
+        $ua = htmlentities($_SERVER['HTTP_USER_AGENT'], ENT_QUOTES, 'UTF-8');
+        if (preg_match('~MSIE|Internet Explorer~i', $ua) || (strpos($ua, 'Trident/7.0; rv:11.0') !== false)) {
+            die('Sorry, Internet Explorer is not supported.');
+        }
+    })();
     if ($_SERVER['REQUEST_URI'] !== '/') {
         $ds->request->initViewable();
     } else {
@@ -46,7 +50,7 @@ if (defined('DS_VIEW')) {
     }
     if ($ds->view->setPackageView()) {
         if (!is_readable($ds->view->package->entry)) {
-            trigger_error("Package view entry point not readable: {$ds->view->package->entry}", E_USER_WARNING);
+            trigger_error("Package view entry not readable: {$ds->view->package->entry}", E_USER_WARNING);
             $ds->view->error404();
         } else {
             try {
@@ -68,7 +72,9 @@ if (defined('DS_VIEW')) {
                         }
                     }
                 });
-                foreach ($ds->view->package->resources->init as $script) include $script;
+                foreach ($ds->view->package->resources->init as $script) {
+                    include $script;
+                }
                 ob_start();
                 require_once $ds->view->package->entry;
                 $ds->view->setViewResources();
