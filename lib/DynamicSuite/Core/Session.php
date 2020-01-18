@@ -43,28 +43,28 @@ class Session extends InstanceMember
      *
      * @var string
      */
-    private ?string $id = null;
+    protected ?string $id = null;
 
     /**
      * Array of the current user's permissions.
      *
      * @var Permission[]
      */
-    private array $permissions = [];
+    protected array $permissions = [];
 
     /**
      * Array of the current user's groups.
      *
      * @var Group[]
      */
-    private array $groups = [];
+    protected array $groups = [];
 
     /**
      * The current user.
      *
      * @var User|null
      */
-    private ?User $user;
+    protected ?User $user = null;
 
     /**
      * Session constructor.
@@ -77,6 +77,16 @@ class Session extends InstanceMember
         parent::__construct($ds);
         if (session_status() === PHP_SESSION_NONE) session_start();
         $this->getSaved();
+    }
+
+    /**
+     * Check to see if the current session is valid.
+     *
+     * @return bool
+     */
+    public function isValid(): bool
+    {
+        return isset($_SESSION[Instance::getVHostHash()]['user_id']) && $this->user instanceof User;
     }
 
     /**
@@ -128,6 +138,40 @@ class Session extends InstanceMember
         $_SESSION[Instance::getVHostHash()] = null;
         session_regenerate_id();
         return $this;
+    }
+
+    /**
+     * Set a key on the session to specific data.
+     *
+     * @param string $key
+     * @param $data
+     * @return void
+     */
+    public function setData(string $key, $data): void
+    {
+        $_SESSION[Instance::getVHostHash()][$key] = $data;
+    }
+
+    /**
+     * Get data from the session given a specific key.
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function getData(string $key)
+    {
+        return $_SESSION[Instance::getVHostHash()][$key] ?? null;
+    }
+
+    /**
+     * Delete data from the session at a specific key.
+     *
+     * @param string $key
+     * @return void
+     */
+    public function deleteData(string $key): void
+    {
+        unset($_SESSION[Instance::getVHostHash()][$key]);
     }
 
     /**
