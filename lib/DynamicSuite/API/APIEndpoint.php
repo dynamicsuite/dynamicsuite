@@ -18,10 +18,11 @@
  */
 
 /** @noinspection PhpUnused */
+/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\API;
 use DynamicSuite\Base\InstanceMember;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Package\API;
 
 /**
@@ -51,9 +52,9 @@ class APIEndpoint extends InstanceMember
     /**
      * API constructor.
      *
-     * @param Instance $ds
+     * @param DynamicSuite $ds
      */
-    public function __construct(Instance $ds)
+    public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
     }
@@ -122,32 +123,35 @@ class APIEndpoint extends InstanceMember
         if (!defined('DS_PKG_DIR')) {
             define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$this->structure->package_id}");
         }
-        (new class($this->structure) {
-            private API $structure;
-            public function __construct(API $structure) {
-                $this->structure = $structure;
-                spl_autoload_register(function ($class) {
-                    $file = str_replace('\\', '/', $class) . '.php';
-                    foreach ($this->structure->resources->autoload as $dir) {
-                        if (file_exists("$dir/$file")) {
-                            require_once "$dir/$file";
-                            break;
-                        }
-                    }
-                });
+        spl_autoload_register(function ($class) {
+            if (class_exists($class)) return;
+            global $ds;
+            $file = str_replace('\\', '/', $class) . '.php';
+            foreach ($ds->api->structure->resources->autoload as $dir) {
+                $path = DS_ROOT_DIR . "$dir/$file";
+                if (DS_CACHING && opcache_is_script_cached($path)) {
+                    require_once $path;
+                    break;
+                } elseif (file_exists($path)) {
+                    require_once $path;
+                    break;
+                }
             }
         });
-        $return = (function ($ds) {
-            /** @var Instance $ds */
+        foreach ($this->ds->packages->resources->init as $script) {
+            require_once $script;
+        }
+        $return = (function () {
+            global $ds;
             foreach ($ds->api->structure->resources->init as $script) {
-                include $script;
+                require_once $script;
             }
             return (require_once $ds->api->structure->entry);
-        })($this->ds);
+        })();
         if ($return instanceof APIResponse) {
             return $return;
         } else {
-            trigger_error("$prefix No output");
+            trigger_error("$prefix Bad output");
             return $response;
         }
     }

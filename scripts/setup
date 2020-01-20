@@ -19,16 +19,17 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
 
 set_time_limit(0);
 ini_set('memory_limit', -1);
 
 // Create environment
+/** @noinspection PhpIncludeInspection */
 require_once realpath(__DIR__ . '/create_environment.php');
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 
 CLI::out('Running environment checks');
 

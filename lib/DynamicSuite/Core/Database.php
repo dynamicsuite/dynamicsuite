@@ -33,7 +33,7 @@ use PDOException;
  * @property string $user
  * @property string $pass
  * @property array $options
- * @property PDO $conn
+ * @property PDO|null $conn
  */
 class Database extends ProtectedObject
 {
@@ -71,7 +71,7 @@ class Database extends ProtectedObject
      *
      * @var PDO
      */
-    protected PDO $conn;
+    protected ?PDO $conn = null;
 
     /**
      * Database constructor.
@@ -98,16 +98,6 @@ class Database extends ProtectedObject
     public function __sleep()
     {
         return ['dsn', 'user', 'pass', 'options'];
-    }
-
-    /**
-     * Wakeup magic method.
-     *
-     * @return void
-     */
-    public function __wakeup()
-    {
-        $this->connect();
     }
 
     /**
@@ -156,6 +146,9 @@ class Database extends ProtectedObject
      */
     public function query($query, array $args = [])
     {
+        if (!$this->conn) {
+            $this->connect();
+        }
         if (!$this->conn instanceof PDO) {
             throw new PDOException('Tried to execute query on a null connection');
         }

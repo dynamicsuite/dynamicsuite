@@ -19,7 +19,7 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
 use DynamicSuite\Data\Group;
 use DynamicSuite\Data\Event;
@@ -28,9 +28,10 @@ use PDOException;
 set_time_limit(0);
 ini_set('memory_limit', -1);
 
+/** @noinspection PhpIncludeInspection */
 require_once realpath(__DIR__ . '/create_instance.php');
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 
 // Print command usage
 function printUsage(): void
@@ -52,7 +53,7 @@ function printUsage(): void
 
 // Make sure cached data is synced
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 $options = getopt('fhlcm:d:a:p:', [
     'help',
     'list',
@@ -139,6 +140,9 @@ elseif (CLI::actionIs(['d', 'delete'], $options)) {
     try {
         if (!$group = $ds->groups->find($group)) {
             CLI::err('Group does not exist');
+        }
+        if (!CLI::yn("Delete group?")) {
+            CLI::err('Cancelling');
         }
         $ds->groups->delete($group);
         $ds->events->create(new Event([

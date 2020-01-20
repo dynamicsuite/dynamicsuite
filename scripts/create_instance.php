@@ -18,38 +18,44 @@
  */
 
 /** @noinspection PhpIncludeInspection */
+/** @noinspection PhpUnusedLocalVariableInspection */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\Request;
 
 require_once realpath(__DIR__ . '/create_environment.php');
 
 // Initialize the instance
-if (apcu_exists(md5(DS_ROOT_DIR)) && DS_APCU) {
-    $ds = apcu_fetch(md5(DS_ROOT_DIR));
-} else {
-    $ds = new Instance();
-    if (DS_APCU) $ds->save();
-}
+/** @var DynamicSuite $ds */
+$ds = (function() {
+    $hash = DynamicSuite::getHash();
+    if (apcu_exists($hash) && DS_CACHING) {
+        $ds = apcu_fetch($hash);
+    } else {
+        $ds = new DynamicSuite();
+        $ds->packages->loadPackages();
+        if (DS_CACHING) $ds->save();
+    }
+    return $ds;
+})();
 
 // Add global package autoload paths to the autoload queue
 spl_autoload_register(function ($class) {
-    /** @var Instance $ds */
+    if (class_exists($class)) return;
     global $ds;
     $file = str_replace('\\', '/', $class) . '.php';
     foreach ($ds->packages->resources->autoload as $dir) {
-        if (file_exists("$dir/$file")) {
-            include "$dir/$file";
+        $path = DS_ROOT_DIR . "/$dir/$file";
+        if (DS_CACHING && opcache_is_script_cached($path)) {
+            require_once $path;
+            break;
+        } elseif (file_exists($path)) {
+            require_once $path;
             break;
         }
     }
 });
-
-// Run global package initialization scripts
-foreach ($ds->packages->resources->init as $path) {
-    include $path;
-}
 
 // Set request type
 if (Request::isViewable()) {

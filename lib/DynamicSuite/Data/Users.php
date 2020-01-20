@@ -21,7 +21,7 @@
 
 namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
 use PDOException;
 
@@ -49,10 +49,10 @@ class Users extends InstanceMember
     /**
      * Users constructor.
      *
-     * @param Instance $ds
+     * @param DynamicSuite $ds
      * @return void
      */
-    public function __construct(Instance $ds)
+    public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
     }

@@ -19,7 +19,7 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
 use DynamicSuite\Data\User;
 use DynamicSuite\Data\Event;
@@ -28,9 +28,10 @@ use PDOException;
 set_time_limit(0);
 ini_set('memory_limit', -1);
 
+/** @noinspection PhpIncludeInspection */
 require_once realpath(__DIR__ . '/create_instance.php');
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 
 // Print command usage
 function printUsage(): void
@@ -52,7 +53,7 @@ function printUsage(): void
     CLI::out('  --reset-login [string]        Reset login attempts for a user');
 }
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 $options = getopt('fhlcm:d:g:', [
     'help',
     'list',

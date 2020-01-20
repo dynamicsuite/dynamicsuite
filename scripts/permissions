@@ -19,7 +19,7 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
 use DynamicSuite\Data\Permission;
 use DynamicSuite\Data\Event;
@@ -28,9 +28,10 @@ use PDOException;
 set_time_limit(0);
 ini_set('memory_limit', -1);
 
+/** @noinspection PhpIncludeInspection */
 require_once realpath(__DIR__ . '/create_instance.php');
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 
 // Print command usage
 function printUsage(): void
@@ -45,7 +46,7 @@ function printUsage(): void
     CLI::out('  -d, --delete [string]  Delete a permission');
 }
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 $options = getopt('fhlcm:d:', ['help', 'list', 'create', 'modify:', 'delete:']);
 
 // Show help
@@ -124,6 +125,9 @@ elseif (CLI::actionIs(['d', 'delete'], $options)) {
         /** @var Permission $permission */
         if (!$permission = $ds->permissions->find($shorthand)) {
             CLI::err('Permission not found');
+        }
+        if (!CLI::yn("Delete permission?")) {
+            CLI::err('Cancelling');
         }
         $ds->permissions->delete($permission);
         $ds->events->create(new Event([

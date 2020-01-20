@@ -19,7 +19,7 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
 use DynamicSuite\Package\Structure;
 use PDO;
@@ -28,9 +28,11 @@ set_time_limit(0);
 ini_set('memory_limit', -1);
 
 // Create environment
+/** @noinspection PhpIncludeInspection */
 require_once realpath(__DIR__ . '/create_instance.php');
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
+$ds->db->connect();
 
 CLI::out('-- Environment');
 CLI::out('  Server OS: ' . php_uname());
@@ -39,7 +41,7 @@ CLI::out('   Root Dir: ' . DS_ROOT_DIR);
 CLI::out('-- Instance');
 CLI::out(' DS Version: ' . DS_VERSION);
 CLI::out('       Time: ' . date('Y-m-d H:i:s'));
-CLI::out('       APCU: ' . (DS_APCU ? 'YES' : 'NO'));
+CLI::out('       APCU: ' . (DS_CACHING ? 'YES' : 'NO'));
 CLI::out('-- Database');
 CLI::out('        DSN: ' . $ds->cfg->db_dsn);
 CLI::out('       User: ' . $ds->cfg->db_user);

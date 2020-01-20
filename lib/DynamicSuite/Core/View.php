@@ -32,12 +32,14 @@ use DynamicSuite\Package\View AS PackageView;
  * @package DynamicSuite\View
  * @property PackageView $package
  * @property Template $document
+ * @property Template $document_template
  * @property Template $stylesheet
  * @property Template $script
  * @property Template $error404
  * @property Template $error500
  * @property Template $about
  * @property Template $nav
+ * @property Template $nav_template
  * @property Template $nav_group
  * @property Template $nav_single
  * @property Template $nav_sublink
@@ -55,11 +57,18 @@ class View extends InstanceMember
     protected PackageView $package;
 
     /**
-     * Document template.
+     * Viewable document.
      *
      * @var Template
      */
     protected Template $document;
+
+    /**
+     * Viewable document template.
+     *
+     * @var Template
+     */
+    protected Template $document_template;
 
     /**
      * CSS stylesheet template.
@@ -97,11 +106,18 @@ class View extends InstanceMember
     protected Template $about;
 
     /**
-     * Navigation template.
+     * Viewable navigation template.
      *
      * @var Template
      */
     protected Template $nav;
+
+    /**
+     * Navigation template.
+     *
+     * @var Template
+     */
+    protected Template $nav_template;
 
     /**
      * Navigation group template.
@@ -141,14 +157,24 @@ class View extends InstanceMember
     /**
      * View constructor.
      *
-     * @param Instance $ds
+     * @param DynamicSuite $ds
      * @return void
      */
-    public function __construct(Instance $ds)
+    public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
         $this->initTemplates();
         $this->initCoreResources();
+    }
+
+    /**
+     * Reset the document template.
+     *
+     * @return void
+     */
+    public function resetDocument(): void
+    {
+        $this->document = clone $this->document_template;
     }
 
     /**
@@ -161,7 +187,7 @@ class View extends InstanceMember
         if (!is_readable($this->ds->cfg->document_template)) {
             trigger_error("Template not readable: {$this->ds->cfg->document_template}", E_USER_ERROR);
         } else {
-            $this->document = new Template(File::contents($this->ds->cfg->document_template));
+            $this->document_template = new Template(File::contents($this->ds->cfg->document_template));
         }
         if (!is_readable($this->ds->cfg->stylesheet_template)) {
             trigger_error("Template not readable: {$this->ds->cfg->stylesheet_template}", E_USER_ERROR);
@@ -191,7 +217,7 @@ class View extends InstanceMember
         if (!is_readable($this->ds->cfg->nav_template)) {
             trigger_error("Template not readable: {$this->ds->cfg->nav_template}", E_USER_ERROR);
         } else {
-            $this->nav = new Template(File::contents($this->ds->cfg->nav_template));
+            $this->nav_template = new Template(File::contents($this->ds->cfg->nav_template));
         }
         if (!is_readable($this->ds->cfg->nav_group_template)) {
             trigger_error("Template not readable: {$this->ds->cfg->nav_group_template}", E_USER_ERROR);
@@ -208,8 +234,8 @@ class View extends InstanceMember
         } else {
             $this->nav_sublink = new Template(File::contents($this->ds->cfg->nav_sublink_template));
         }
-        $this->document->replace(['{{charset}}' => $this->ds->cfg->charset]);
-        $this->document->replace(['{{language}}' => $this->ds->cfg->language]);
+        $this->document_template->replace(['{{charset}}' => $this->ds->cfg->charset]);
+        $this->document_template->replace(['{{language}}' => $this->ds->cfg->language]);
         return $this;
     }
 
@@ -267,12 +293,13 @@ class View extends InstanceMember
      */
     public function error404()
     {
+        $this->document = clone $this->document_template;
         $this->document->replace([
             '{{title}}' => 'Page Not Found',
             '{{css}}' => '',
             '{{js}}' => ''
         ]);
-        $body = $this->error404;
+        $body = clone $this->error404;
         $body->replace(['{{version}}' => DS_VERSION]);
         $this->document->replace([
             '{{body}}' => $body->contents
@@ -287,12 +314,13 @@ class View extends InstanceMember
      */
     public function error500()
     {
+        $this->document = clone $this->document_template;
         $this->document->replace([
             '{{title}}' => 'Internal Server Error',
             '{{css}}' => '',
             '{{js}}' => ''
         ]);
-        $body = $this->error500;
+        $body = clone $this->error500;
         $body->replace(['{{version}}' => DS_VERSION]);
         $this->document->replace([
             '{{body}}' => $body->contents
@@ -307,12 +335,13 @@ class View extends InstanceMember
      */
     public function about()
     {
+        $this->document = clone $this->document_template;
         $this->document->replace([
             '{{title}}' => 'About Dynamic Suite',
             '{{css}}' => '',
             '{{js}}' => ''
         ]);
-        $body = $this->about;
+        $body = clone $this->about;
         $body->replace(['{{version}}' => DS_VERSION]);
         $this->document->replace([
             '{{body}}' => $body->contents
@@ -326,6 +355,7 @@ class View extends InstanceMember
      */
     public function setNavigable(): View
     {
+        $this->nav = clone $this->nav_template;
         $this->nav->replace([
             '{{nav-header-view}}' => $this->ds->cfg->nav_header_view,
             '{{nav-header-text}}' => $this->ds->cfg->nav_header_text,

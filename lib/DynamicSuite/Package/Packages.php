@@ -21,7 +21,7 @@
 
 namespace DynamicSuite\Package;
 use DynamicSuite\Base\InstanceMember;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\File;
 use TypeError;
 
@@ -84,14 +84,13 @@ class Packages extends InstanceMember
     /**
      * Packages constructor.
      *
-     * @param Instance $ds
+     * @param DynamicSuite $ds
      * @return void
      */
-    public function __construct(Instance $ds)
+    public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
         $this->resources = new Resources();
-        $this->loadPackages();
     }
 
     /**

@@ -20,13 +20,13 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Base;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 
 /**
  * Class InstanceMember.
  *
  * @package DynamicSuite\Base
- * @property Instance $ds
+ * @property DynamicSuite $ds
  */
 abstract class InstanceMember extends ProtectedObject
 {
@@ -34,17 +34,17 @@ abstract class InstanceMember extends ProtectedObject
     /**
      * Dynamic Suite instance.
      *
-     * @var Instance
+     * @var DynamicSuite
      */
-    public Instance $ds;
+    public DynamicSuite $ds;
 
     /**
      * InstanceMember constructor.
      *
-     * @param Instance $ds
+     * @param DynamicSuite $ds
      * @return void
      */
-    public function __construct(Instance $ds)
+    public function __construct(DynamicSuite $ds)
     {
         $this->ds = $ds;
     }

@@ -20,10 +20,12 @@
 /** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
+use DynamicSuite\Core\Request;
 use DynamicSuite\Core\Session;
 use DynamicSuite\API\APIEndpoint;
 use DynamicSuite\API\APIResponse;
+use DynamicSuite\Core\View;
 use Error;
 
 ob_start();
@@ -31,29 +33,45 @@ require_once '../scripts/create_instance.php';
 if (defined('STDIN')) trigger_error('Web script cannot be called from CLI', E_USER_ERROR);
 ob_clean();
 
-/** @var $ds Instance */
-$ds->registerGlobal('session', new Session($ds));
+/** @var $ds DynamicSuite */
+$ds->set('session', new Session($ds));
+$ds->set('request', new Request());
 
 // Views
 if (defined('DS_VIEW')) {
     // Dynamic suite does not work with IE, so check for it
     (function() {
         $ua = htmlentities($_SERVER['HTTP_USER_AGENT'], ENT_QUOTES, 'UTF-8');
-        if (preg_match('~MSIE|Internet Explorer~i', $ua) || (strpos($ua, 'Trident/7.0; rv:11.0') !== false)) {
+        if (preg_match('~MSIE|Internet Explorer~i', $ua) || strpos($ua, 'Trident/7.0; rv:11.0') !== false) {
             die('Sorry, Internet Explorer is not supported.');
         }
     })();
+    // Run global package initialization scripts
+    foreach ($ds->packages->resources->init as $script) {
+        require_once $script;
+    }
     if ($_SERVER['REQUEST_URI'] !== '/') {
         $ds->request->initViewable();
     } else {
         $ds->request->initViewable($ds->cfg->default_view);
     }
-    if ($ds->view->setPackageView()) {
+    (function() {
+        global $ds;
+        $hash = DynamicSuite::getHash('dynamicsuite_view');
+        if (DS_CACHING && apcu_exists($hash)) {
+            $ds->set('view', apcu_fetch($hash));
+        } else {
+            $ds->set('view', new View($ds));
+            if (DS_CACHING) apcu_store($hash, $ds->view);
+        }
+    })();
+    if ($ds->view->setPackageView($ds->request->url_string)) {
         if (!is_readable($ds->view->package->entry)) {
             trigger_error("Package view entry not readable: {$ds->view->package->entry}", E_USER_WARNING);
             $ds->view->error404();
         } else {
             try {
+                $ds->view->resetDocument();
                 if (!$ds->view->package->public) {
                     if (!$ds->session->checkPermissions($ds->view->package->permissions)) {
                         $ds->request->redirect("{$ds->cfg->login_view}?ref={$ds->request->url_string}");
@@ -62,18 +80,22 @@ if (defined('DS_VIEW')) {
                 }
                 define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$ds->view->package->package_id}");
                 spl_autoload_register(function ($class) {
-                    /** @var Instance $ds */
+                    if (class_exists($class)) return;
                     global $ds;
                     $file = str_replace('\\', '/', $class) . '.php';
                     foreach ($ds->view->package->resources->autoload as $dir) {
-                        if (file_exists("$dir/$file")) {
-                            include "$dir/$file";
+                        $path = DS_ROOT_DIR . "$dir/$file";
+                        if (DS_CACHING && opcache_is_script_cached($path)) {
+                            require_once $path;
+                            break;
+                        } elseif (file_exists($path)) {
+                            require_once $path;
                             break;
                         }
                     }
                 });
                 foreach ($ds->view->package->resources->init as $script) {
-                    include $script;
+                    require_once $script;
                 }
                 ob_start();
                 require_once $ds->view->package->entry;
@@ -103,6 +125,7 @@ if (defined('DS_VIEW')) {
 
 // Apis
 elseif(defined('DS_API')) {
+    $ds->set('api', new APIEndpoint($ds));
     $request = $ds->api->buildExternalRequest();
     if (!$request) {
         $response = new APIResponse();

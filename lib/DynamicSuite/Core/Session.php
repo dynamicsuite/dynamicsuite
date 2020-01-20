@@ -69,10 +69,10 @@ class Session extends InstanceMember
     /**
      * Session constructor.
      *
-     * @param Instance $ds
+     * @param DynamicSuite $ds
      * @return void
      */
-    public function __construct(Instance $ds)
+    public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
         if (session_status() === PHP_SESSION_NONE) session_start();
@@ -86,7 +86,7 @@ class Session extends InstanceMember
      */
     public function isValid(): bool
     {
-        return isset($_SESSION[Instance::getVHostHash()]['user_id']) && $this->user instanceof User;
+        return isset($_SESSION[DynamicSuite::getHash()]['user_id']) && $this->user instanceof User;
     }
 
     /**
@@ -96,8 +96,8 @@ class Session extends InstanceMember
      */
     public function getSaved(): void
     {
-        if (isset($_SESSION[Instance::getVHostHash()]['user_id'])) {
-            $this->create($_SESSION[Instance::getVHostHash()]['user_id']);
+        if (isset($_SESSION[DynamicSuite::getHash()]['user_id'])) {
+            $this->create($_SESSION[DynamicSuite::getHash()]['user_id']);
         }
     }
 
@@ -116,7 +116,7 @@ class Session extends InstanceMember
             $this->permissions = $this->ds->users->viewPermissions($user);
             $this->groups = $this->ds->users->viewGroups($user);
             $this->user = $user;
-            $_SESSION[Instance::getVHostHash()]['user_id'] = $user_id;
+            $_SESSION[DynamicSuite::getHash()]['user_id'] = $user_id;
             return true;
         } catch (PDOException $exception) {
             error_log($exception->getMessage(), E_USER_WARNING);
@@ -135,7 +135,7 @@ class Session extends InstanceMember
         $this->permissions = [];
         $this->groups = [];
         $this->user = null;
-        $_SESSION[Instance::getVHostHash()] = null;
+        $_SESSION[DynamicSuite::getHash()] = null;
         session_regenerate_id();
         return $this;
     }
@@ -149,7 +149,7 @@ class Session extends InstanceMember
      */
     public function setData(string $key, $data): void
     {
-        $_SESSION[Instance::getVHostHash()][$key] = $data;
+        $_SESSION[DynamicSuite::getHash()][$key] = $data;
     }
 
     /**
@@ -160,7 +160,7 @@ class Session extends InstanceMember
      */
     public function getData(string $key)
     {
-        return $_SESSION[Instance::getVHostHash()][$key] ?? null;
+        return $_SESSION[DynamicSuite::getHash()][$key] ?? null;
     }
 
     /**
@@ -171,7 +171,7 @@ class Session extends InstanceMember
      */
     public function deleteData(string $key): void
     {
-        unset($_SESSION[Instance::getVHostHash()][$key]);
+        unset($_SESSION[DynamicSuite::getHash()][$key]);
     }
 
     /**

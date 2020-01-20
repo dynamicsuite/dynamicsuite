@@ -20,7 +20,7 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\Base\InstanceMember;
+use DynamicSuite\Base\ProtectedObject;
 
 /**
  * Class Request.
@@ -29,7 +29,7 @@ use DynamicSuite\Base\InstanceMember;
  * @property string[] $url_array
  * @property string $url_string
  */
-class Request extends InstanceMember
+class Request extends ProtectedObject
 {
 
     /**
@@ -45,16 +45,6 @@ class Request extends InstanceMember
      * @var string
      */
     protected string $url_string = '';
-
-    /**
-     * Request constructor.
-     *
-     * @param Instance $ds
-     */
-    public function __construct(Instance $ds)
-    {
-        parent::__construct($ds);
-    }
 
     /**
      * Initialize the request.

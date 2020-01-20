@@ -19,7 +19,7 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\Instance;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\Config;
 use DynamicSuite\Util\CLI;
 use PharData;
@@ -29,9 +29,10 @@ set_time_limit(0);
 ini_set('memory_limit', -1);
 
 // Create environment
+/** @noinspection PhpIncludeInspection */
 require_once realpath(__DIR__ . '/create_environment.php');
 
-/** @var Instance $ds */
+/** @var DynamicSuite $ds */
 
 // Load config
 $cfg = new Config('dynamicsuite');
@@ -272,7 +273,7 @@ function executeInstallPlan(array $plan): void
             $init = fopen('scripts/create_environment.php', 'r');
             while (!feof($init)) {
                 $line = fgets($init);
-                if (strpos($line, 'DS_APCU') === false) continue;
+                if (strpos($line, 'DS_CACHING') === false) continue;
                 $apcu = strpos($line, 'false') === false ? true : false;
                 break;
             }
@@ -324,12 +325,13 @@ function executeInstallPlan(array $plan): void
         }
         if ($package_id !== 'dynamicsuite' && file_exists("packages/$package_id/scripts/install.php")) {
             CLI::out("[$package_id] Running package installation script...");
+            /** @noinspection PhpIncludeInspection */
             require_once "packages/$package_id/scripts/install.php";
         } elseif ($package_id === 'dynamicsuite') {
             CLI::out("[$package_id] Updating APCU state");
             $script = file_get_contents('scripts/create_environment.php');
             $state = isset($apcu) && $apcu ? 'true' : 'false';
-            $script = str_replace("define('DS_APCU', false);", "define('DS_APCU', $state);", $script);
+            $script = str_replace("define('DS_CACHING', false);", "define('DS_CACHING', $state);", $script);
             file_put_contents('scripts/create_environment.php', $script);
             CLI::out("[$package_id] Running upgrade script");
             require_once "scripts/upgrade.php";
@@ -360,6 +362,7 @@ function executeRemove(string $package_id): void
     }
     CLI::out("Removing $package_id...");
     if (file_exists("packages/$package_id/scripts/uninstall.php")) {
+        /** @noinspection PhpIncludeInspection */
         require_once "packages/$package_id/scripts/uninstall.php";
     }
     // Remove directory
