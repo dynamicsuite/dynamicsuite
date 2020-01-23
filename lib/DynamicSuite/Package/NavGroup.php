@@ -33,7 +33,7 @@ use DynamicSuite\Data\Permission;
  * @property bool $public
  * @property Permission[] $permissions
  */
-class NavGroup extends ArrayConvertible
+final class NavGroup extends ArrayConvertible
 {
 
     /**

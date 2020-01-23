@@ -39,7 +39,7 @@ use TypeError;
  * @property View[] $views
  * @property API[] $apis
  */
-class Structure extends ArrayConvertible
+final class Structure extends ArrayConvertible
 {
 
     /**

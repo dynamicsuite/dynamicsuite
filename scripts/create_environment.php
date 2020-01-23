@@ -67,7 +67,7 @@ if (!file_exists('logs/dynamicsuite-access.log') && !touch('logs/dynamicsuite-ac
 }
 
 // Core autoloader
-spl_autoload_register(function ($class) {
+spl_autoload_register(function (string $class) {
     if (class_exists($class)) return;
     $file = DS_ROOT_DIR . '/lib/' . str_replace('\\', '/', $class) . '.php';
     if (DS_CACHING && opcache_is_script_cached($file)) {

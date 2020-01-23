@@ -33,7 +33,7 @@ use DynamicSuite\Data\Permission;
  * @property Permission[] $permissions
  * @property NavEntry[] $children
  */
-class NavEntry
+final class NavEntry
 {
 
     /**

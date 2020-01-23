@@ -35,7 +35,7 @@ use PDOException;
  * @property array $options
  * @property PDO|null $conn
  */
-class Database extends ProtectedObject
+final class Database extends ProtectedObject
 {
 
     /**

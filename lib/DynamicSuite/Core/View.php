@@ -46,7 +46,7 @@ use DynamicSuite\Package\View AS PackageView;
  * @property string $core_css
  * @property string $core_js
  */
-class View extends InstanceMember
+final class View extends InstanceMember
 {
 
     /**
@@ -274,7 +274,7 @@ class View extends InstanceMember
      */
     public function setPackageView($url = null): bool
     {
-        $url = $url ?? $this->ds->request->url_string;
+        $url ??= $this->ds->request->url_string;
         foreach ($this->ds->packages->views as $view_path => $package_view) {
             if ($this->ds->request->urlIs($view_path, $url)) {
                 $this->package = $package_view;

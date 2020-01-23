@@ -27,7 +27,7 @@ namespace DynamicSuite\Util;
  * @package DynamicSuite\Util
  * @property string $contents
  */
-class Template
+final class Template
 {
 
     /**

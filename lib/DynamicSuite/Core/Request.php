@@ -29,7 +29,7 @@ use DynamicSuite\Base\ProtectedObject;
  * @property string[] $url_array
  * @property string $url_string
  */
-class Request extends ProtectedObject
+final class Request extends ProtectedObject
 {
 
     /**

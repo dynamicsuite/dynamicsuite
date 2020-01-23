@@ -35,7 +35,7 @@ use PDOException;
  * @property Group[] $groups
  * @property User|null $user
  */
-class Session extends InstanceMember
+final class Session extends InstanceMember
 {
 
     /**

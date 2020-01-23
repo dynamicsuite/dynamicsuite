@@ -33,7 +33,7 @@ use TypeError;
  * @property array $js
  * @property array $css
  */
-class Resources extends ProtectedObject
+final class Resources extends ProtectedObject
 {
 
     /**

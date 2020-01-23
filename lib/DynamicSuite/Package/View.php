@@ -40,7 +40,7 @@ use DynamicSuite\Base\ArrayConvertible;
  * @property array|null $permissions
  * @property Resources $resources
  */
-class View extends ArrayConvertible
+final class View extends ArrayConvertible
 {
 
     /**

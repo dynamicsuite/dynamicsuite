@@ -62,7 +62,7 @@ use PDO;
  * @property array $pkg_repos
  * @property array $pkg_blacklist
  */
-class Config extends DSConfig
+final class Config extends DSConfig
 {
 
     /**

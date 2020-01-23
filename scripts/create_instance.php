@@ -41,7 +41,7 @@ $ds = (function() {
 })();
 
 // Add global package autoload paths to the autoload queue
-spl_autoload_register(function ($class) {
+spl_autoload_register(function (string $class) {
     if (class_exists($class)) return;
     global $ds;
     $file = str_replace('\\', '/', $class) . '.php';
@@ -66,4 +66,12 @@ if (Request::isViewable()) {
     define('DS_CLI', true);
 } else {
     trigger_error('Unknown request type', E_USER_ERROR);
+}
+
+// Run global package initialization scripts
+foreach ($ds->packages->resources->init as $script) {
+    (function ($script) {
+        global $ds;
+        require_once $script;
+    })($script);
 }

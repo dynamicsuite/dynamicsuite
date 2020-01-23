@@ -36,7 +36,7 @@ use TypeError;
  * @property array $nav_tree
  * @property array $apis
  */
-class Packages extends InstanceMember
+final class Packages extends InstanceMember
 {
 
     /**

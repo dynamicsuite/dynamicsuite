@@ -45,7 +45,7 @@ use DynamicSuite\Package\Packages;
  * @property Users $users
  * @property Events $events
  */
-class DynamicSuite extends ProtectedObject
+final class DynamicSuite extends ProtectedObject
 {
 
     /**
@@ -161,7 +161,7 @@ class DynamicSuite extends ProtectedObject
      */
     public static function getHash(string $key = ''): string
     {
-        return md5(DS_ROOT_DIR . $key);
+        return crc32(DS_ROOT_DIR . $key);
     }
 
 }

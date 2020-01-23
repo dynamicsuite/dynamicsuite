@@ -32,7 +32,7 @@ use DynamicSuite\Package\API;
  * @property APIRequest|null $request
  * @property API|null $structure
  */
-class APIEndpoint extends InstanceMember
+final class APIEndpoint extends InstanceMember
 {
 
     /**
@@ -123,7 +123,7 @@ class APIEndpoint extends InstanceMember
         if (!defined('DS_PKG_DIR')) {
             define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$this->structure->package_id}");
         }
-        spl_autoload_register(function ($class) {
+        spl_autoload_register(function (string $class) {
             if (class_exists($class)) return;
             global $ds;
             $file = str_replace('\\', '/', $class) . '.php';
@@ -138,9 +138,6 @@ class APIEndpoint extends InstanceMember
                 }
             }
         });
-        foreach ($this->ds->packages->resources->init as $script) {
-            require_once $script;
-        }
         $return = (function () {
             global $ds;
             foreach ($ds->api->structure->resources->init as $script) {

@@ -30,7 +30,7 @@ use PDOException;
  *
  * @package DynamicSuite\Data
  */
-class Users extends InstanceMember
+final class Users extends InstanceMember
 {
 
     /**

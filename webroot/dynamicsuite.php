@@ -46,10 +46,6 @@ if (defined('DS_VIEW')) {
             die('Sorry, Internet Explorer is not supported.');
         }
     })();
-    // Run global package initialization scripts
-    foreach ($ds->packages->resources->init as $script) {
-        require_once $script;
-    }
     if ($_SERVER['REQUEST_URI'] !== '/') {
         $ds->request->initViewable();
     } else {
@@ -79,7 +75,7 @@ if (defined('DS_VIEW')) {
                     $ds->view->document->replace(['data-ds-session="0"' => 'data-ds-session="1"']);
                 }
                 define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$ds->view->package->package_id}");
-                spl_autoload_register(function ($class) {
+                spl_autoload_register(function (string $class) {
                     if (class_exists($class)) return;
                     global $ds;
                     $file = str_replace('\\', '/', $class) . '.php';
@@ -94,11 +90,14 @@ if (defined('DS_VIEW')) {
                         }
                     }
                 });
-                foreach ($ds->view->package->resources->init as $script) {
-                    require_once $script;
-                }
                 ob_start();
-                require_once $ds->view->package->entry;
+                (function () {
+                    global $ds;
+                    foreach ($ds->view->package->resources->init as $script) {
+                        require_once $script;
+                    }
+                    require_once $ds->view->package->entry;
+                })();
                 $ds->view->setViewResources();
                 if ($ds->view->package->hide_nav) {
                     $ds->view->document->replace(['{{body}}' => ob_get_clean()]);

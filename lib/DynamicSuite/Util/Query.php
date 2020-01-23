@@ -42,7 +42,7 @@ use PDOException;
  * @property string $query
  * @property array $args
  */
-class Query extends ProtectedObject
+final class Query extends ProtectedObject
 {
 
     /**
