@@ -44,6 +44,7 @@ use DynamicSuite\Package\Packages;
  * @property Groups $groups
  * @property Users $users
  * @property Events $events
+ * @property array $pkg
  */
 final class DynamicSuite extends ProtectedObject
 {
@@ -89,6 +90,13 @@ final class DynamicSuite extends ProtectedObject
      * @var Users
      */
     protected Users $users;
+
+    /**
+     * An array of package-defined class instances.
+     *
+     * @var array
+     */
+    protected array $pkg = [];
 
     /**
      * Instance constructor.
@@ -162,6 +170,48 @@ final class DynamicSuite extends ProtectedObject
     public static function getHash(string $key = ''): string
     {
         return crc32(DS_ROOT_DIR . $key);
+    }
+
+    /**
+     * Check to see if a package class is registered.
+     *
+     * @param string $package_id
+     * @return bool
+     */
+    public function isRegistered(string $package_id): bool
+    {
+        return array_key_exists($package_id, $this->pkg);
+    }
+
+    /**
+     * Register a package class to the instance.
+     *
+     * @param string $package_id
+     * @param mixed $class
+     * @param bool $override
+     * @return void
+     */
+    public function register(string $package_id, $class, bool $override = false): void
+    {
+        if ($this->isRegistered($package_id) && !$override) {
+            error_log("Tried to register a package class over an existing class ($package_id)", E_USER_NOTICE);
+            return;
+        } else {
+            $this->pkg[$package_id] = $class;
+        }
+    }
+
+    /**
+     * Unregister a package class.
+     *
+     * @param string $package_id
+     * @return void
+     */
+    public function unRegister(string $package_id): void
+    {
+        if (array_key_exists($package_id, $this->pkg)) {
+            unset($this->pkg[$package_id]);
+        }
     }
 
 }
