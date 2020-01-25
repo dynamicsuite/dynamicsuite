@@ -148,7 +148,8 @@ final class DynamicSuite extends ProtectedObject
                 $key === 'permissions' ||
                 $key === 'groups' ||
                 $key === 'users' ||
-                $key === 'events'
+                $key === 'events' ||
+                $key === 'pkg'
             ) continue;
             $global_members[$key] = $value;
             unset($this->$key);
@@ -188,17 +189,11 @@ final class DynamicSuite extends ProtectedObject
      *
      * @param string $package_id
      * @param mixed $class
-     * @param bool $override
      * @return void
      */
-    public function register(string $package_id, $class, bool $override = false): void
+    public function register(string $package_id, $class): void
     {
-        if ($this->isRegistered($package_id) && !$override) {
-            error_log("Tried to register a package class over an existing class ($package_id)", E_USER_NOTICE);
-            return;
-        } else {
-            $this->pkg[$package_id] = $class;
-        }
+        $this->pkg[$package_id] = $class;
     }
 
     /**
