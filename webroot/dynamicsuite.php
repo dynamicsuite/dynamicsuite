@@ -80,7 +80,7 @@ if (defined('DS_VIEW')) {
                     global $ds;
                     $file = str_replace('\\', '/', $class) . '.php';
                     foreach ($ds->view->package->resources->autoload as $dir) {
-                        $path = DS_ROOT_DIR . "$dir/$file";
+                        $path = DS_ROOT_DIR . "/$dir/$file";
                         if (DS_CACHING && opcache_is_script_cached($path)) {
                             require_once $path;
                             break;
@@ -107,7 +107,13 @@ if (defined('DS_VIEW')) {
                 }
             } catch (Error $exception) {
                 ob_clean();
-                trigger_error($exception->getMessage(), E_USER_WARNING);
+                error_log(
+                    'Dynamic Suite package error!' . PHP_EOL .
+                    '  Message: ' . $exception->getMessage() . PHP_EOL .
+                    '  File:    ' . $exception->getFile() . PHP_EOL .
+                    '  Line:    ' . $exception->getLine() . PHP_EOL .
+                    '  Trace:   ' . PHP_EOL . $exception->getTraceAsString()
+                );
                 $ds->view->error500();
             }
         }
