@@ -34,7 +34,7 @@ use DynamicSuite\Base\ArrayConvertible;
  * @property bool $public
  * @property Resources $resources
  */
-class API extends ArrayConvertible
+final class API extends ArrayConvertible
 {
 
     /**
