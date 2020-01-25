@@ -86,7 +86,7 @@ final class Session extends InstanceMember
      */
     public function isValid(): bool
     {
-        return isset($_SESSION[DynamicSuite::getHash()]['user_id']) && $this->user instanceof User;
+        return isset($_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id']) && $this->user instanceof User;
     }
 
     /**
@@ -96,8 +96,8 @@ final class Session extends InstanceMember
      */
     public function getSaved(): void
     {
-        if (isset($_SESSION[DynamicSuite::getHash()]['user_id'])) {
-            $this->create($_SESSION[DynamicSuite::getHash()]['user_id']);
+        if (isset($_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id'])) {
+            $this->create($_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id']);
         }
     }
 
@@ -116,7 +116,7 @@ final class Session extends InstanceMember
             $this->permissions = $this->ds->users->viewPermissions($user);
             $this->groups = $this->ds->users->viewGroups($user);
             $this->user = $user;
-            $_SESSION[DynamicSuite::getHash()]['user_id'] = $user_id;
+            $_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id'] = $user_id;
             return true;
         } catch (PDOException $exception) {
             error_log($exception->getMessage(), E_USER_WARNING);
@@ -135,7 +135,7 @@ final class Session extends InstanceMember
         $this->permissions = [];
         $this->groups = [];
         $this->user = null;
-        $_SESSION[DynamicSuite::getHash()] = null;
+        $_SESSION['dynamicsuite_' . DynamicSuite::getHash()] = null;
         session_regenerate_id();
         return $this;
     }

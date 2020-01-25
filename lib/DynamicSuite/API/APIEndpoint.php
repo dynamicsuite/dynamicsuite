@@ -128,7 +128,7 @@ final class APIEndpoint extends InstanceMember
             global $ds;
             $file = str_replace('\\', '/', $class) . '.php';
             foreach ($ds->api->structure->resources->autoload as $dir) {
-                $path = DS_ROOT_DIR . "$dir/$file";
+                $path = DS_ROOT_DIR . "/$dir/$file";
                 if (DS_CACHING && opcache_is_script_cached($path)) {
                     require_once $path;
                     break;
