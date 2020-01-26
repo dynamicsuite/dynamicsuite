@@ -126,7 +126,7 @@ class User extends DatabaseItem
      */
     public function __construct(array $user = [])
     {
-        $user['inactive'] = (bool) $user['inactive'] ?? null;
+        $user['inactive'] ??= false;
         parent::__construct($user);
     }
 
