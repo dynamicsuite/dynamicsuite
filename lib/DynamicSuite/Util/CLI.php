@@ -139,6 +139,7 @@ final class CLI
                 $table .= '|';
                 foreach ($map as $key => $length) {
                     if ($row[$key] === null) $row[$key] = '(NULL)';
+                    if (is_bool($row[$key])) $row[$key] = $row[$key] ? 'TRUE' : 'FALSE';
                     $table .= ' ' . str_pad($row[$key], $length, ' ') . ' |';
                 }
                 $table .= PHP_EOL;
