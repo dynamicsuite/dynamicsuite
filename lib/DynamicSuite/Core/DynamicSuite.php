@@ -44,7 +44,6 @@ use DynamicSuite\Package\Packages;
  * @property Groups $groups
  * @property Users $users
  * @property Events $events
- * @property array $pkg
  */
 final class DynamicSuite extends ProtectedObject
 {
@@ -90,13 +89,6 @@ final class DynamicSuite extends ProtectedObject
      * @var Users
      */
     protected Users $users;
-
-    /**
-     * An array of package-defined class instances.
-     *
-     * @var array
-     */
-    protected array $pkg = [];
 
     /**
      * Instance constructor.
@@ -148,8 +140,7 @@ final class DynamicSuite extends ProtectedObject
                 $key === 'permissions' ||
                 $key === 'groups' ||
                 $key === 'users' ||
-                $key === 'events' ||
-                $key === 'pkg'
+                $key === 'events'
             ) continue;
             $global_members[$key] = $value;
             unset($this->$key);
@@ -174,38 +165,22 @@ final class DynamicSuite extends ProtectedObject
     }
 
     /**
-     * Check to see if a package class is registered.
+     * Get a package class from the cache, or create a new one if not found.
      *
-     * @param string $package_id
-     * @return bool
-     */
-    public function isRegistered(string $package_id): bool
-    {
-        return array_key_exists($package_id, $this->pkg);
-    }
-
-    /**
-     * Register a package class to the instance.
+     * $class must be the class name with namespace.
      *
-     * @param string $package_id
-     * @param mixed $class
-     * @return void
+     * @param string $class
+     * @return mixed|string
      */
-    public function register(string $package_id, $class): void
+    public static function getPkgClass(string $class)
     {
-        $this->pkg[$package_id] = $class;
-    }
-
-    /**
-     * Unregister a package class.
-     *
-     * @param string $package_id
-     * @return void
-     */
-    public function unRegister(string $package_id): void
-    {
-        if (array_key_exists($package_id, $this->pkg)) {
-            unset($this->pkg[$package_id]);
+        $hash = self::getHash($class);
+        if (DS_CACHING && apcu_exists($hash)) {
+            return apcu_fetch($hash);
+        } else {
+            $class = new $class();
+            if (DS_CACHING) apcu_store($hash, $class);
+            return $class;
         }
     }
 
