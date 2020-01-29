@@ -509,19 +509,6 @@ final class Query extends ProtectedObject
                     }
 
                 }
-                if ($this->group_by) {
-                    $this->query .= ' GROUP BY ';
-                    foreach ($this->group_by as $group) {
-                        if (is_string($group)) {
-                            $this->query .= "`$group`";
-                        } else {
-                            foreach ($group as $value) {
-                                $this->query .= "`$value`, ";
-                            }
-                            $this->query = rtrim($this->query, ', ');
-                        }
-                    }
-                }
                 break;
             case 'INSERT':
                 if (!$this->row_count) {
@@ -575,6 +562,19 @@ final class Query extends ProtectedObject
                         : $condition['value'];
                 }
                 $clauses_added++;
+            }
+        }
+        if ($this->group_by) {
+            $this->query .= ' GROUP BY ';
+            foreach ($this->group_by as $group) {
+                if (is_string($group)) {
+                    $this->query .= "`$group`";
+                } else {
+                    foreach ($group as $value) {
+                        $this->query .= "`$value`, ";
+                    }
+                    $this->query = rtrim($this->query, ', ');
+                }
             }
         }
         $this->query = rtrim($this->query, ', ');
