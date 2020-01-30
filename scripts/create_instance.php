@@ -23,6 +23,7 @@
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\Request;
+use DynamicSuite\Core\Session;
 
 require_once realpath(__DIR__ . '/create_environment.php');
 
@@ -68,10 +69,10 @@ if (Request::isViewable()) {
     trigger_error('Unknown request type', E_USER_ERROR);
 }
 
+$ds->set('session', new Session($ds));
+$ds->set('request', new Request());
+
 // Run global package initialization scripts
 foreach ($ds->packages->resources->init as $script) {
-    (function ($script) {
-        global $ds;
-        require_once $script;
-    })($script);
+    require_once $script;
 }

@@ -170,15 +170,16 @@ final class DynamicSuite extends ProtectedObject
      * $class must be the class name with namespace.
      *
      * @param string $class
+     * @param mixed $args
      * @return mixed|string
      */
-    public static function getPkgClass(string $class)
+    public static function getPkgClass(string $class, ...$args)
     {
         $hash = self::getHash($class);
         if (DS_CACHING && apcu_exists($hash)) {
             return apcu_fetch($hash);
         } else {
-            $class = new $class();
+            $class = new $class(...$args);
             if (DS_CACHING) apcu_store($hash, $class);
             return $class;
         }

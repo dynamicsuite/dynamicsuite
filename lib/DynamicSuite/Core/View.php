@@ -178,6 +178,16 @@ final class View extends InstanceMember
     }
 
     /**
+     * Reset the navigation template.
+     *
+     * @return void
+     */
+    public function resetNav(): void
+    {
+        $this->nav = clone $this->nav_template;
+    }
+
+    /**
      * Initialize and load all templates.
      *
      * @return View
@@ -355,7 +365,6 @@ final class View extends InstanceMember
      */
     public function setNavigable(): View
     {
-        $this->nav = clone $this->nav_template;
         $this->nav->replace([
             '{{nav-header-view}}' => $this->ds->cfg->nav_header_view,
             '{{nav-header-text}}' => $this->ds->cfg->nav_header_text,

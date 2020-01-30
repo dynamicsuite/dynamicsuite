@@ -147,9 +147,9 @@ final class Session extends InstanceMember
      * @param $data
      * @return void
      */
-    public function setData(string $key, $data): void
+    public function set(string $key, $data): void
     {
-        $_SESSION[DynamicSuite::getHash()][$key] = $data;
+        $_SESSION['dynamicsuite_' . DynamicSuite::getHash()][$key] = $data;
     }
 
     /**
@@ -158,9 +158,9 @@ final class Session extends InstanceMember
      * @param string $key
      * @return mixed
      */
-    public function getData(string $key)
+    public function get(string $key)
     {
-        return $_SESSION[DynamicSuite::getHash()][$key] ?? null;
+        return $_SESSION['dynamicsuite_' . DynamicSuite::getHash()][$key] ?? null;
     }
 
     /**
@@ -169,9 +169,9 @@ final class Session extends InstanceMember
      * @param string $key
      * @return void
      */
-    public function deleteData(string $key): void
+    public function delete(string $key): void
     {
-        unset($_SESSION[DynamicSuite::getHash()][$key]);
+        unset($_SESSION['dynamicsuite_' . DynamicSuite::getHash()][$key]);
     }
 
     /**

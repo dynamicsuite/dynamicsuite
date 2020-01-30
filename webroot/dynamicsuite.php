@@ -34,8 +34,6 @@ if (defined('STDIN')) trigger_error('Web script cannot be called from CLI', E_US
 ob_clean();
 
 /** @var $ds DynamicSuite */
-$ds->set('session', new Session($ds));
-$ds->set('request', new Request());
 
 // Views
 if (defined('DS_VIEW')) {
@@ -68,6 +66,7 @@ if (defined('DS_VIEW')) {
         } else {
             try {
                 $ds->view->resetDocument();
+                $ds->view->resetNav();
                 if (!$ds->view->package->public) {
                     if (!$ds->session->checkPermissions($ds->view->package->permissions)) {
                         $ds->request->redirect("{$ds->cfg->login_view}?ref={$ds->request->url_string}");
