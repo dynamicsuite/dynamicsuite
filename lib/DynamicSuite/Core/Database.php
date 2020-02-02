@@ -190,7 +190,7 @@ final class Database extends ProtectedObject
      */
     public function startTx(): Database
     {
-        if (!$this->conn instanceof PDO) {
+        if (!$this->conn instanceof PDO && !$this->connect()) {
             trigger_error('Tried to start transaction on a null connection', E_USER_WARNING);
             throw new PDOException('Tried to start transaction on a null connection');
         }
@@ -201,10 +201,10 @@ final class Database extends ProtectedObject
     /**
      * Attempt to end a current transaction.
      *
-     * @return Database
+     * @return Database|false
      * @throws PDOException
      */
-    public function endTx(): Database
+    public function endTx()
     {
         if (!$this->conn instanceof PDO) {
             trigger_error('Tried to end transaction on a null connection', E_USER_WARNING);
@@ -214,6 +214,7 @@ final class Database extends ProtectedObject
             $this->conn->commit();
         } catch (PDOException $exception) {
             $this->conn->rollBack();
+            return false;
         }
         return $this;
     }
