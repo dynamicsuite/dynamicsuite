@@ -51,6 +51,11 @@ final class Events extends InstanceMember
         'filter_3' => 4294967295,
         'filter_4' => 4294967295,
         'filter_5' => 4294967295,
+        'filter_6' => 1,
+        'filter_7' => 1,
+        'filter_8' => 1,
+        'filter_9' => 1,
+        'filter_10' => 1,
     ];
 
     /**
@@ -114,6 +119,11 @@ final class Events extends InstanceMember
                 'filter_3' => $event->filter_3,
                 'filter_4' => $event->filter_4,
                 'filter_5' => $event->filter_5,
+                'filter_6' => $event->filter_6,
+                'filter_7' => $event->filter_7,
+                'filter_8' => $event->filter_8,
+                'filter_9' => $event->filter_9,
+                'filter_10' => $event->filter_10,
             ])
             ->into('ds_events')
         );

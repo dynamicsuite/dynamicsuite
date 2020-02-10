@@ -215,7 +215,7 @@ final class Groups extends InstanceMember
         foreach ($permissions as $permission) {
             $rows[] = [
                 'group_id' => $group->group_id,
-                'permission_id' => $permission->id
+                'permission_id' => $permission->permission_id
             ];
         }
         if (!empty($rows)) $this->ds->db->query($insert->rows($rows));

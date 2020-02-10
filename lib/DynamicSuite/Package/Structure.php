@@ -272,7 +272,7 @@ final class Structure extends ArrayConvertible
      */
     public static function formatServerPath(string $package_id, string $path): string
     {
-        return $path[0] === '/' ? $path : "packages/$package_id/$path";
+        return $path[0] === '/' ? DS_ROOT_DIR . $path : "packages/$package_id/$path";
     }
 
     /**

@@ -71,12 +71,16 @@ abstract class DatabaseItem extends ArrayConvertible
                 ((string) $item->$key === $item->$key && strlen($item->$key) > $limits[$key])
             ) {
                 $errors[$key] = "{$item->$key} > {$limits[$key]}";
+                continue;
+            }
+            if ((string) $item->$key === $item->$key && strlen($item->$key) === 0) {
+                $item->$key = null;
             }
         }
         if ($errors) {
             $message = 'Database item has data that exceeds database limits' . PHP_EOL;
             foreach ($errors as $column) {
-                $message .= "  -- $column" . PHP_EOL;
+                $message .= "  $column" . PHP_EOL;
             }
             throw new PDOException($message);
         } else {

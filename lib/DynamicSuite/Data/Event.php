@@ -40,6 +40,11 @@ use DynamicSuite\Base\DatabaseItem;
  * @property int|null $filter_3
  * @property int|null $filter_4
  * @property int|null $filter_5
+ * @property string|null $filter_6
+ * @property string|null $filter_7
+ * @property string|null $filter_8
+ * @property string|null $filter_9
+ * @property string|null $filter_10
  *
  */
 class Event extends DatabaseItem
@@ -142,6 +147,41 @@ class Event extends DatabaseItem
      * @var int|null
      */
     protected ?int $filter_5 = null;
+
+    /**
+     * Application filter #6.
+     *
+     * @var string|null
+     */
+    protected ?string $filter_6 = null;
+
+    /**
+     * Application filter #7.
+     *
+     * @var string|null
+     */
+    protected ?string $filter_7 = null;
+
+    /**
+     * Application filter #8.
+     *
+     * @var string|null
+     */
+    protected ?string $filter_8 = null;
+
+    /**
+     * Application filter #9.
+     *
+     * @var string|null
+     */
+    protected ?string $filter_9 = null;
+
+    /**
+     * Application filter #10.
+     *
+     * @var string|null
+     */
+    protected ?string $filter_10 = null;
 
     /**
      * Event constructor.
