@@ -6,21 +6,26 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-CREATE TABLE `ds_events` (
+CREATE TABLE IF NOT EXISTS `ds_events` (
   `event_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `package_id` varchar(64) DEFAULT NULL,
   `type` int(10) DEFAULT NULL,
-  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
+  `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
   `ip` varchar(39) DEFAULT NULL,
   `session` char(64) DEFAULT NULL,
-  `affected` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
+  `affected` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
   `message` varchar(2048) DEFAULT NULL,
-  `filter_1` int(10) unsigned NULL DEFAULT NULL,
-  `filter_2` int(10) unsigned NULL DEFAULT NULL,
-  `filter_3` int(10) unsigned NULL DEFAULT NULL,
-  `filter_4` int(10) unsigned NULL DEFAULT NULL,
-  `filter_5` int(10) unsigned NULL DEFAULT NULL,
+  `filter_1` int(10) unsigned DEFAULT NULL,
+  `filter_2` int(10) unsigned DEFAULT NULL,
+  `filter_3` int(10) unsigned DEFAULT NULL,
+  `filter_4` int(10) unsigned DEFAULT NULL,
+  `filter_5` int(10) unsigned DEFAULT NULL,
+  `filter_6` char(1) DEFAULT NULL,
+  `filter_7` char(1) DEFAULT NULL,
+  `filter_8` char(1) DEFAULT NULL,
+  `filter_9` char(1) DEFAULT NULL,
+  `filter_10` char(1) DEFAULT NULL,
   PRIMARY KEY (`event_id`),
   KEY `timestamp` (`timestamp`),
   KEY `package_id` (`package_id`),
@@ -29,10 +34,16 @@ CREATE TABLE `ds_events` (
   KEY `filter_2` (`filter_2`),
   KEY `filter_3` (`filter_3`),
   KEY `filter_4` (`filter_4`),
-  KEY `filter_5` (`filter_5`)
+  KEY `filter_5` (`filter_5`),
+  KEY `filter_6` (`filter_6`),
+  KEY `filter_7` (`filter_7`),
+  KEY `filter_8` (`filter_8`),
+  KEY `filter_9` (`filter_9`),
+  KEY `filter_10` (`filter_10`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `ds_group_permissions` (
+
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_group_permissions` (
   `group_id` int(10) unsigned NOT NULL,
   `permission_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`group_id`,`permission_id`),
@@ -41,7 +52,7 @@ CREATE TABLE `ds_group_permissions` (
   CONSTRAINT `ds_group_permissions-permission_id` FOREIGN KEY (`permission_id`) REFERENCES `ds_permissions` (`permission_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `ds_groups` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_groups` (
   `group_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) DEFAULT NULL,
   `description` varchar(64) DEFAULT NULL,
@@ -51,7 +62,7 @@ CREATE TABLE `ds_groups` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `ds_permissions` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_permissions` (
   `permission_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `package_id` varchar(64) DEFAULT NULL,
   `name` varchar(64) DEFAULT NULL,
@@ -61,7 +72,7 @@ CREATE TABLE `ds_permissions` (
   UNIQUE KEY `package_id_name` (`package_id`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `ds_user_groups` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_user_groups` (
   `user_id` int(10) unsigned NOT NULL,
   `group_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`user_id`,`group_id`),
@@ -70,7 +81,7 @@ CREATE TABLE `ds_user_groups` (
   CONSTRAINT `ds_user_groups-user_id` FOREIGN KEY (`user_id`) REFERENCES `ds_users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `ds_users` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_users` (
   `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `password` char(96) NOT NULL DEFAULT '',
@@ -86,7 +97,7 @@ CREATE TABLE `ds_users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `ds_view_group_permissions` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_view_group_permissions` (
    `group_id` INT(10) UNSIGNED NOT NULL,
    `permission_id` INT(10) UNSIGNED NULL DEFAULT '0',
    `package_id` VARCHAR(64) NULL DEFAULT NULL,
@@ -94,14 +105,14 @@ CREATE TABLE `ds_view_group_permissions` (
    `description` VARCHAR(255) NULL DEFAULT NULL
 ) ENGINE=MyISAM;
 
-CREATE TABLE `ds_view_user_groups` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_view_user_groups` (
    `user_id` INT(10) UNSIGNED NOT NULL,
    `group_id` INT(10) UNSIGNED NULL DEFAULT '0',
    `name` VARCHAR(64) NULL DEFAULT NULL,
    `description` VARCHAR(64) NULL DEFAULT NULL
 ) ENGINE=MyISAM;
 
-CREATE TABLE `ds_view_user_permissions` (
+CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_view_user_permissions` (
    `user_id` INT(10) UNSIGNED NOT NULL,
    `group_id` INT(10) UNSIGNED NOT NULL,
    `permission_id` INT(10) UNSIGNED NULL DEFAULT '0',
@@ -112,7 +123,7 @@ CREATE TABLE `ds_view_user_permissions` (
 
 
 DROP TABLE `ds_view_user_permissions`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `ds_view_user_permissions`
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW IF NOT EXISTS `ds_view_user_permissions`
 AS SELECT
    `meta`.`user_id` AS `user_id`,
    `meta`.`group_id` AS `group_id`,
@@ -123,7 +134,7 @@ AS SELECT
 FROM (`ds_user_groups` `meta` left join `ds_view_group_permissions` `data` on(`data`.`group_id` = `meta`.`group_id`)) group by `meta`.`user_id`,`data`.`permission_id`;
 
 DROP TABLE `ds_view_user_groups`;
-CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `ds_view_user_groups`
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW IF NOT EXISTS `ds_view_user_groups`
 AS SELECT
    `data`.`user_id` AS `user_id`,
    `meta`.`group_id` AS `group_id`,
@@ -132,7 +143,7 @@ AS SELECT
 FROM (`ds_user_groups` `data` left join `ds_groups` `meta` on(`data`.`group_id` = `meta`.`group_id`));
 
 DROP TABLE `ds_view_group_permissions`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `ds_view_group_permissions`
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW IF NOT EXISTS `ds_view_group_permissions`
 AS SELECT
    `data`.`group_id` AS `group_id`,
    `meta`.`permission_id` AS `permission_id`,
