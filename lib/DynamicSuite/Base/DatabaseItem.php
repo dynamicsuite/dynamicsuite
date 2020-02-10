@@ -65,6 +65,7 @@ abstract class DatabaseItem extends ArrayConvertible
     {
         $errors = [];
         foreach (array_keys($limits) as $key) {
+            if (!isset($item->$key)) continue;
             if (
                 ((int) $item->$key === $item->$key && $item->$key > $limits[$key]) ||
                 ((double) $item->$key === $item->$key && $item->$key > $limits[$key]) ||
