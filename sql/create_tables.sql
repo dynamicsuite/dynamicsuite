@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS `ds_events` (
   KEY `filter_10` (`filter_10`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
 CREATE TABLE IF NOT EXISTS CREATE TABLE `ds_group_permissions` (
   `group_id` int(10) unsigned NOT NULL,
   `permission_id` int(10) unsigned NOT NULL,
