@@ -494,21 +494,6 @@ final class Query extends ProtectedObject
                     $this->query .= ' *';
                 }
                 $this->query .= " FROM `$this->table`";
-                if ($this->order_by) {
-                    $this->query .= ' ORDER BY ';
-                    foreach ($this->order_by as $group) {
-                        if (is_string($group['columns'])) {
-                            $this->query .= "`{$group['columns']}`";
-                        } else {
-                            foreach ($group['columns'] as $value) {
-                                $this->query .= "`$value`, ";
-                            }
-                            $this->query = rtrim($this->query, ', ');
-                        }
-                        $this->query .= " {$group['order']}, ";
-                    }
-
-                }
                 break;
             case 'INSERT':
                 if (!$this->row_count) {
@@ -563,6 +548,21 @@ final class Query extends ProtectedObject
                 }
                 $clauses_added++;
             }
+        }
+        if ($this->order_by) {
+            $this->query .= ' ORDER BY ';
+            foreach ($this->order_by as $group) {
+                if (is_string($group['columns'])) {
+                    $this->query .= "`{$group['columns']}`";
+                } else {
+                    foreach ($group['columns'] as $value) {
+                        $this->query .= "`$value`, ";
+                    }
+                    $this->query = rtrim($this->query, ', ');
+                }
+                $this->query .= " {$group['order']}, ";
+            }
+
         }
         if ($this->group_by) {
             $this->query .= ' GROUP BY ';
