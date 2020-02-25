@@ -42,9 +42,8 @@ $ds = (function() {
 })();
 
 // Add global package autoload paths to the autoload queue
-spl_autoload_register(function (string $class) {
+spl_autoload_register(function (string $class) use ($ds) {
     if (class_exists($class)) return;
-    global $ds;
     $file = str_replace('\\', '/', $class) . '.php';
     foreach ($ds->packages->resources->autoload as $dir) {
         $path = DS_ROOT_DIR . "/$dir/$file";
