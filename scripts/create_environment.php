@@ -24,7 +24,7 @@ namespace DynamicSuite;
 
 // Set globals
 define('DS_START', microtime(true));
-define('DS_VERSION', '4.0.0');
+define('DS_VERSION', '4.1.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_CACHING', false);
 define('DS_PHP_VERSION', '7.4.0');
