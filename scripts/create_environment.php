@@ -31,15 +31,6 @@ define('DS_PHP_VERSION', '7.4.0');
 ini_set('display_errors', 0);
 chdir(DS_ROOT_DIR);
 
-// Get forced flag state
-if (isset($argv) && in_array('-f', $argv)) {
-    define('CLI_FORCE', true);
-    unset($argv[array_search('-f', $argv)]);
-    $argv = array_values($argv);
-} else {
-    define('CLI_FORCE', false);
-}
-
 // PHP version check
 if (!version_compare(PHP_VERSION, DS_PHP_VERSION, '>=')) {
     trigger_error('Dynamic Suite requires php >= ' . DS_PHP_VERSION, E_USER_ERROR);
