@@ -36,6 +36,9 @@ if (!version_compare(PHP_VERSION, DS_PHP_VERSION, '>=')) {
 }
 
 // Extension check
+if (DS_CACHING && !extension_loaded('apcu')) {
+    trigger_error('Missing APCU extension', E_USER_ERROR);
+}
 if (DS_CACHING && !extension_loaded('memcached')) {
     trigger_error('Missing memcached extension', E_USER_ERROR);
 }

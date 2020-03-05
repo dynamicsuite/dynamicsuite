@@ -24,7 +24,6 @@ namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\Request;
 use DynamicSuite\Core\Session;
-use Memcached;
 
 require_once realpath(__DIR__ . '/create_environment.php');
 
