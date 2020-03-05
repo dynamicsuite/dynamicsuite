@@ -28,6 +28,7 @@ use DynamicSuite\Data\Groups;
 use DynamicSuite\Data\Permissions;
 use DynamicSuite\Data\Users;
 use DynamicSuite\Package\Packages;
+use Memcached;
 
 /**
  * Class Instance.
@@ -145,23 +146,10 @@ final class DynamicSuite extends ProtectedObject
             $global_members[$key] = $value;
             unset($this->$key);
         }
-        apcu_store(self::getHash(), $this);
+        apcu_store(DS_ROOT_DIR, $this);
         foreach ($global_members as $key => $value) {
             $this->$key = $value;
         }
-    }
-
-    /**
-     * Get a hash unique to the Dynamic Suite instance deployment.
-     *
-     * If a key is given, a hash will be generated unique to the Dynamic Suite instance and the key.
-     *
-     * @param string $key
-     * @return string
-     */
-    public static function getHash(string $key = ''): string
-    {
-        return crc32(DS_ROOT_DIR . $key);
     }
 
     /**
@@ -175,13 +163,12 @@ final class DynamicSuite extends ProtectedObject
      */
     public static function getPkgClass(string $class, ...$args)
     {
-        $hash = self::getHash($class);
-        if (DS_CACHING && apcu_exists($hash)) {
-            return apcu_fetch($hash);
+        if (DS_CACHING && apcu_exists($class)) {
+            return apcu_fetch($class);
         } else {
-            $class = new $class(...$args);
-            if (DS_CACHING) apcu_store($hash, $class);
-            return $class;
+            $instance = new $class(...$args);
+            if (DS_CACHING) apcu_store($class, $instance);
+            return $instance;
         }
     }
 

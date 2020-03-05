@@ -86,7 +86,7 @@ final class Session extends InstanceMember
      */
     public function isValid(): bool
     {
-        return isset($_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id']) && $this->user instanceof User;
+        return isset($_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id']) && $this->user instanceof User;
     }
 
     /**
@@ -96,8 +96,8 @@ final class Session extends InstanceMember
      */
     public function getSaved(): void
     {
-        if (isset($_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id'])) {
-            $this->create($_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id']);
+        if (isset($_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id'])) {
+            $this->create($_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id']);
         }
     }
 
@@ -116,7 +116,7 @@ final class Session extends InstanceMember
             $this->permissions = $this->ds->users->viewPermissions($user);
             $this->groups = $this->ds->users->viewGroups($user);
             $this->user = $user;
-            $_SESSION['dynamicsuite_' . DynamicSuite::getHash()]['user_id'] = $user_id;
+            $_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id'] = $user_id;
             return true;
         } catch (PDOException $exception) {
             error_log($exception->getMessage(), E_USER_WARNING);
@@ -135,7 +135,7 @@ final class Session extends InstanceMember
         $this->permissions = [];
         $this->groups = [];
         $this->user = null;
-        $_SESSION['dynamicsuite_' . DynamicSuite::getHash()] = null;
+        $_SESSION['dynamicsuite_' . DS_ROOT_DIR] = null;
         session_regenerate_id();
         return $this;
     }
@@ -149,7 +149,7 @@ final class Session extends InstanceMember
      */
     public function set(string $key, $data): void
     {
-        $_SESSION['dynamicsuite_' . DynamicSuite::getHash()][$key] = $data;
+        $_SESSION['dynamicsuite_' . DS_ROOT_DIR][$key] = $data;
     }
 
     /**
@@ -160,7 +160,7 @@ final class Session extends InstanceMember
      */
     public function get(string $key)
     {
-        return $_SESSION['dynamicsuite_' . DynamicSuite::getHash()][$key] ?? null;
+        return $_SESSION['dynamicsuite_' . DS_ROOT_DIR][$key] ?? null;
     }
 
     /**
@@ -171,7 +171,7 @@ final class Session extends InstanceMember
      */
     public function delete(string $key): void
     {
-        unset($_SESSION['dynamicsuite_' . DynamicSuite::getHash()][$key]);
+        unset($_SESSION['dynamicsuite_' . DS_ROOT_DIR][$key]);
     }
 
     /**
@@ -192,7 +192,7 @@ final class Session extends InstanceMember
         } elseif (is_array($permissions)) {
             foreach ($permissions as $value) {
                 if (!is_string($value)) {
-                    trigger_error("Permission values must be strings when permissions are an array", E_USER_WARNING);
+                    trigger_error('Permission values must be strings when permissions are an array', E_USER_WARNING);
                     return false;
                 }
                 if (!array_key_exists($value, $this->permissions)) return false;

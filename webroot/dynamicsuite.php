@@ -51,12 +51,11 @@ if (defined('DS_VIEW')) {
     }
     (function() {
         global $ds;
-        $hash = DynamicSuite::getHash('dynamicsuite_view');
-        if (DS_CACHING && apcu_exists($hash)) {
-            $ds->set('view', apcu_fetch($hash));
+        if (DS_CACHING && apcu_exists(DS_ROOT_DIR . '_view')) {
+            $ds->set('view', apcu_fetch(DS_ROOT_DIR . '_view'));
         } else {
             $ds->set('view', new View($ds));
-            if (DS_CACHING) apcu_store($hash, $ds->view);
+            if (DS_CACHING) apcu_store(DS_ROOT_DIR . '_view', $ds->view);
         }
     })();
     if ($ds->view->setPackageView($ds->request->url_string)) {

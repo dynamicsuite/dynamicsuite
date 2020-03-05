@@ -55,6 +55,8 @@ use PDO;
  * @property string $db_user
  * @property string $db_pass
  * @property array $db_options
+ * @property string $memcached_host
+ * @property int $memcached_port
  * @property string $backup_dir
  * @property string $backup_days_keep
  * @property string $pkg_db_dir
@@ -266,6 +268,20 @@ final class Config extends DSConfig
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ];
+
+    /**
+     * The host that the memcached server is running on.
+     *
+     * @var string
+     */
+    protected string $memcached_host = '127.0.0.1';
+
+    /**
+     * The port that the memcached server is listening on.
+     *
+     * @var int
+     */
+    protected int $memcached_port = 11211;
 
     /**
      * Backup directory for CLI backups.

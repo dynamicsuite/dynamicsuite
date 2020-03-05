@@ -24,19 +24,21 @@ namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\Request;
 use DynamicSuite\Core\Session;
+use Memcached;
 
 require_once realpath(__DIR__ . '/create_environment.php');
 
 // Initialize the instance
 /** @var DynamicSuite $ds */
 $ds = (function() {
-    $hash = DynamicSuite::getHash();
-    if (apcu_exists($hash) && DS_CACHING) {
-        $ds = apcu_fetch($hash);
+    if (DS_CACHING && apcu_exists(DS_ROOT_DIR)) {
+        $ds = apcu_fetch(DS_ROOT_DIR);
     } else {
         $ds = new DynamicSuite();
         $ds->packages->loadPackages();
-        if (DS_CACHING) $ds->save();
+        if (DS_CACHING) {
+            $ds->save();
+        }
     }
     return $ds;
 })();
