@@ -56,7 +56,6 @@ final class CLI
      */
     public static function in(string $prompt, ?string $old = null): string
     {
-        if (defined('CLI_FORCE') && CLI_FORCE) return (string) $old;
         $prompt = $old ? "$prompt (Enter for `$old`): " : "$prompt: ";
         self::out($prompt, false);
         $input = trim(fgets(STDIN));
@@ -77,7 +76,6 @@ final class CLI
      */
     public static function yn(string $prompt, bool $default = false): bool
     {
-        if (CLI_FORCE) return true;
         $suffix = $default ? '[Y/n]' : '[y/N]';
         self::out("$prompt $suffix: ", false);
         $input = trim(fgets(STDIN));
