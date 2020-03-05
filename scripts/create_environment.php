@@ -22,7 +22,6 @@
 
 namespace DynamicSuite;
 
-// Set globals
 define('DS_START', microtime(true));
 define('DS_VERSION', '5.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
@@ -37,8 +36,12 @@ if (!version_compare(PHP_VERSION, DS_PHP_VERSION, '>=')) {
 }
 
 // Extension check
-if (!extension_loaded('apcu')) trigger_error('Missing APCU extension', E_USER_ERROR);
-if (!extension_loaded('pdo_mysql')) trigger_error('Missing PDO extension', E_USER_ERROR);
+if (DS_CACHING && !extension_loaded('memcached')) {
+    trigger_error('Missing memcached extension', E_USER_ERROR);
+}
+if (!extension_loaded('pdo_mysql')) {
+    trigger_error('Missing PDO extension', E_USER_ERROR);
+}
 
 // Directory check
 if (!file_exists('config') && !mkdir('config')) {
