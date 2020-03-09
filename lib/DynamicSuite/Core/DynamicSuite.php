@@ -41,6 +41,7 @@ use Memcached;
  * @property View $view
  * @property APIEndpoint $api
  * @property Database $db
+ * @property Cache $cache
  * @property Permissions $permissions
  * @property Groups $groups
  * @property Users $users
@@ -69,6 +70,13 @@ final class DynamicSuite extends ProtectedObject
      * @var Database
      */
     protected Database $db;
+
+    /**
+     * Memcached wrapper.
+     *
+     * @var Cache
+     */
+    protected Cache $cache;
 
     /**
      * Permissions database interface.
@@ -106,6 +114,7 @@ final class DynamicSuite extends ProtectedObject
             $this->cfg->db_pass,
             $this->cfg->db_options
         );
+        $this->cache = new Cache($this);
         $this->permissions = new Permissions($this);
         $this->groups = new Groups($this);
         $this->users = new Users($this);
