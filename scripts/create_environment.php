@@ -26,42 +26,8 @@ define('DS_START', microtime(true));
 define('DS_VERSION', '5.1.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_CACHING', false);
-define('DS_PHP_VERSION', '7.4.3');
 ini_set('display_errors', 0);
 chdir(DS_ROOT_DIR);
-
-// PHP version check
-if (!version_compare(PHP_VERSION, DS_PHP_VERSION, '>=')) {
-    trigger_error('Dynamic Suite requires php >= ' . DS_PHP_VERSION, E_USER_ERROR);
-}
-
-// Extension check
-if (DS_CACHING && !extension_loaded('apcu')) {
-    trigger_error('Missing APCU extension', E_USER_ERROR);
-}
-if (DS_CACHING && !extension_loaded('memcached')) {
-    trigger_error('Missing memcached extension', E_USER_ERROR);
-}
-if (!extension_loaded('pdo_mysql')) {
-    trigger_error('Missing PDO extension', E_USER_ERROR);
-}
-
-// Directory check
-if (!file_exists('config') && !mkdir('config')) {
-    trigger_error('Could not create config directory', E_USER_ERROR);
-}
-if (!file_exists('packages') && !mkdir('packages')) {
-    trigger_error('Could not create packages directory', E_USER_ERROR);
-}
-if (!file_exists('logs') && !mkdir('logs')) {
-    trigger_error('Could not create logs directory', E_USER_ERROR);
-}
-if (!file_exists('logs/dynamicsuite-error.log') && !touch('logs/dynamicsuite-error.log')) {
-    trigger_error('Could not create error log', E_USER_ERROR);
-}
-if (!file_exists('logs/dynamicsuite-access.log') && !touch('logs/dynamicsuite-access.log')) {
-    trigger_error('Could not create access log', E_USER_ERROR);
-}
 
 // Core autoloader
 spl_autoload_register(function (string $class) {
