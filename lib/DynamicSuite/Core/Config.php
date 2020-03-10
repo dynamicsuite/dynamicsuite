@@ -57,12 +57,6 @@ use PDO;
  * @property array $db_options
  * @property string $memcached_host
  * @property int $memcached_port
- * @property string $backup_dir
- * @property string $backup_days_keep
- * @property string $pkg_db_dir
- * @property string $pkg_build_dir
- * @property array $pkg_repos
- * @property array $pkg_blacklist
  */
 final class Config extends DSConfig
 {
@@ -282,50 +276,6 @@ final class Config extends DSConfig
      * @var int
      */
     protected int $memcached_port = 11211;
-
-    /**
-     * Backup directory for CLI backups.
-     *
-     * @var string
-     */
-    protected string $backup_dir = '/var/backups/dynamicsuite';
-
-    /**
-     * Number of days to keep a backup before marking it for deletion.
-     *
-     * @var int
-     */
-    protected int $backup_days_keep = 7;
-
-    /**
-     * Package meta directory.
-     *
-     * @var string
-     */
-    protected string $pkg_db_dir = '.dspkg';
-
-    /**
-     * Package build directory.
-     *
-     * @var string
-     */
-    protected string $pkg_build_dir = '.dspkg/build';
-
-    /**
-     * Package repositories.
-     *
-     * @var array
-     */
-    protected array $pkg_repos = [
-        'https://public-repo.dynamicsuite.io' => null
-    ];
-
-    /**
-     * An array of blacklisted packages.
-     *
-     * @var array
-     */
-    protected array $pkg_blacklist = [];
 
     /**
      * Config constructor.
