@@ -118,7 +118,7 @@ final class DynamicSuite extends ProtectedObject
         $this->groups = new Groups($this);
         $this->users = new Users($this);
         $this->events = new Events($this);
-        if (DS_CACHING) $this->save();
+        $this->save();
     }
 
     /**
