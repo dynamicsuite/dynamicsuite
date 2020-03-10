@@ -23,10 +23,10 @@
 namespace DynamicSuite;
 
 define('DS_START', microtime(true));
-define('DS_VERSION', '5.0.0');
+define('DS_VERSION', '5.1.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_CACHING', false);
-define('DS_PHP_VERSION', '7.4.0');
+define('DS_PHP_VERSION', '7.4.3');
 ini_set('display_errors', 0);
 chdir(DS_ROOT_DIR);
 
@@ -65,11 +65,12 @@ if (!file_exists('logs/dynamicsuite-access.log') && !touch('logs/dynamicsuite-ac
 
 // Core autoloader
 spl_autoload_register(function (string $class) {
-    if (class_exists($class)) return;
-    $file = DS_ROOT_DIR . '/lib/' . str_replace('\\', '/', $class) . '.php';
-    if (DS_CACHING && opcache_is_script_cached($file)) {
-        require_once $file;
-    } elseif (file_exists($file)) {
-        require_once $file;
+    if (!class_exists($class)) {
+        $file = DS_ROOT_DIR . '/lib/' . str_replace('\\', '/', $class) . '.php';
+        if (DS_CACHING && opcache_is_script_cached($file)) {
+            require_once $file;
+        } elseif (file_exists($file)) {
+            require_once $file;
+        }
     }
 });
