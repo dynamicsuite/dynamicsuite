@@ -155,7 +155,7 @@ final class DynamicSuite extends ProtectedObject
             $global_members[$key] = $value;
             unset($this->$key);
         }
-        apcu_store(DS_ROOT_DIR, $this);
+        apcu_store(self::getHash(), $this);
         foreach ($global_members as $key => $value) {
             $this->$key = $value;
         }
@@ -172,13 +172,27 @@ final class DynamicSuite extends ProtectedObject
      */
     public static function getPkgClass(string $class, ...$args)
     {
-        if (DS_CACHING && apcu_exists($class)) {
-            return apcu_fetch($class);
+        $hash = self::getHash($class);
+        if (DS_CACHING && apcu_exists($hash)) {
+            return apcu_fetch($hash);
         } else {
             $instance = new $class(...$args);
-            if (DS_CACHING) apcu_store($class, $instance);
+            if (DS_CACHING) {
+                apcu_store($hash, $instance);
+            }
             return $instance;
         }
+    }
+
+    /**
+     * Generate a hash for the given input string unique to the current instance.
+     *
+     * @param string $input
+     * @return string
+     */
+    public static function getHash(string $input = '')
+    {
+        return md5(DS_ROOT_DIR . $input);
     }
 
 }
