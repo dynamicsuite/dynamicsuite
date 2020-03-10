@@ -28,7 +28,6 @@ use DynamicSuite\Data\Groups;
 use DynamicSuite\Data\Permissions;
 use DynamicSuite\Data\Users;
 use DynamicSuite\Package\Packages;
-use Memcached;
 
 /**
  * Class Instance.
