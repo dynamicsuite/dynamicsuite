@@ -35,9 +35,9 @@ final class Cache extends InstanceMember
     /**
      * The cache instance.
      *
-     * @var Memcached
+     * @var Memcached|null
      */
-    protected Memcached $cache;
+    protected ?Memcached $cache = null;
 
     /**
      * Cache constructor.
@@ -71,6 +71,9 @@ final class Cache extends InstanceMember
      */
     public function set(string $key, $value, int $expiration = 0): bool
     {
+        if (!$this->cache instanceof Memcached) {
+            $this->connect();
+        }
         return $this->cache->set(DynamicSuite::getHash($key), $value, $expiration);
     }
 
@@ -82,6 +85,9 @@ final class Cache extends InstanceMember
      */
     public function get(string $key)
     {
+        if (!$this->cache instanceof Memcached) {
+            $this->connect();
+        }
         return $this->cache->get(DynamicSuite::getHash($key));
     }
 
@@ -93,6 +99,9 @@ final class Cache extends InstanceMember
      */
     public function delete(string $key)
     {
+        if (!$this->cache instanceof Memcached) {
+            $this->connect();
+        }
         return $this->cache->delete(DynamicSuite::getHash($key));
     }
 

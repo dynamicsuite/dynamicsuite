@@ -146,6 +146,7 @@ final class DynamicSuite extends ProtectedObject
                 $key === 'cfg' ||
                 $key === 'packages' ||
                 $key === 'db' ||
+                $key === 'cache' ||
                 $key === 'permissions' ||
                 $key === 'groups' ||
                 $key === 'users' ||
