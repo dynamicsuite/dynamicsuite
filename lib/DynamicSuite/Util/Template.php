@@ -45,7 +45,7 @@ final class Template
      */
     public function __construct(string $contents = '')
     {
-        $this->contents = $contents;
+        $this->contents = preg_replace('~>\s+<~', '><', preg_replace('/\s+/', ' ', $contents));
     }
 
     /**
