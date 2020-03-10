@@ -71,7 +71,7 @@ final class Cache extends InstanceMember
      */
     public function set(string $key, $value, int $expiration = 0): bool
     {
-        return $this->cache->set($key, $value, $expiration);
+        return $this->cache->set(DynamicSuite::getHash($key), $value, $expiration);
     }
 
     /**
@@ -82,7 +82,18 @@ final class Cache extends InstanceMember
      */
     public function get(string $key)
     {
-        return $this->cache->get($key);
+        return $this->cache->get(DynamicSuite::getHash($key));
+    }
+
+    /**
+     * Delete an item from the cache.
+     *
+     * @param string $key
+     * @return bool
+     */
+    public function delete(string $key)
+    {
+        return $this->cache->delete(DynamicSuite::getHash($key));
     }
 
 }
