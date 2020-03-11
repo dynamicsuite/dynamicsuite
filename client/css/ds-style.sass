@@ -44,6 +44,9 @@ html, body
     display: flex
     align-items: center
 
+    @media print
+      display: none
+
   /* Navigation and view header text elements */
   #ds-nav-header-text, #ds-view-header-text
     flex-grow: 100
@@ -64,6 +67,9 @@ html, body
     display: flex
     flex-direction: column
     overflow: hidden
+
+    @media print
+      display: none
 
     /* Hidden by default on mobile */
     @include on-mobile-view
