@@ -365,6 +365,10 @@ final class View extends InstanceMember
      */
     public function setNavigable(): View
     {
+        $action_links = '';
+        foreach ($this->ds->packages->action_links as $text => $url) {
+            $action_links .= "<li><a href=\"$url\">$text</a></li>";
+        }
         $this->nav->replace([
             '{{nav-header-view}}' => $this->ds->cfg->nav_header_view,
             '{{nav-header-text}}' => $this->ds->cfg->nav_header_text,
@@ -372,9 +376,14 @@ final class View extends InstanceMember
             '{{login-path}}' => $this->ds->cfg->nav_login_path,
             '{{nav-footer-version}}' => DS_VERSION,
             '{{view-header}}' => $this->package->title,
-            '{{hide-logout}}' => $this->package->hide_logout_button
+            '{{hide-user-actions}}' => $this->package->hide_user_actions
                 ? ' class="ds-hide"'
                 : '',
+            '{{action-links}}' => $action_links,
+            '{{hide-logout-link}}' => $this->package->hide_logout_link
+                ? ' class="ds-hide"'
+                : '',
+            '{{login-view}}' => $this->ds->cfg->login_view,
             '{{nav-links}}' => $this->generateNavLinks(),
         ]);
         $this->document->replace([

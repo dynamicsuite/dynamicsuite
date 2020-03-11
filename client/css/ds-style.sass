@@ -174,14 +174,37 @@ html, body
     @include on-mobile-view
       width: 100%
 
-    /* The mobile nav toggle and the logout button on the view header */
-    #ds-nav-mobile-toggle, #ds-view-logout
+    /* The mobile nav toggle and the user actions button on the view header */
+    #ds-nav-mobile-toggle, #ds-view-user-actions
       width: $slim-bar
       height: $slim-bar
       display: flex
       flex-shrink: 0
       justify-content: center
       align-items: center
+
+    #ds-view-user-actions
+      ul
+        display: none
+        position: absolute
+        z-index: 2
+        min-width: calc(#{$slim-bar} * 2)
+        top: $slim-bar
+        right: 0
+        list-style: none
+        margin: 0
+        padding: 0.75rem
+
+        li
+          padding: 0.25rem
+
+        #ds-logout-link
+          margin-top: 0.75rem
+          padding-top: 0.75rem
+
+    #ds-view-user-actions:hover
+      ul
+        display: block
 
     /* Mobile nav toggle is not shown by default */
     #ds-nav-mobile-toggle
@@ -199,8 +222,8 @@ html, body
       @include on-mobile-view
         text-align: center
 
-    /* Position the logout button to the right */
-    #ds-view-logout
+    /* Position the user actions button to the right */
+    #ds-view-user-actions
       margin-left: auto
 
     /* The view is the height of the screen less the view header height and padding */

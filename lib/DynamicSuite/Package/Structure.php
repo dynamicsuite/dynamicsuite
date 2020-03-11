@@ -38,6 +38,7 @@ use TypeError;
  * @property NavGroup[] $nav_groups
  * @property View[] $views
  * @property API[] $apis
+ * @property array $action_links
  */
 final class Structure extends ArrayConvertible
 {
@@ -120,6 +121,15 @@ final class Structure extends ArrayConvertible
     protected array $apis = [];
 
     /**
+     * Array of action links to display in the action area.
+     *
+     * The key should be the link text, and the value should be the URL of the link.
+     *
+     * @var array
+     */
+    protected array $action_links = [];
+
+    /**
      * PackageStructure constructor.
      *
      * @param string $package_id
@@ -138,7 +148,8 @@ final class Structure extends ArrayConvertible
             ->setLocalResources($array['local'] ?? [])
             ->setNavGroups($array['nav_groups'] ?? [])
             ->setViews($array['views'] ?? [])
-            ->setApis($array['apis'] ?? []);
+            ->setApis($array['apis'] ?? [])
+            ->setActionLinks($array['action_links'] ?? []);
     }
 
     /**
@@ -259,6 +270,24 @@ final class Structure extends ArrayConvertible
                 continue;
             }
             $this->apis[$api_id] = $api;
+        }
+        return $this;
+    }
+
+    /**
+     * Set the action links of the package.
+     *
+     * @param array $action_links
+     * @return Structure
+     */
+    public function setActionLinks(array $action_links = []): Structure
+    {
+        foreach ($action_links as $text => $url) {
+            if (!is_string($url)) {
+                trigger_error('Action link URL must be a string', E_USER_WARNING);
+                continue;
+            }
+            $this->action_links[$text] = $url;
         }
         return $this;
     }
