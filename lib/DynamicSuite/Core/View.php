@@ -376,6 +376,7 @@ final class View extends InstanceMember
             '{{login-path}}' => $this->ds->cfg->nav_login_path,
             '{{nav-footer-version}}' => DS_VERSION,
             '{{view-header}}' => $this->package->title,
+            '{{action-links-icon}}' => $this->ds->cfg->action_links_icon,
             '{{hide-user-actions}}' => $this->package->hide_user_actions
                 ? ' class="ds-hide"'
                 : '',
@@ -383,7 +384,7 @@ final class View extends InstanceMember
             '{{hide-logout-link}}' => $this->package->hide_logout_link
                 ? ' class="ds-hide"'
                 : '',
-            '{{login-view}}' => $this->ds->cfg->login_view,
+            '{{login-view}}' => $this->ds->cfg->nav_login_path,
             '{{nav-links}}' => $this->generateNavLinks(),
         ]);
         $this->document->replace([

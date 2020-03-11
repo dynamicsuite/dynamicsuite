@@ -51,6 +51,7 @@ use PDO;
  * @property string $js_dynamicsuite
  * @property string $nav_header_text
  * @property string $nav_login_path
+ * @property string $action_links_icon
  * @property string $db_dsn
  * @property string $db_user
  * @property string $db_pass
@@ -228,6 +229,13 @@ final class Config extends DSConfig
      * @var string
      */
     protected string $nav_login_path = '/login';
+
+    /**
+     * The icon class to use for the user action area.
+     *
+     * @var string
+     */
+    protected string $action_links_icon = 'fa-user';
 
     /**
      * Database data source name.
