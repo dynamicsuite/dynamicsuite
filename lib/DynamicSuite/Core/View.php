@@ -366,8 +366,15 @@ final class View extends InstanceMember
     public function setNavigable(): View
     {
         $action_links = '';
-        foreach ($this->ds->packages->action_links as $text => $url) {
-            $action_links .= "<li><a href=\"$url\">$text</a></li>";
+        foreach ($this->ds->packages->action_links as $text => $action) {
+            if ($action['type'] === 'static') {
+                $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";
+            } elseif ($action['type'] === 'dynamic') {
+                ob_start();
+                require $action['value'];
+                $content = ob_get_clean();
+                $action_links .= "<li>$content</li>";
+            }
         }
         $this->nav->replace([
             '{{nav-header-view}}' => $this->ds->cfg->nav_header_view,

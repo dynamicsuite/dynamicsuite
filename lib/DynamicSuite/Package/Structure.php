@@ -282,12 +282,23 @@ final class Structure extends ArrayConvertible
      */
     public function setActionLinks(array $action_links = []): Structure
     {
-        foreach ($action_links as $text => $url) {
-            if (!is_string($url)) {
-                trigger_error('Action link URL must be a string', E_USER_WARNING);
+        foreach ($action_links as $text => $action) {
+            if (!array_key_exists('type', $action) || !array_key_exists('value', $action)) {
+                trigger_error('Action link must contain a type and a value', E_USER_WARNING);
                 continue;
             }
-            $this->action_links[$text] = $url;
+            if ($action['type'] !== 'static' && $action['type'] !== 'dynamic') {
+                trigger_error('Action link type must be static or dynamic', E_USER_WARNING);
+                continue;
+            }
+            if (!is_string($action['value'])) {
+                trigger_error('Action link value must be a string');
+                continue;
+            }
+            if ($action['type'] === 'dynamic') {
+                $action['value'] = self::formatServerPath($this->package_id, $action['value']);
+            }
+            $this->action_links[$text] = $action;
         }
         return $this;
     }
