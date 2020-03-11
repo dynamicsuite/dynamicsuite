@@ -295,6 +295,18 @@ final class Structure extends ArrayConvertible
                 trigger_error('Action link value must be a string');
                 continue;
             }
+            if (array_key_exists('permissions', $action)) {
+                if (!is_array($action['permissions'])) {
+                    trigger_error('Permissions must be an array', E_USER_WARNING);
+                    continue;
+                }
+                foreach ($action['permissions'] as $permission) {
+                    if (!is_string($permission)) {
+                        trigger_error('Permissions must be string', E_USER_WARNING);
+                        continue 2;
+                    }
+                }
+            }
             if ($action['type'] === 'dynamic') {
                 $action['value'] = self::formatServerPath($this->package_id, $action['value']);
             }

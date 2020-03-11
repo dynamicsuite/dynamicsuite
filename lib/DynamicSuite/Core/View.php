@@ -367,6 +367,11 @@ final class View extends InstanceMember
     {
         $action_links = '';
         foreach ($this->ds->packages->action_links as $text => $action) {
+            if (isset($action['permissions'])) {
+                if (!$this->ds->session->checkPermissions($action['permissions'])) {
+                    continue;
+                };
+            }
             if ($action['type'] === 'static') {
                 $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";
             } elseif ($action['type'] === 'dynamic') {
