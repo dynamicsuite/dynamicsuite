@@ -382,9 +382,8 @@ final class View extends InstanceMember
             }
         }
         $this->nav->replace([
-            '{{nav-header-view}}' => $this->ds->cfg->nav_header_view,
             '{{nav-header-text}}' => $this->ds->cfg->nav_header_text,
-            '{{nav-header-path}}' => $this->ds->cfg->default_view,
+            '{{nav-header-path}}' => $this->ds->cfg->nav_header_view,
             '{{login-path}}' => $this->ds->cfg->nav_login_path,
             '{{nav-footer-version}}' => DS_VERSION,
             '{{view-header}}' => $this->package->title,

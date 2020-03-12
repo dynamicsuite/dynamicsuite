@@ -35,15 +35,18 @@ CLI::out('Running environment checks');
 
 // PHP version check
 if (!version_compare(PHP_VERSION, '7.4.3', '>=')) {
-    trigger_error('Dynamic Suite requires php >= ' . '7.4.3', E_USER_ERROR);
+    trigger_error('Dynamic Suite requires php >= 7.4.3', E_USER_ERROR);
 }
 
 // Extension check
-if (DS_CACHING && !extension_loaded('apcu')) {
+if (!extension_loaded('apcu')) {
     trigger_error('Missing APCU extension', E_USER_ERROR);
 }
-if (DS_CACHING && !extension_loaded('memcached')) {
+if (!extension_loaded('memcached')) {
     trigger_error('Missing memcached extension', E_USER_ERROR);
+}
+if (!extension_loaded('mbstring')) {
+    trigger_error('Missing mbstring extension', E_USER_ERROR);
 }
 if (!extension_loaded('pdo_mysql')) {
     trigger_error('Missing PDO extension', E_USER_ERROR);

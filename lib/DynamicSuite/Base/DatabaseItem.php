@@ -69,12 +69,12 @@ abstract class DatabaseItem extends ArrayConvertible
             if (
                 ((int) $item->$key === $item->$key && $item->$key > $limits[$key]) ||
                 ((double) $item->$key === $item->$key && $item->$key > $limits[$key]) ||
-                ((string) $item->$key === $item->$key && strlen($item->$key) > $limits[$key])
+                ((string) $item->$key === $item->$key && mb_strlen($item->$key) > $limits[$key])
             ) {
                 $errors[$key] = "{$item->$key} > {$limits[$key]}";
                 continue;
             }
-            if ((string) $item->$key === $item->$key && strlen($item->$key) === 0) {
+            if ((string) $item->$key === $item->$key && mb_strlen($item->$key) === 0) {
                 $item->$key = null;
             }
         }
