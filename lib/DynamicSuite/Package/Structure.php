@@ -38,6 +38,7 @@ use TypeError;
  * @property NavGroup[] $nav_groups
  * @property View[] $views
  * @property API[] $apis
+ * @property array $action_groups
  * @property array $action_links
  */
 final class Structure extends ArrayConvertible
@@ -121,6 +122,13 @@ final class Structure extends ArrayConvertible
     protected array $apis = [];
 
     /**
+     * An array of action group names.
+     *
+     * @var array
+     */
+    protected array $action_groups = [];
+
+    /**
      * Array of action links to display in the action area.
      *
      * The key should be the link text, and the value should be the URL of the link.
@@ -149,6 +157,7 @@ final class Structure extends ArrayConvertible
             ->setNavGroups($array['nav_groups'] ?? [])
             ->setViews($array['views'] ?? [])
             ->setApis($array['apis'] ?? [])
+            ->setActionGroups($array['action_groups'] ?? [])
             ->setActionLinks($array['action_links'] ?? []);
     }
 
@@ -275,6 +284,24 @@ final class Structure extends ArrayConvertible
     }
 
     /**
+     * Set the action groups of the package.
+     *
+     * @param array $action_groups
+     * @return Structure
+     */
+    public function setActionGroups(array $action_groups = []): Structure
+    {
+        foreach ($action_groups as $group) {
+            if (!is_string($group)) {
+                trigger_error('Action group must be an array of strings');
+                continue;
+            }
+            $this->action_groups[] = $group;
+        }
+        return $this;
+    }
+
+    /**
      * Set the action links of the package.
      *
      * @param array $action_links
@@ -283,8 +310,8 @@ final class Structure extends ArrayConvertible
     public function setActionLinks(array $action_links = []): Structure
     {
         foreach ($action_links as $text => $action) {
-            if (!array_key_exists('type', $action) || !array_key_exists('value', $action)) {
-                trigger_error('Action link must contain a type and a value', E_USER_WARNING);
+            if (!isset($action['type'], $action['value'], $action['group'])) {
+                trigger_error('Action link must contain a type, value, and group', E_USER_WARNING);
                 continue;
             }
             if ($action['type'] !== 'static' && $action['type'] !== 'dynamic') {
@@ -292,7 +319,11 @@ final class Structure extends ArrayConvertible
                 continue;
             }
             if (!is_string($action['value'])) {
-                trigger_error('Action link value must be a string');
+                trigger_error('Action link value must be a string', E_USER_WARNING);
+                continue;
+            }
+            if (!is_string($action['group'])) {
+                trigger_error('Action link group must be a string', E_USER_WARNING);
                 continue;
             }
             if (array_key_exists('permissions', $action)) {
