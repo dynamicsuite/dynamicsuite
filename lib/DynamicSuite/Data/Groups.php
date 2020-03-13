@@ -23,6 +23,7 @@ namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
+use Memcached;
 use PDOException;
 
 /**
@@ -65,6 +66,12 @@ final class Groups extends InstanceMember
      */
     public function getAll(?string $domain = null): array
     {
+        if (DS_CACHING) {
+            $groups = $this->ds->cache->get("groups::$domain");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $groups;
+            }
+        }
         $groups = [];
         $rows = $this->ds->db->query((new Query())
             ->select()
@@ -73,6 +80,9 @@ final class Groups extends InstanceMember
         );
         foreach ($rows as $row) {
             $groups[] = new Group($row);
+        }
+        if (DS_CACHING) {
+            $this->ds->cache->set("groups::$domain", $groups);
         }
         return $groups;
     }
@@ -86,6 +96,12 @@ final class Groups extends InstanceMember
      */
     public function find(string $lookup_by, ?string $domain = null)
     {
+        if (DS_CACHING) {
+            $group = $this->ds->cache->get("groups:group:$lookup_by");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $group;
+            }
+        }
         $lookup_column = is_int($lookup_by) ? 'user_id' : 'name';
         $group = $this->ds->db->query((new Query())
             ->select()
@@ -94,7 +110,11 @@ final class Groups extends InstanceMember
             ->where('domain', '=', $domain)
         );
         if (count($group) !== 1) return false;
-        return new Group($group[0]);
+        $group = new Group($group[0]);
+        if (DS_CACHING) {
+            $this->ds->cache->set("groups:group:$lookup_by", $group);
+        }
+        return $group;
     }
 
     /**
@@ -119,6 +139,9 @@ final class Groups extends InstanceMember
             ])
             ->into('ds_groups')
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("groups::$group->domain");
+        }
         return $group;
     }
 
@@ -140,6 +163,11 @@ final class Groups extends InstanceMember
             ])
             ->where('group_id', '=', $group->group_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("groups::$group->domain");
+            $this->ds->cache->delete("groups:group:$group->group_id");
+            $this->ds->cache->delete("groups:group:$group->name");
+        }
         return $group;
     }
 
@@ -157,7 +185,43 @@ final class Groups extends InstanceMember
             ->from('ds_groups')
             ->where('group_id', '=', $group->group_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("groups::$group->domain");
+            $this->ds->cache->delete("groups:group:$group->group_id");
+            $this->ds->cache->delete("groups:group:$group->name");
+        }
         return $group;
+    }
+
+    /**
+     * View the permissions for a given group.
+     *
+     * @param Group $group
+     * @return Permission[]
+     * @throws PDOException
+     */
+    public function viewPermissions(Group $group): array
+    {
+        if (DS_CACHING) {
+            $permissions = $this->ds->cache->get("groups:permissions:$group->group_id");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $permissions;
+            }
+        }
+        $permissions = [];
+        $rows = $this->ds->db->query((new Query())
+            ->select()
+            ->from('ds_view_group_permissions')
+            ->where('group_id', '=', $group->group_id)
+        );
+        foreach ($rows as $row) {
+            $permission = new Permission($row);
+            $permissions[$permission->shorthand()] = $permission;
+        }
+        if (DS_CACHING) {
+            $this->ds->cache->set("groups:permissions:$group->group_id", $permissions);
+        }
+        return $permissions;
     }
 
     /**
@@ -177,6 +241,9 @@ final class Groups extends InstanceMember
             ])
             ->into('ds_group_permissions')
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("groups:permissions:$group->group_id");
+        }
         return $this;
     }
 
@@ -196,6 +263,9 @@ final class Groups extends InstanceMember
             ->where('group_id', '=', $group->group_id)
             ->where('permission_id', '=', $permission->permission_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("groups:permissions:$group->group_id");
+        }
         return $this;
     }
 
@@ -226,29 +296,10 @@ final class Groups extends InstanceMember
         }
         if (!empty($rows)) $this->ds->db->query($insert->rows($rows));
         $this->ds->db->endTx();
-        return $this;
-    }
-
-    /**
-     * View the permissions for a given group.
-     *
-     * @param Group $group
-     * @return Permission[]
-     * @throws PDOException
-     */
-    public function viewPermissions(Group $group): array
-    {
-        $permissions = [];
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_group_permissions')
-            ->where('group_id', '=', $group->group_id)
-        );
-        foreach ($rows as $row) {
-            $permission = new Permission($row);
-            $permissions[$permission->shorthand()] = $permission;
+        if (DS_CACHING) {
+            $this->ds->cache->delete("groups:permissions:$group->group_id");
         }
-        return $permissions;
+        return $this;
     }
 
 }
