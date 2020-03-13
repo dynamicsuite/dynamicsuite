@@ -41,6 +41,7 @@ final class Groups extends InstanceMember
     public const COLUMN_LIMITS = [
         'name' => 64,
         'description' => 64,
+        'domain' => 64,
         'created_by' => 254
     ];
 
@@ -58,15 +59,17 @@ final class Groups extends InstanceMember
     /**
      * Get an array of all groups.
      *
+     * @param string|null $domain
      * @return Group[]
      * @throws PDOException
      */
-    public function getAll(): array
+    public function getAll(?string $domain = null): array
     {
         $groups = [];
         $rows = $this->ds->db->query((new Query())
             ->select()
             ->from('ds_groups')
+            ->where('domain', '=', $domain)
         );
         foreach ($rows as $row) {
             $groups[] = new Group($row);
@@ -78,15 +81,17 @@ final class Groups extends InstanceMember
      * Attempt to find a group by name or ID.
      *
      * @param int|string $lookup_by
+     * @param string|null $domain
      * @return Group|bool
      */
-    public function find(string $lookup_by)
+    public function find(string $lookup_by, ?string $domain = null)
     {
         $lookup_column = is_int($lookup_by) ? 'user_id' : 'name';
         $group = $this->ds->db->query((new Query())
             ->select()
             ->from('ds_groups')
             ->where($lookup_column, '=', $lookup_by)
+            ->where('domain', '=', $domain)
         );
         if (count($group) !== 1) return false;
         return new Group($group[0]);
@@ -108,6 +113,7 @@ final class Groups extends InstanceMember
             ->insert([
                 'name' => $group->name,
                 'description' => $group->description,
+                'domain' => $group->domain,
                 'created_by' => $group->created_by,
                 'created_on' => $group->created_on
             ])
