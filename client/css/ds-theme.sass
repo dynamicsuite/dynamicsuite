@@ -123,17 +123,43 @@ html
   background: lighten($primary, 10%)
   color: $header-text
 
-  ul
-    background: #fff
-    border-bottom: 1px solid #777
-    border-left: 1px solid #777
+  #ds-view-user-actions
 
-    a
-      color: $primary
-      text-decoration: none
+    &:hover
+      #ds-user-action-fader
+        //background: rgba(0,0,0,.5)
 
-    #ds-logout-link
-      border-top: 1px solid #777
+    #ds-user-action-menu
+      color: white
+      font-weight: normal
+      font-size: .9rem
+      background: lighten($primary, 20%)
+
+      #ds-user-action-lists
+        &::-webkit-scrollbar-thumb
+          background: $primary
+
+        ul
+          li:hover
+            background: lighten($primary, 30%)
+
+        a
+          color: white
+
+
+
+      #ds-logout-link
+        a
+          background: $primary
+          color: white
+          text-decoration: none
+
+          &:hover
+            background: lighten($failure, 10%)
+
+    #ds-user-action-fader
+      background: rgba(0,0,0,0)
+
 
 /* Mobile toggle button and user actions button */
 #ds-nav-mobile-toggle, #ds-view-user-actions

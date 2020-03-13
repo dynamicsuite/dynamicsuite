@@ -18,10 +18,21 @@
             <h1 id="ds-view-header-text">{{view-header}}</h1>
             <div id="ds-view-user-actions" {{hide-user-actions}}>
                 <i class="fas {{action-links-icon}}"></i>
-                <ul>
-                    {{action-links}}
-                    <li id="ds-logout-link" {{hide-logout-link}}><a href="{{login-view}}">Logout</a></li>
-                </ul>
+                <div id="ds-user-action-fader"></div>
+                <div id="ds-user-action-menu">
+                    <div id="ds-user-action-lists">
+                        <ul>
+                            {{action-links}}
+                        </ul>
+                    </div>
+                    <div id="ds-logout-link" {{hide-logout-link}}>
+                        <a href="{{login-view}}">
+                            Logout
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+
+                </div>
             </div>
         </header>
         <section id="ds-view">{{view-body}}</section>

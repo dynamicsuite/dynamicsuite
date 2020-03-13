@@ -190,27 +190,72 @@ html, body
       align-items: center
 
     #ds-view-user-actions
-      ul
+      #ds-user-action-menu
         display: none
-        position: absolute
+        position: fixed
         z-index: 2
-        min-width: calc(#{$slim-bar} * 2)
         top: $slim-bar
         right: 0
-        list-style: none
-        margin: 0
-        padding: 0.75rem
-
-        li
-          padding: 0.25rem
+        min-width: min(250px, 15vw)
 
         #ds-logout-link
-          margin-top: 0.75rem
-          padding-top: 0.75rem
+          display: flex
+          justify-content: flex-end
+          align-items: center
+
+          a
+            padding: 1rem
+            width: 100%
+            height: 100%
+            text-align: center
+
+            i
+              margin-left: .25rem
+
+
+        #ds-user-action-lists
+          max-height: 80vh
+          overflow-y: auto
+          display: grid
+          grid-auto-flow: dense
+          direction: rtl
+          grid-template-columns: repeat(1, auto)
+
+          &::-webkit-scrollbar
+            width: 3px
+            background: transparent
+
+          ul
+            list-style: none
+            padding: 0
+            margin: 0
+
+            li
+              display: flex
+
+              &>*
+                padding: .5rem 1rem
+                height: 100%
+                width: 100%
+                text-decoration: none
+
 
     #ds-view-user-actions:hover
-      ul
+
+      #ds-user-action-fader
+        position: fixed
         display: block
+        top: $slim-bar
+        left: 0
+        width: 100vw
+        height: 100vw
+        //transition: background .05s linear
+
+      #ds-user-action-menu
+        display: flex
+        flex-direction: column
+        //justify-content: flex-end
+        //flex-wrap: wrap-reverse
 
     /* Mobile nav toggle is not shown by default */
     #ds-nav-mobile-toggle
