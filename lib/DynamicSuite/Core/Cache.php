@@ -51,6 +51,26 @@ final class Cache extends InstanceMember
     }
 
     /**
+     * Magic method: sleep.
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        return ['ds'];
+    }
+
+    /**
+     * Magic method: wakeup.
+     *
+     * @return void
+     */
+    public function __wakeup()
+    {
+        $this->connect();
+    }
+
+    /**
      * Reset the cache connection and add the server set in the config.
      *
      * @return void
@@ -97,7 +117,7 @@ final class Cache extends InstanceMember
      * @param string $key
      * @return bool
      */
-    public function delete(string $key)
+    public function delete(string $key): bool
     {
         if (!$this->cache instanceof Memcached) {
             $this->connect();

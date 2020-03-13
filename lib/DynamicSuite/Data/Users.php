@@ -120,10 +120,10 @@ final class Users extends InstanceMember
             ->where($lookup_column, '=', $lookup_by)
         );
         if (count($user) !== 1) return false;
+        $user = new User($user[0]);
         if (DS_CACHING) {
             $this->ds->cache->set("dynamicsuite:users:user:$lookup_by", $user);
         }
-        $user = new User($user[0]);
         return $user;
     }
 
