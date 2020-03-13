@@ -23,6 +23,7 @@ namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
+use Memcached;
 use PDOException;
 
 /**
@@ -70,12 +71,27 @@ final class Users extends InstanceMember
      */
     public function get(int $type = 0): array
     {
+        if (DS_CACHING) {
+            $users = $this->ds->cache->get("dynamicsuite:users::$type");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $users;
+            }
+        }
         $users = [];
         $query = (new Query())->select()->from('ds_users');
-        if ($type === -1) $query->where('inactive', 'IS', null);
-        if ($type === 1) $query->where('inactive', 'IS NOT', null);
+        if ($type === -1) {
+            $query->where('inactive', 'IS', null);
+        }
+        if ($type === 1) {
+            $query->where('inactive', 'IS NOT', null);
+        }
         $rows = $this->ds->db->query($query);
-        foreach ($rows as $row) $users[] = new User($row);
+        foreach ($rows as $row) {
+            $users[] = new User($row);
+        }
+        if (DS_CACHING) {
+            $this->ds->cache->set("dynamicsuite:users::$type", $users);
+        }
         return $users;
     }
 
@@ -92,13 +108,23 @@ final class Users extends InstanceMember
     public function find($lookup_by)
     {
         $lookup_column = is_int($lookup_by) ? 'user_id' : 'username';
+        if (DS_CACHING) {
+            $user = $this->ds->cache->get("dynamicsuite:users:user:$lookup_by");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $user;
+            }
+        }
         $user = $this->ds->db->query((new Query())
             ->select()
             ->from('ds_users')
             ->where($lookup_column, '=', $lookup_by)
         );
         if (count($user) !== 1) return false;
-        return new User($user[0]);
+        if (DS_CACHING) {
+            $this->ds->cache->set("dynamicsuite:users:user:$lookup_by", $user);
+        }
+        $user = new User($user[0]);
+        return $user;
     }
 
     /**
@@ -124,6 +150,13 @@ final class Users extends InstanceMember
             ])
             ->into('ds_users')
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users::0");
+            $this->ds->cache->delete("dynamicsuite:users::1");
+            $this->ds->cache->delete("dynamicsuite:users::-1");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
+        }
         return $user;
     }
 
@@ -151,6 +184,13 @@ final class Users extends InstanceMember
             ])
             ->where('user_id', '=', $user->user_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users::0");
+            $this->ds->cache->delete("dynamicsuite:users::1");
+            $this->ds->cache->delete("dynamicsuite:users::-1");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
+        }
         return $user;
     }
 
@@ -168,7 +208,75 @@ final class Users extends InstanceMember
             ->from('ds_users')
             ->where('user_id', '=', $user->user_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users::0");
+            $this->ds->cache->delete("dynamicsuite:users::1");
+            $this->ds->cache->delete("dynamicsuite:users::-1");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
+        }
         return $user;
+    }
+
+    /**
+     * Get an array of a user's permission groups.
+     *
+     * @param User $user
+     * @return Group[]
+     * @throws PDOException
+     */
+    public function viewGroups(User $user): array
+    {
+        if (DS_CACHING) {
+            $groups = $this->ds->cache->get("dynamicsuite:users:groups:$user->user_id");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $groups;
+            }
+        }
+        $rows = $this->ds->db->query((new Query())
+            ->select()
+            ->from('ds_view_user_groups')
+            ->where('user_id', '=', $user->user_id)
+        );
+        $groups = [];
+        foreach ($rows as $row) {
+            $groups[] = new Group($row);
+        }
+        if (DS_CACHING) {
+            $this->ds->cache->set("dynamicsuite:users:groups:$user->user_id", $groups);
+        }
+        return $groups;
+    }
+
+    /**
+     * Get an array of a user's permissions.
+     *
+     * @param User $user
+     * @return Permission[]
+     * @throws PDOException
+     */
+    public function viewPermissions(User $user): array
+    {
+        if (DS_CACHING) {
+            $permissions = $this->ds->cache->get("dynamicsuite:users:permissions:$user->user_id");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $permissions;
+            }
+        }
+        $rows = $this->ds->db->query((new Query())
+            ->select()
+            ->from('ds_view_user_permissions')
+            ->where('user_id', '=', $user->user_id)
+        );
+        $permissions = [];
+        foreach ($rows as $row) {
+            $permission = new Permission($row);
+            $permissions[$permission->shorthand()] = $permission;
+        }
+        if (DS_CACHING) {
+            $this->ds->cache->set("dynamicsuite:users:permissions:$user->user_id", $permissions);
+        }
+        return $permissions;
     }
 
     /**
@@ -188,6 +296,10 @@ final class Users extends InstanceMember
             ])
             ->into('ds_user_groups')
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users:groups:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:permissions:$user->user_id");
+        }
         return $this;
     }
 
@@ -207,6 +319,10 @@ final class Users extends InstanceMember
             ->where('user_id', '=', $user->user_id)
             ->where('group_id', '=', $group->group_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users:groups:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:permissions:$user->user_id");
+        }
         return $this;
     }
 
@@ -237,50 +353,11 @@ final class Users extends InstanceMember
         }
         if (!empty($rows)) $this->ds->db->query($insert->rows($rows));
         $this->ds->db->endTx();
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users:groups:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:permissions:$user->user_id");
+        }
         return $this;
-    }
-
-    /**
-     * Get an array of a user's permission groups.
-     *
-     * @param User $user
-     * @return Group[]
-     * @throws PDOException
-     */
-    public function viewGroups(User $user): array
-    {
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_user_groups')
-            ->where('user_id', '=', $user->user_id)
-        );
-        $groups = [];
-        foreach ($rows as $row) {
-            $groups[] = new Group($row);
-        }
-        return $groups;
-    }
-
-    /**
-     * Get an array of a user's permissions.
-     *
-     * @param User $user
-     * @return Permission[]
-     * @throws PDOException
-     */
-    public function viewPermissions(User $user): array
-    {
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_user_permissions')
-            ->where('user_id', '=', $user->user_id)
-        );
-        $permissions = [];
-        foreach ($rows as $row) {
-            $permission = new Permission($row);
-            $permissions[$permission->shorthand()] = $permission;
-        }
-        return $permissions;
     }
 
     /**
@@ -314,6 +391,10 @@ final class Users extends InstanceMember
             ])
             ->where('user_id', '=', $user->user_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
+            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
+        }
         return $success;
     }
 
