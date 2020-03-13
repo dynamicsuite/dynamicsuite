@@ -23,6 +23,7 @@ namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
+use Memcached;
 use PDOException;
 
 /**
@@ -63,6 +64,12 @@ final class Permissions extends InstanceMember
      */
     public function getAll(): array
     {
+        if (DS_CACHING) {
+            $permissions = $this->ds->cache->get("dynamicsuite:permissions");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $permissions;
+            }
+        }
         $permissions = [];
         $rows = $this->ds->db->query((new Query())
             ->select()
@@ -71,6 +78,9 @@ final class Permissions extends InstanceMember
         foreach ($rows as $row) {
             $permission = new Permission($row);
             $permissions[$permission->shorthand()] = $permission;
+        }
+        if (DS_CACHING) {
+            $this->ds->cache->set("dynamicsuite:permissions", $permissions);
         }
         return $permissions;
     }
@@ -87,6 +97,12 @@ final class Permissions extends InstanceMember
         if (count($permission_info) !== 2) {
             throw new PDOException('Malformed shorthand permission');
         }
+        if (DS_CACHING) {
+            $permission = $this->ds->cache->get("dynamicsuite:permissions:$shorthand");
+            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
+                return $permission;
+            }
+        }
         $permission = $this->ds->db->query((new Query())
             ->select()
             ->from('ds_permissions')
@@ -94,7 +110,11 @@ final class Permissions extends InstanceMember
             ->where('name', '=', $permission_info[1])
         );
         if (count($permission) !== 1) return false;
-        return new Permission($permission[0]);
+        $permission = new Permission($permission[0]);
+        if (DS_CACHING) {
+            $this->ds->cache->set("dynamicsuite:permissions:$shorthand", $permission);
+        }
+        return $permission;
     }
 
     /**
@@ -118,6 +138,9 @@ final class Permissions extends InstanceMember
                 'created_on' => $permission->created_on
             ])
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:permissions");
+        }
         return $permission;
     }
 
@@ -140,6 +163,10 @@ final class Permissions extends InstanceMember
             ])
             ->where('permission_id', '=', $permission->permission_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:permissions");
+            $this->ds->cache->delete("dynamicsuite:permissions:" . $permission->shorthand());
+        }
         return $permission;
     }
 
@@ -157,6 +184,10 @@ final class Permissions extends InstanceMember
             ->from('ds_permissions')
             ->where('permission_id', '=', $permission->permission_id)
         );
+        if (DS_CACHING) {
+            $this->ds->cache->delete("dynamicsuite:permissions");
+            $this->ds->cache->delete("dynamicsuite:permissions:" . $permission->shorthand());
+        }
         return $permission;
     }
 

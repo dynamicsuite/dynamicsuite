@@ -67,7 +67,7 @@ final class Groups extends InstanceMember
     public function getAll(?string $domain = null): array
     {
         if (DS_CACHING) {
-            $groups = $this->ds->cache->get("groups::$domain");
+            $groups = $this->ds->cache->get("dynamicsuite:groups::$domain");
             if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
                 return $groups;
             }
@@ -82,7 +82,7 @@ final class Groups extends InstanceMember
             $groups[] = new Group($row);
         }
         if (DS_CACHING) {
-            $this->ds->cache->set("groups::$domain", $groups);
+            $this->ds->cache->set("dynamicsuite:groups::$domain", $groups);
         }
         return $groups;
     }
@@ -97,7 +97,7 @@ final class Groups extends InstanceMember
     public function find(string $lookup_by, ?string $domain = null)
     {
         if (DS_CACHING) {
-            $group = $this->ds->cache->get("groups:group:$lookup_by");
+            $group = $this->ds->cache->get("dynamicsuite:groups:group:$lookup_by");
             if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
                 return $group;
             }
@@ -112,7 +112,7 @@ final class Groups extends InstanceMember
         if (count($group) !== 1) return false;
         $group = new Group($group[0]);
         if (DS_CACHING) {
-            $this->ds->cache->set("groups:group:$lookup_by", $group);
+            $this->ds->cache->set("dynamicsuite:groups:group:$lookup_by", $group);
         }
         return $group;
     }
@@ -140,7 +140,7 @@ final class Groups extends InstanceMember
             ->into('ds_groups')
         );
         if (DS_CACHING) {
-            $this->ds->cache->delete("groups::$group->domain");
+            $this->ds->cache->delete("dynamicsuite:groups::$group->domain");
         }
         return $group;
     }
@@ -164,9 +164,9 @@ final class Groups extends InstanceMember
             ->where('group_id', '=', $group->group_id)
         );
         if (DS_CACHING) {
-            $this->ds->cache->delete("groups::$group->domain");
-            $this->ds->cache->delete("groups:group:$group->group_id");
-            $this->ds->cache->delete("groups:group:$group->name");
+            $this->ds->cache->delete("dynamicsuite:groups::$group->domain");
+            $this->ds->cache->delete("dynamicsuite:groups:group:$group->group_id");
+            $this->ds->cache->delete("dynamicsuite:groups:group:$group->name");
         }
         return $group;
     }
@@ -186,9 +186,9 @@ final class Groups extends InstanceMember
             ->where('group_id', '=', $group->group_id)
         );
         if (DS_CACHING) {
-            $this->ds->cache->delete("groups::$group->domain");
-            $this->ds->cache->delete("groups:group:$group->group_id");
-            $this->ds->cache->delete("groups:group:$group->name");
+            $this->ds->cache->delete("dynamicsuite:groups::$group->domain");
+            $this->ds->cache->delete("dynamicsuite:groups:group:$group->group_id");
+            $this->ds->cache->delete("dynamicsuite:groups:group:$group->name");
         }
         return $group;
     }
@@ -203,7 +203,7 @@ final class Groups extends InstanceMember
     public function viewPermissions(Group $group): array
     {
         if (DS_CACHING) {
-            $permissions = $this->ds->cache->get("groups:permissions:$group->group_id");
+            $permissions = $this->ds->cache->get("dynamicsuite:groups:permissions:$group->group_id");
             if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
                 return $permissions;
             }
@@ -219,7 +219,7 @@ final class Groups extends InstanceMember
             $permissions[$permission->shorthand()] = $permission;
         }
         if (DS_CACHING) {
-            $this->ds->cache->set("groups:permissions:$group->group_id", $permissions);
+            $this->ds->cache->set("dynamicsuite:groups:permissions:$group->group_id", $permissions);
         }
         return $permissions;
     }
@@ -242,7 +242,7 @@ final class Groups extends InstanceMember
             ->into('ds_group_permissions')
         );
         if (DS_CACHING) {
-            $this->ds->cache->delete("groups:permissions:$group->group_id");
+            $this->ds->cache->delete("dynamicsuite:groups:permissions:$group->group_id");
         }
         return $this;
     }
@@ -264,7 +264,7 @@ final class Groups extends InstanceMember
             ->where('permission_id', '=', $permission->permission_id)
         );
         if (DS_CACHING) {
-            $this->ds->cache->delete("groups:permissions:$group->group_id");
+            $this->ds->cache->delete("dynamicsuite:groups:permissions:$group->group_id");
         }
         return $this;
     }
@@ -297,7 +297,7 @@ final class Groups extends InstanceMember
         if (!empty($rows)) $this->ds->db->query($insert->rows($rows));
         $this->ds->db->endTx();
         if (DS_CACHING) {
-            $this->ds->cache->delete("groups:permissions:$group->group_id");
+            $this->ds->cache->delete("dynamicsuite:groups:permissions:$group->group_id");
         }
         return $this;
     }
