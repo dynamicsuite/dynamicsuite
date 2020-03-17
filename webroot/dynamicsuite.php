@@ -21,8 +21,6 @@
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Core\Request;
-use DynamicSuite\Core\Session;
 use DynamicSuite\API\APIEndpoint;
 use DynamicSuite\API\APIResponse;
 use DynamicSuite\Core\View;

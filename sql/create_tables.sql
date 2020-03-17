@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS `ds_groups` (
   `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
   `created_on` datetime DEFAULT NULL,
   PRIMARY KEY (`group_id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`name`),
+  INDEX `domain` (`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_users` (
