@@ -44,6 +44,9 @@ html, body
     display: flex
     align-items: center
 
+    @media print
+      display: none
+
   /* Navigation and view header text elements */
   #ds-nav-header-text, #ds-view-header-text
     flex-grow: 100
@@ -64,6 +67,9 @@ html, body
     display: flex
     flex-direction: column
     overflow: hidden
+
+    @media print
+      display: none
 
     /* Hidden by default on mobile */
     @include on-mobile-view
@@ -174,14 +180,82 @@ html, body
     @include on-mobile-view
       width: 100%
 
-    /* The mobile nav toggle and the logout button on the view header */
-    #ds-nav-mobile-toggle, #ds-view-logout
+    /* The mobile nav toggle and the user actions button on the view header */
+    #ds-nav-mobile-toggle, #ds-view-user-actions
       width: $slim-bar
       height: $slim-bar
       display: flex
       flex-shrink: 0
       justify-content: center
       align-items: center
+
+    #ds-view-user-actions
+      #ds-user-action-menu
+        display: none
+        position: fixed
+        z-index: 2
+        top: $slim-bar
+        right: 0
+        min-width: min(250px, 15vw)
+
+        #ds-logout-link
+          display: flex
+          justify-content: flex-end
+          align-items: center
+
+          a
+            padding: 1rem
+            width: 100%
+            height: 100%
+            text-align: center
+
+            i
+              margin-left: .25rem
+
+
+        #ds-user-action-lists
+          max-height: 80vh
+          overflow-y: auto
+          display: grid
+          grid-auto-flow: dense
+          direction: rtl
+          grid-template-columns: repeat(1, auto)
+
+          &::-webkit-scrollbar
+            width: 3px
+            background: transparent
+
+          ul
+            list-style: none
+            padding: 0
+            margin: 0
+
+            li
+              display: flex
+
+              &>*
+                padding: .5rem 1rem
+                height: 100%
+                width: 100%
+                text-decoration: none
+
+
+    #ds-view-user-actions:hover
+
+      #ds-user-action-fader
+        position: fixed
+        display: block
+        top: $slim-bar
+        left: 0
+        width: 100vw
+        height: 100vw
+        //transition: background .05s linear
+
+      #ds-user-action-menu
+        display: flex
+        flex-direction: column
+        //justify-content: flex-end
+        //flex-wrap: wrap-reverse
 
     /* Mobile nav toggle is not shown by default */
     #ds-nav-mobile-toggle
@@ -199,8 +273,8 @@ html, body
       @include on-mobile-view
         text-align: center
 
-    /* Position the logout button to the right */
-    #ds-view-logout
+    /* Position the user actions button to the right */
+    #ds-view-user-actions
       margin-left: auto
 
     /* The view is the height of the screen less the view header height and padding */

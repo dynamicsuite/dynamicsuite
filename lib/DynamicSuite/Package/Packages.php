@@ -35,6 +35,8 @@ use TypeError;
  * @property array $nav_groups
  * @property array $nav_tree
  * @property array $apis
+ * @property array $action_groups
+ * @property array $action_links
  */
 final class Packages extends InstanceMember
 {
@@ -82,6 +84,20 @@ final class Packages extends InstanceMember
     protected array $apis = [];
 
     /**
+     * All action groups.
+     *
+     * @var array
+     */
+    protected array $action_groups = [];
+
+    /**
+     * All action links.
+     *
+     * @var array
+     */
+    protected array $action_links = [];
+
+    /**
      * Packages constructor.
      *
      * @param DynamicSuite $ds
@@ -125,6 +141,12 @@ final class Packages extends InstanceMember
         $this->nav_groups = array_replace($this->nav_groups, $structure->nav_groups);
         $this->views = array_replace($this->views, $structure->views);
         $this->apis[$package_id] = $structure->apis;
+        foreach ($structure->action_groups as $group) {
+            if (!in_array($group, $this->action_groups)) {
+                $this->action_groups[] = $group;
+            }
+        }
+        $this->action_links = array_replace($this->action_links, $structure->action_links);
         return $structure;
     }
 

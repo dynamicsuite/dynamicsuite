@@ -35,9 +35,9 @@ final class Cache extends InstanceMember
     /**
      * The cache instance.
      *
-     * @var Memcached
+     * @var Memcached|null
      */
-    protected Memcached $cache;
+    protected ?Memcached $cache = null;
 
     /**
      * Cache constructor.
@@ -48,6 +48,26 @@ final class Cache extends InstanceMember
     public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
+    }
+
+    /**
+     * Magic method: sleep.
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        return ['ds'];
+    }
+
+    /**
+     * Magic method: wakeup.
+     *
+     * @return void
+     */
+    public function __wakeup()
+    {
+        $this->connect();
     }
 
     /**
@@ -71,7 +91,10 @@ final class Cache extends InstanceMember
      */
     public function set(string $key, $value, int $expiration = 0): bool
     {
-        return $this->cache->set($key, $value, $expiration);
+        if (!$this->cache instanceof Memcached) {
+            $this->connect();
+        }
+        return $this->cache->set(DynamicSuite::getHash($key), $value, $expiration);
     }
 
     /**
@@ -82,7 +105,24 @@ final class Cache extends InstanceMember
      */
     public function get(string $key)
     {
-        return $this->cache->get($key);
+        if (!$this->cache instanceof Memcached) {
+            $this->connect();
+        }
+        return $this->cache->get(DynamicSuite::getHash($key));
+    }
+
+    /**
+     * Delete an item from the cache.
+     *
+     * @param string $key
+     * @return bool
+     */
+    public function delete(string $key): bool
+    {
+        if (!$this->cache instanceof Memcached) {
+            $this->connect();
+        }
+        return $this->cache->delete(DynamicSuite::getHash($key));
     }
 
 }

@@ -19,7 +19,9 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
+use Memcached;
 
 set_time_limit(0);
 ini_set('memory_limit', -1);
@@ -53,7 +55,7 @@ function setState(bool $state): void
     }
 }
 
-$options = getopt('h', ['help', 'enable', 'disable']);
+$options = getopt('h', ['help', 'enable', 'disable', 'flush']);
 
 // Show help
 if (CLI::actionIs(['h', 'help'], $options)) {
@@ -68,6 +70,19 @@ elseif (CLI::actionIs('enable', $options)) {
 // Disable caching
 elseif (CLI::actionIs('disable', $options)) {
     setState(false);
+}
+
+// Flush the cache
+elseif (CLI::actionIs('flush', $options)) {
+    require_once realpath(__DIR__ . '/create_instance.php');
+    /** @var DynamicSuite $ds */
+    $ds->cache->connect();
+    if ($ds->cache->cache instanceof Memcached) {
+        $ds->cache->cache->flush();
+        CLI::out('Cache flushed');
+    } else {
+        CLI::err('Caching not enabled, nothing flushed');
+    }
 }
 
 // Invalid usage

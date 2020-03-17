@@ -28,7 +28,6 @@ use DynamicSuite\Data\Groups;
 use DynamicSuite\Data\Permissions;
 use DynamicSuite\Data\Users;
 use DynamicSuite\Package\Packages;
-use Memcached;
 
 /**
  * Class Instance.
@@ -119,7 +118,7 @@ final class DynamicSuite extends ProtectedObject
         $this->groups = new Groups($this);
         $this->users = new Users($this);
         $this->events = new Events($this);
-        if (DS_CACHING) $this->save();
+        $this->save();
     }
 
     /**
@@ -147,6 +146,7 @@ final class DynamicSuite extends ProtectedObject
                 $key === 'cfg' ||
                 $key === 'packages' ||
                 $key === 'db' ||
+                $key === 'cache' ||
                 $key === 'permissions' ||
                 $key === 'groups' ||
                 $key === 'users' ||

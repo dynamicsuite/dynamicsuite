@@ -29,6 +29,7 @@ use DynamicSuite\Base\DatabaseItem;
  * @property int|null $group_id
  * @property string|null $name
  * @property string|null $description
+ * @property string|null $domain
  * @property string|null $created_by
  * @property string|null $created_on
  */
@@ -55,6 +56,13 @@ class Group extends DatabaseItem
      * @var string|null
      */
     public ?string $description = null;
+
+    /**
+     * Group domain.
+     *
+     * @var string|null
+     */
+    public ?string $domain = null;
 
     /**
      * The user that created the group.

@@ -42,25 +42,6 @@ CREATE TABLE IF NOT EXISTS `ds_events` (
   KEY `filter_10` (`filter_10`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `ds_group_permissions` (
-  `group_id` int(10) unsigned NOT NULL,
-  `permission_id` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`group_id`,`permission_id`),
-  KEY `ds_group_permissions-permission_id` (`permission_id`),
-  CONSTRAINT `ds_group_permissions-group_id` FOREIGN KEY (`group_id`) REFERENCES `ds_groups` (`group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `ds_group_permissions-permission_id` FOREIGN KEY (`permission_id`) REFERENCES `ds_permissions` (`permission_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `ds_groups` (
-  `group_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(64) DEFAULT NULL,
-  `description` varchar(64) DEFAULT NULL,
-  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
-  `created_on` datetime DEFAULT NULL,
-  PRIMARY KEY (`group_id`),
-  UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS `ds_permissions` (
   `permission_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `package_id` varchar(64) DEFAULT NULL,
@@ -71,13 +52,16 @@ CREATE TABLE IF NOT EXISTS `ds_permissions` (
   UNIQUE KEY `package_id_name` (`package_id`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `ds_user_groups` (
-  `user_id` int(10) unsigned NOT NULL,
-  `group_id` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`user_id`,`group_id`),
-  KEY `ds_user_groups-group_id` (`group_id`),
-  CONSTRAINT `ds_user_groups-group_id` FOREIGN KEY (`group_id`) REFERENCES `ds_groups` (`group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `ds_user_groups-user_id` FOREIGN KEY (`user_id`) REFERENCES `ds_users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS `ds_groups` (
+  `group_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) DEFAULT NULL,
+  `description` varchar(64) DEFAULT NULL,
+  `domain` varchar(64) DEFAULT NULL,
+  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
+  `created_on` datetime DEFAULT NULL,
+  PRIMARY KEY (`group_id`),
+  UNIQUE KEY `name` (`name`),
+  INDEX `domain` (`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_users` (
@@ -94,6 +78,24 @@ CREATE TABLE IF NOT EXISTS `ds_users` (
   `login_last_ip` varchar(39) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ds_group_permissions` (
+  `group_id` int(10) unsigned NOT NULL,
+  `permission_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`group_id`,`permission_id`),
+  KEY `ds_group_permissions-permission_id` (`permission_id`),
+  CONSTRAINT `ds_group_permissions-group_id` FOREIGN KEY (`group_id`) REFERENCES `ds_groups` (`group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `ds_group_permissions-permission_id` FOREIGN KEY (`permission_id`) REFERENCES `ds_permissions` (`permission_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ds_user_groups` (
+  `user_id` int(10) unsigned NOT NULL,
+  `group_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`user_id`,`group_id`),
+  KEY `ds_user_groups-group_id` (`group_id`),
+  CONSTRAINT `ds_user_groups-group_id` FOREIGN KEY (`group_id`) REFERENCES `ds_groups` (`group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `ds_user_groups-user_id` FOREIGN KEY (`user_id`) REFERENCES `ds_users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_view_group_permissions` (
@@ -120,8 +122,8 @@ CREATE TABLE IF NOT EXISTS `ds_view_user_permissions` (
    `description` VARCHAR(255) NULL DEFAULT NULL
 ) ENGINE=MyISAM;
 
-DROP TABLE `ds_view_user_permissions`;
-CREATE VIEW `ds_view_user_permissions`
+DROP TABLE IF EXISTS `ds_view_user_permissions`;
+CREATE VIEW IF NOT EXISTS `ds_view_user_permissions`
 AS SELECT
    `meta`.`user_id` AS `user_id`,
    `meta`.`group_id` AS `group_id`,
@@ -131,8 +133,8 @@ AS SELECT
    `data`.`description` AS `description`
 FROM (`ds_user_groups` `meta` left join `ds_view_group_permissions` `data` on(`data`.`group_id` = `meta`.`group_id`)) group by `meta`.`user_id`,`data`.`permission_id`;
 
-DROP TABLE `ds_view_user_groups`;
-CREATE VIEW `ds_view_user_groups`
+DROP TABLE IF EXISTS `ds_view_user_groups`;
+CREATE VIEW IF NOT EXISTS `ds_view_user_groups`
 AS SELECT
    `data`.`user_id` AS `user_id`,
    `meta`.`group_id` AS `group_id`,
@@ -140,8 +142,8 @@ AS SELECT
    `meta`.`description` AS `description`
 FROM (`ds_user_groups` `data` left join `ds_groups` `meta` on(`data`.`group_id` = `meta`.`group_id`));
 
-DROP TABLE `ds_view_group_permissions`;
-CREATE VIEW `ds_view_group_permissions`
+DROP TABLE IF EXISTS `ds_view_group_permissions`;
+CREATE VIEW IF NOT EXISTS `ds_view_group_permissions`
 AS SELECT
    `data`.`group_id` AS `group_id`,
    `meta`.`permission_id` AS `permission_id`,

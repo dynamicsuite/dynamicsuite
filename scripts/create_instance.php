@@ -30,8 +30,9 @@ require_once realpath(__DIR__ . '/create_environment.php');
 // Initialize the instance
 /** @var DynamicSuite $ds */
 $ds = (function() {
-    if (DS_CACHING && apcu_exists(DS_ROOT_DIR)) {
-        $ds = apcu_fetch(DS_ROOT_DIR);
+    $hash = DynamicSuite::getHash();
+    if (DS_CACHING && apcu_exists($hash)) {
+        $ds = apcu_fetch($hash);
     } else {
         $ds = new DynamicSuite();
         $ds->packages->loadPackages();
