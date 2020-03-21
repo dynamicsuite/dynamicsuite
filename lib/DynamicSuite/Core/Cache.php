@@ -51,16 +51,6 @@ final class Cache extends InstanceMember
     }
 
     /**
-     * Magic method: sleep.
-     *
-     * @return array
-     */
-    public function __sleep()
-    {
-        return ['ds'];
-    }
-
-    /**
      * Magic method: wakeup.
      *
      * @return void

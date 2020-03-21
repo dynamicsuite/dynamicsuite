@@ -173,8 +173,8 @@ final class DynamicSuite extends ProtectedObject
     public static function getPkgClass(string $class, ...$args)
     {
         $hash = self::getHash($class);
-        if (DS_CACHING && apcu_exists($hash)) {
-            return apcu_fetch($hash);
+        if (DS_CACHING && apcu_exists($hash) && $instance = apcu_fetch($hash)) {
+            return $instance;
         } else {
             $instance = new $class(...$args);
             if (DS_CACHING) {
