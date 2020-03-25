@@ -42,6 +42,7 @@ final class Permissions extends InstanceMember
     public const COLUMN_LIMITS = [
         'package_id' => 64,
         'name' => 64,
+        'domain' => 64,
         'description' => 255
     ];
 
@@ -59,10 +60,11 @@ final class Permissions extends InstanceMember
     /**
      * Get all permissions.
      *
+     * @param string|null $domain
      * @return Permission[]
      * @throws PDOException
      */
-    public function getAll(): array
+    public function getAll(?string $domain = null): array
     {
         if (DS_CACHING) {
             $permissions = $this->ds->cache->get("dynamicsuite:permissions");
@@ -74,6 +76,7 @@ final class Permissions extends InstanceMember
         $rows = $this->ds->db->query((new Query())
             ->select()
             ->from('ds_permissions')
+            ->where('domain', '=', $domain)
         );
         foreach ($rows as $row) {
             $permission = new Permission($row);
@@ -89,9 +92,10 @@ final class Permissions extends InstanceMember
      * Attempts to find a permission by shorthand format.
      *
      * @param string $shorthand
+     * @param string|null $domain
      * @return Permission|bool
      */
-    public function find(string $shorthand)
+    public function find(string $shorthand, ?string $domain = null)
     {
         $permission_info = explode(':', $shorthand);
         if (count($permission_info) !== 2) {
@@ -107,6 +111,7 @@ final class Permissions extends InstanceMember
             ->select()
             ->from('ds_permissions')
             ->where('package_id', '=', $permission_info[0])
+            ->where('domain', '=', $domain)
             ->where('name', '=', $permission_info[1])
         );
         if (count($permission) !== 1) return false;
@@ -134,6 +139,7 @@ final class Permissions extends InstanceMember
             ->row([
                 'package_id' => $permission->package_id,
                 'name' => $permission->name,
+                'domain' => $permission->domain,
                 'description' => $permission->description,
                 'created_on' => $permission->created_on
             ])
@@ -159,6 +165,7 @@ final class Permissions extends InstanceMember
             ->set([
                 'package_id' => $permission->package_id,
                 'name' => $permission->name,
+                'domain' => $permission->domain,
                 'description' => $permission->description
             ])
             ->where('permission_id', '=', $permission->permission_id)

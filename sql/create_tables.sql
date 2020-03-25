@@ -7,25 +7,25 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 CREATE TABLE IF NOT EXISTS `ds_events` (
-  `event_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `package_id` varchar(64) DEFAULT NULL,
-  `type` int(10) DEFAULT NULL,
-  `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-  `ip` varchar(39) DEFAULT NULL,
-  `session` char(64) DEFAULT NULL,
-  `affected` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-  `message` varchar(2048) DEFAULT NULL,
-  `filter_1` int(10) unsigned DEFAULT NULL,
-  `filter_2` int(10) unsigned DEFAULT NULL,
-  `filter_3` int(10) unsigned DEFAULT NULL,
-  `filter_4` int(10) unsigned DEFAULT NULL,
-  `filter_5` int(10) unsigned DEFAULT NULL,
-  `filter_6` char(1) DEFAULT NULL,
-  `filter_7` char(1) DEFAULT NULL,
-  `filter_8` char(1) DEFAULT NULL,
-  `filter_9` char(1) DEFAULT NULL,
-  `filter_10` char(1) DEFAULT NULL,
+  `package_id` VARCHAR(64) DEFAULT NULL,
+  `type` INT(10) DEFAULT NULL,
+  `created_by` VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL,
+  `ip` VARCHAR(39) DEFAULT NULL,
+  `session` CHAR(64) DEFAULT NULL,
+  `affected` VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL,
+  `message` VARCHAR(2048) DEFAULT NULL,
+  `filter_1` INT(10) UNSIGNED DEFAULT NULL,
+  `filter_2` INT(10) UNSIGNED DEFAULT NULL,
+  `filter_3` INT(10) UNSIGNED DEFAULT NULL,
+  `filter_4` INT(10) UNSIGNED DEFAULT NULL,
+  `filter_5` INT(10) UNSIGNED DEFAULT NULL,
+  `filter_6` CHAR(1) DEFAULT NULL,
+  `filter_7` CHAR(1) DEFAULT NULL,
+  `filter_8` CHAR(1) DEFAULT NULL,
+  `filter_9` CHAR(1) DEFAULT NULL,
+  `filter_10` CHAR(1) DEFAULT NULL,
   PRIMARY KEY (`event_id`),
   KEY `timestamp` (`timestamp`),
   KEY `package_id` (`package_id`),
@@ -43,46 +43,48 @@ CREATE TABLE IF NOT EXISTS `ds_events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_permissions` (
-  `permission_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `package_id` varchar(64) DEFAULT NULL,
-  `name` varchar(64) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `created_on` datetime DEFAULT NULL,
+  `permission_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `package_id` VARCHAR(64) DEFAULT NULL,
+  `name` VARCHAR(64) DEFAULT NULL,
+  `domain` VARCHAR(64) DEFAULT NULL,
+  `description` VARCHAR(255) DEFAULT NULL,
+  `created_on` DATETIME DEFAULT NULL,
   PRIMARY KEY (`permission_id`),
-  UNIQUE KEY `package_id_name` (`package_id`,`name`)
+  UNIQUE KEY `package_id_name` (`package_id`,`name`),
+  INDEX `domain` (`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_groups` (
-  `group_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(64) DEFAULT NULL,
-  `description` varchar(64) DEFAULT NULL,
-  `domain` varchar(64) DEFAULT NULL,
-  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
-  `created_on` datetime DEFAULT NULL,
+  `group_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(64) DEFAULT NULL,
+  `description` VARCHAR(64) DEFAULT NULL,
+  `domain` VARCHAR(64) DEFAULT NULL,
+  `created_by` VARCHAR(254) DEFAULT NULL COLLATE 'utf8_general_ci',
+  `created_on` DATETIME DEFAULT NULL,
   PRIMARY KEY (`group_id`),
   UNIQUE KEY `name` (`name`),
   INDEX `domain` (`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_users` (
-  `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
-  `password` char(96) NOT NULL DEFAULT '',
-  `inactive` tinyint(1) unsigned DEFAULT NULL,
-  `inactive_time` datetime DEFAULT NULL,
-  `created_by` varchar(254) DEFAULT NULL COLLATE 'utf8_general_ci',
-  `created_on` datetime DEFAULT NULL,
-  `login_attempts` tinyint(1) unsigned DEFAULT 0,
-  `login_last_attempt` datetime DEFAULT NULL,
-  `login_last_success` datetime DEFAULT NULL,
-  `login_last_ip` varchar(39) DEFAULT NULL,
+  `user_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(254) DEFAULT NULL COLLATE 'utf8_general_ci',
+  `password` CHAR(96) NOT NULL DEFAULT '',
+  `inactive` tinyINT(1) UNSIGNED DEFAULT NULL,
+  `inactive_time` DATETIME DEFAULT NULL,
+  `created_by` VARCHAR(254) DEFAULT NULL COLLATE 'utf8_general_ci',
+  `created_on` DATETIME DEFAULT NULL,
+  `login_attempts` tinyINT(1) UNSIGNED DEFAULT 0,
+  `login_last_attempt` DATETIME DEFAULT NULL,
+  `login_last_success` DATETIME DEFAULT NULL,
+  `login_last_ip` VARCHAR(39) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_group_permissions` (
-  `group_id` int(10) unsigned NOT NULL,
-  `permission_id` int(10) unsigned NOT NULL,
+  `group_id` INT(10) UNSIGNED NOT NULL,
+  `permission_id` INT(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`group_id`,`permission_id`),
   KEY `ds_group_permissions-permission_id` (`permission_id`),
   CONSTRAINT `ds_group_permissions-group_id` FOREIGN KEY (`group_id`) REFERENCES `ds_groups` (`group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -90,8 +92,8 @@ CREATE TABLE IF NOT EXISTS `ds_group_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `ds_user_groups` (
-  `user_id` int(10) unsigned NOT NULL,
-  `group_id` int(10) unsigned NOT NULL,
+  `user_id` INT(10) UNSIGNED NOT NULL,
+  `group_id` INT(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`user_id`,`group_id`),
   KEY `ds_user_groups-group_id` (`group_id`),
   CONSTRAINT `ds_user_groups-group_id` FOREIGN KEY (`group_id`) REFERENCES `ds_groups` (`group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -103,6 +105,7 @@ CREATE TABLE IF NOT EXISTS `ds_view_group_permissions` (
    `permission_id` INT(10) UNSIGNED NULL DEFAULT '0',
    `package_id` VARCHAR(64) NULL DEFAULT NULL,
    `name` VARCHAR(64) NULL DEFAULT NULL,
+   `domain` VARCHAR(64) NULL DEFAULT NULL,
    `description` VARCHAR(255) NULL DEFAULT NULL
 ) ENGINE=MyISAM;
 
@@ -110,6 +113,7 @@ CREATE TABLE IF NOT EXISTS `ds_view_user_groups` (
    `user_id` INT(10) UNSIGNED NOT NULL,
    `group_id` INT(10) UNSIGNED NULL DEFAULT '0',
    `name` VARCHAR(64) NULL DEFAULT NULL,
+   `domain` VARCHAR(64) NULL DEFAULT NULL,
    `description` VARCHAR(64) NULL DEFAULT NULL
 ) ENGINE=MyISAM;
 
@@ -119,6 +123,7 @@ CREATE TABLE IF NOT EXISTS `ds_view_user_permissions` (
    `permission_id` INT(10) UNSIGNED NULL DEFAULT '0',
    `package_id` VARCHAR(64) NULL DEFAULT NULL,
    `name` VARCHAR(64) NULL DEFAULT NULL,
+   `domain` VARCHAR(64) NULL DEFAULT NULL,
    `description` VARCHAR(255) NULL DEFAULT NULL
 ) ENGINE=MyISAM;
 
@@ -130,6 +135,7 @@ AS SELECT
    `data`.`permission_id` AS `permission_id`,
    `data`.`package_id` AS `package_id`,
    `data`.`name` AS `name`,
+   `data`.`domain` AS `domain`,
    `data`.`description` AS `description`
 FROM (`ds_user_groups` `meta` left join `ds_view_group_permissions` `data` on(`data`.`group_id` = `meta`.`group_id`)) group by `meta`.`user_id`,`data`.`permission_id`;
 
@@ -139,6 +145,7 @@ AS SELECT
    `data`.`user_id` AS `user_id`,
    `meta`.`group_id` AS `group_id`,
    `meta`.`name` AS `name`,
+   `meta`.`domain` AS `domain`,
    `meta`.`description` AS `description`
 FROM (`ds_user_groups` `data` left join `ds_groups` `meta` on(`data`.`group_id` = `meta`.`group_id`));
 
@@ -149,6 +156,7 @@ AS SELECT
    `meta`.`permission_id` AS `permission_id`,
    `meta`.`package_id` AS `package_id`,
    `meta`.`name` AS `name`,
+   `meta`.`domain` AS `domain`,
    `meta`.`description` AS `description`
 FROM (`ds_group_permissions` `data` left join `ds_permissions` `meta` on(`data`.`permission_id` = `meta`.`permission_id`));
 

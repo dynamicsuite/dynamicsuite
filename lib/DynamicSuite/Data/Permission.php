@@ -29,6 +29,7 @@ use DynamicSuite\Base\DatabaseItem;
  * @property int|null $permission_id
  * @property string|null $package_id
  * @property string|null $name
+ * @property string|null $domain
  * @property string|null $description
  * @property string|null $created_on
  */
@@ -55,6 +56,13 @@ class Permission extends DatabaseItem
      * @var string|null
      */
     public ?string $name = null;
+
+    /**
+     * Permission domain.
+     *
+     * @var string|null
+     */
+    public ?string $domain = null;
 
     /**
      * A brief description of the permission.
