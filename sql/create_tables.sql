@@ -100,6 +100,28 @@ CREATE TABLE IF NOT EXISTS `ds_user_groups` (
   CONSTRAINT `ds_user_groups-user_id` FOREIGN KEY (`user_id`) REFERENCES `ds_users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `ds_properties` (
+  `property_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(64) NULL DEFAULT NULL,
+  `domain` VARCHAR(64) NULL DEFAULT NULL,
+  `description` VARCHAR(255) NULL DEFAULT NULL,
+  `type` ENUM('int','float','bool','string') NOT NULL,
+  `default` VARCHAR(2048) NULL DEFAULT NULL,
+  `created_by` VARCHAR(254) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+  `created_on` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`property_id`),
+  UNIQUE INDEX `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ds_property_data` (
+  `property_id` INT(10) UNSIGNED NULL DEFAULT NULL,
+  `domain` VARCHAR(64) NULL DEFAULT NULL,
+  `value` VARCHAR(2048) NULL DEFAULT NULL,
+  UNIQUE INDEX `domain_property_id` (`domain`, `property_id`),
+  INDEX `fk_property_data_property_id` (`property_id`),
+  CONSTRAINT `fk_property_data_property_id` FOREIGN KEY (`property_id`) REFERENCES `ds_properties` (`property_id`) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `ds_view_group_permissions` (
    `group_id` INT(10) UNSIGNED NOT NULL,
    `permission_id` INT(10) UNSIGNED NULL DEFAULT '0',

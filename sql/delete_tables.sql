@@ -10,6 +10,8 @@ DROP TABLE IF EXISTS `ds_group_permissions`;
 DROP TABLE IF EXISTS `ds_permissions`;
 DROP TABLE IF EXISTS `ds_users`;
 DROP TABLE IF EXISTS `ds_user_groups`;
+DROP TABLE IF EXISTS `ds_properties`;
+DROP TABLE IF EXISTS `ds_property_data`;
 
 DROP VIEW IF EXISTS `ds_view_group_permissions`;
 DROP VIEW IF EXISTS `ds_view_user_groups`;

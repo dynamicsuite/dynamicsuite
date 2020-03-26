@@ -26,6 +26,7 @@ use DynamicSuite\Base\ProtectedObject;
 use DynamicSuite\Data\Events;
 use DynamicSuite\Data\Groups;
 use DynamicSuite\Data\Permissions;
+use DynamicSuite\Data\Properties;
 use DynamicSuite\Data\Users;
 use DynamicSuite\Package\Packages;
 
@@ -45,6 +46,7 @@ use DynamicSuite\Package\Packages;
  * @property Groups $groups
  * @property Users $users
  * @property Events $events
+ * @property Properties $properties
  */
 final class DynamicSuite extends ProtectedObject
 {
@@ -99,6 +101,13 @@ final class DynamicSuite extends ProtectedObject
     protected Users $users;
 
     /**
+     * Properties database interface.
+     *
+     * @var Properties
+     */
+    protected Properties $properties;
+
+    /**
      * Instance constructor.
      *
      * @return void
@@ -118,6 +127,7 @@ final class DynamicSuite extends ProtectedObject
         $this->groups = new Groups($this);
         $this->users = new Users($this);
         $this->events = new Events($this);
+        $this->properties = new Properties($this);
         $this->save();
     }
 
@@ -150,7 +160,8 @@ final class DynamicSuite extends ProtectedObject
                 $key === 'permissions' ||
                 $key === 'groups' ||
                 $key === 'users' ||
-                $key === 'events'
+                $key === 'events' ||
+                $key === 'properties'
             ) continue;
             $global_members[$key] = $value;
             unset($this->$key);
