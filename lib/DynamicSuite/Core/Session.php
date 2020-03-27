@@ -186,6 +186,7 @@ final class Session extends InstanceMember
     {
         if ($this->id === null) return false;
         if ($permissions === null) return true;
+        if (empty($permissions)) return true;
         if (!$this->permissions) return false;
         if (is_string($permissions) && !array_key_exists($permissions, $this->permissions)) {
             return false;
