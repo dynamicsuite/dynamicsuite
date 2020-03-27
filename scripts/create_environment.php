@@ -18,7 +18,6 @@
  */
 
 /** @noinspection PhpIncludeInspection */
-/** @noinspection PhpUnusedLocalVariableInspection */
 
 namespace DynamicSuite;
 
