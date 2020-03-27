@@ -18,7 +18,6 @@
  */
 
 /** @noinspection PhpIncludeInspection */
-/** @noinspection PhpUnusedLocalVariableInspection */
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
@@ -44,8 +43,11 @@ $ds = (function() {
 })();
 
 // Add global package autoload paths to the autoload queue
-spl_autoload_register(function (string $class) use ($ds) {
-    if (class_exists($class)) return;
+spl_autoload_register(function (string $class) {
+    global $ds;
+    if (class_exists($class)) {
+        return;
+    }
     $file = str_replace('\\', '/', $class) . '.php';
     foreach ($ds->packages->resources->autoload as $dir) {
         $path = DS_ROOT_DIR . "/$dir/$file";

@@ -373,7 +373,7 @@ final class View extends InstanceMember
                 if (isset($action['permissions'])) {
                     if (!$this->ds->session->checkPermissions($action['permissions'])) {
                         continue;
-                    };
+                    }
                 }
                 if ($action['type'] === 'static') {
                     $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";

@@ -21,8 +21,6 @@
 
 namespace DynamicSuite\Base;
 
-use DynamicSuite\Core\DynamicSuite;
-
 /**
  * Class DSConfig.
  *

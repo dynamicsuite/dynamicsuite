@@ -18,7 +18,6 @@
  */
 
 /** @noinspection PhpUnused */
-/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\Core;
 use DynamicSuite\API\APIEndpoint;
