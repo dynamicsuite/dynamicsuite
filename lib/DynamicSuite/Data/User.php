@@ -144,22 +144,26 @@ class User extends DatabaseItem
     /**
      * Verify to see if the given password matches the current password.
      *
-     * @param string $password
+     * @param string|null $password
      * @return bool
      */
-    public function verifyPassword(string $password): bool
+    public function verifyPassword(?string $password): bool
     {
+        if (!$password) {
+            return false;
+        }
         return password_verify($password, $this->password);
     }
 
     /**
      * Set the inactive state.
      *
-     * @param bool $inactive
+     * @param bool|null $inactive
      * @return void
      */
-    public function setInactive(bool $inactive = true): void
+    public function setInactive(?bool $inactive = true): void
     {
+        $inactive = (bool) $inactive;
         $this->inactive = $inactive;
         $this->inactive_time = $inactive ? date('Y-m-d H:i:s') : null;
     }

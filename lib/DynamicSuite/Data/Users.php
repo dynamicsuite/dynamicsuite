@@ -23,7 +23,6 @@ namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
-use Memcached;
 use PDOException;
 
 /**
@@ -59,75 +58,6 @@ final class Users extends InstanceMember
     }
 
     /**
-     * Get an array of all users.
-     *
-     * If $type is -1, only inactive users will be returned.
-     * If $type is 1, only active users will be returned.
-     * If $type is anything else or undefined, all users will be returned.
-     *
-     * @param int $type
-     * @return array
-     * @throws PDOException
-     */
-    public function get(int $type = 0): array
-    {
-        if (DS_CACHING) {
-            $users = $this->ds->cache->get("dynamicsuite:users::$type");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $users;
-            }
-        }
-        $users = [];
-        $query = (new Query())->select()->from('ds_users');
-        if ($type === -1) {
-            $query->where('inactive', 'IS', null);
-        }
-        if ($type === 1) {
-            $query->where('inactive', 'IS NOT', null);
-        }
-        $rows = $this->ds->db->query($query);
-        foreach ($rows as $row) {
-            $users[] = new User($row);
-        }
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:users::$type", $users);
-        }
-        return $users;
-    }
-
-    /**
-     * Attempt to find a user.
-     *
-     * If $lookup_by is an integer, the user_id column will be queried, if not,
-     * the username column will be queried.
-     *
-     * @param int|string $lookup_by
-     * @return User|bool
-     * @throws PDOException
-     */
-    public function find($lookup_by)
-    {
-        $lookup_column = is_int($lookup_by) ? 'user_id' : 'username';
-        if (DS_CACHING) {
-            $user = $this->ds->cache->get("dynamicsuite:users:user:$lookup_by");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $user;
-            }
-        }
-        $user = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_users')
-            ->where($lookup_column, '=', $lookup_by)
-        );
-        if (count($user) !== 1) return false;
-        $user = new User($user[0]);
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:users:user:$lookup_by", $user);
-        }
-        return $user;
-    }
-
-    /**
      * Create a user.
      *
      * @param User $user
@@ -137,7 +67,7 @@ final class Users extends InstanceMember
     public function create(User $user): User
     {
         $user->created_on = date('Y-m-d H:i:s');
-        $user->created_by = $this->ds->session->user->username ?? null;
+        $user->created_by = $user->created_by ?? $this->ds->session->user->username ?? null;
         $user->validate($user, self::COLUMN_LIMITS);
         $user->user_id = $this->ds->db->query((new Query())
             ->insert([
@@ -150,24 +80,57 @@ final class Users extends InstanceMember
             ])
             ->into('ds_users')
         );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users::0");
-            $this->ds->cache->delete("dynamicsuite:users::1");
-            $this->ds->cache->delete("dynamicsuite:users::-1");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
-        }
         return $user;
     }
 
     /**
-     * Modify a user.
+     * Attempt to read a user by username.
+     *
+     * @param string|null $username
+     * @return bool|User
+     * @throws PDOException
+     */
+    public function readByUsername(?string $username)
+    {
+        $user = $this->ds->db->query((new Query())
+            ->select()
+            ->from('ds_users')
+            ->where('username', '=', $username)
+        );
+        if (count($user) !== 1 || !isset($user[0])) {
+            return false;
+        }
+        return new User($user[0]);
+    }
+
+    /**
+     * Attempt to read a user by user ID.
+     *
+     * @param int|null $id
+     * @return User|bool
+     * @throws PDOException
+     */
+    public function readById(?int $id)
+    {
+        $user = $this->ds->db->query((new Query())
+            ->select()
+            ->from('ds_users')
+            ->where('user_id', '=', $id)
+        );
+        if (count($user) !== 1 || !isset($user[0])) {
+            return false;
+        }
+        return new User($user[0]);
+    }
+
+    /**
+     * Update a user.
      *
      * @param User $user
      * @return User
      * @throws PDOException
      */
-    public function modify(User $user): User
+    public function update(User $user): User
     {
         $user->validate($user, self::COLUMN_LIMITS);
         $this->ds->db->query((new Query())
@@ -184,13 +147,6 @@ final class Users extends InstanceMember
             ])
             ->where('user_id', '=', $user->user_id)
         );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users::0");
-            $this->ds->cache->delete("dynamicsuite:users::1");
-            $this->ds->cache->delete("dynamicsuite:users::-1");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
-        }
         return $user;
     }
 
@@ -208,167 +164,18 @@ final class Users extends InstanceMember
             ->from('ds_users')
             ->where('user_id', '=', $user->user_id)
         );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users::0");
-            $this->ds->cache->delete("dynamicsuite:users::1");
-            $this->ds->cache->delete("dynamicsuite:users::-1");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
-        }
         return $user;
-    }
-
-    /**
-     * Get an array of a user's permission groups.
-     *
-     * @param User $user
-     * @return Group[]
-     * @throws PDOException
-     */
-    public function viewGroups(User $user): array
-    {
-        if (DS_CACHING) {
-            $groups = $this->ds->cache->get("dynamicsuite:users:groups:$user->user_id");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $groups;
-            }
-        }
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_user_groups')
-            ->where('user_id', '=', $user->user_id)
-        );
-        $groups = [];
-        foreach ($rows as $row) {
-            $groups[] = new Group($row);
-        }
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:users:groups:$user->user_id", $groups);
-        }
-        return $groups;
-    }
-
-    /**
-     * Get an array of a user's permissions.
-     *
-     * @param User $user
-     * @return Permission[]
-     * @throws PDOException
-     */
-    public function viewPermissions(User $user): array
-    {
-        if (DS_CACHING) {
-            $permissions = $this->ds->cache->get("dynamicsuite:users:permissions:$user->user_id");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $permissions;
-            }
-        }
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_view_user_permissions')
-            ->where('user_id', '=', $user->user_id)
-        );
-        $permissions = [];
-        foreach ($rows as $row) {
-            $permission = new Permission($row);
-            $permissions[$permission->shorthand()] = $permission;
-        }
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:users:permissions:$user->user_id", $permissions);
-        }
-        return $permissions;
-    }
-
-    /**
-     * Add a user to a group.
-     *
-     * @param User $user
-     * @param Group $group
-     * @return Users
-     * @throws PDOException
-     */
-    public function addGroup(User $user, Group $group): Users
-    {
-        $this->ds->db->query((new Query())
-            ->insert([
-                'user_id' => $user->user_id,
-                'group_id' => $group->group_id
-            ])
-            ->into('ds_user_groups')
-        );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users:groups:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:permissions:$user->user_id");
-        }
-        return $this;
-    }
-
-    /**
-     * Remove a user from a group.
-     *
-     * @param User $user
-     * @param Group $group
-     * @return Users
-     * @throws PDOException
-     */
-    public function removeGroup(User $user, Group $group): Users
-    {
-        $this->ds->db->query((new Query())
-            ->delete()
-            ->from('ds_user_groups')
-            ->where('user_id', '=', $user->user_id)
-            ->where('group_id', '=', $group->group_id)
-        );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users:groups:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:permissions:$user->user_id");
-        }
-        return $this;
-    }
-
-    /**
-     * Replace the given users groups with the given array of groups.
-     *
-     * @param User $user
-     * @param Group[] $groups
-     * @return Users
-     * @throws PDOException
-     */
-    public function replaceGroups(User $user, array $groups): Users
-    {
-        $this->ds->db->startTx();
-        $this->ds->db->query((new Query())
-            ->delete()
-            ->from('ds_user_groups')
-            ->where('user_id', '=', $user->user_id)
-        );
-        $insert = (new Query())->insert()->into('ds_user_groups');
-        $rows = [];
-        /** @var Group $group */
-        foreach ($groups as $group) {
-            $rows[] = [
-                'user_id' => $user->user_id,
-                'group_id' => $group->group_id
-            ];
-        }
-        if (!empty($rows)) $this->ds->db->query($insert->rows($rows));
-        $this->ds->db->endTx();
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users:groups:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:permissions:$user->user_id");
-        }
-        return $this;
     }
 
     /**
      * Try to login the user and update their associated values.
      *
      * @param User $user
-     * @param string $password
+     * @param string|null $password
      * @return bool
      * @throws PDOException
      */
-    public function tryLogin(User $user, string $password): bool
+    public function tryLogin(User $user, ?string $password): bool
     {
         $user->login_last_attempt = date('Y-m-d H:i:s');
         $user->login_last_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
@@ -380,21 +187,7 @@ final class Users extends InstanceMember
             $user->login_last_success = date('Y-m-d H:i:s');
             $success = true;
         }
-        $user->validate($user, self::COLUMN_LIMITS);
-        $this->ds->db->query((new Query())
-            ->update('ds_users')
-            ->set([
-                'login_attempts' => $user->login_attempts,
-                'login_last_attempt' => $user->login_last_attempt,
-                'login_last_success' => $user->login_last_success,
-                'login_last_ip' => $user->login_last_ip
-            ])
-            ->where('user_id', '=', $user->user_id)
-        );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->user_id");
-            $this->ds->cache->delete("dynamicsuite:users:user:$user->username");
-        }
+        $this->update($user);
         return $success;
     }
 

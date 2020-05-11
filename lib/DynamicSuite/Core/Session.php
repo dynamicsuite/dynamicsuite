@@ -53,13 +53,6 @@ final class Session extends InstanceMember
     protected array $permissions = [];
 
     /**
-     * Array of the current user's groups.
-     *
-     * @var Group[]
-     */
-    protected array $groups = [];
-
-    /**
      * The current user.
      *
      * @var User|null
@@ -110,11 +103,19 @@ final class Session extends InstanceMember
     public function create(int $user_id): bool
     {
         try {
-            $user = $this->ds->users->find($user_id);
-            if (!$user) return false;
+            $user = $this->ds->users->readById($user_id);
+            if (!$user) {
+                return false;
+            }
             $this->id = session_id();
-            $this->permissions = $this->ds->users->viewPermissions($user);
-            $this->groups = $this->ds->users->viewGroups($user);
+            $query =
+                'SELECT CONCAT(`package_id`, ":", `name`) AS `permission` ' .
+                'FROM `ds_view_user_permissions` WHERE `user_id` = ?';
+            $data = $this->ds->db->query($query, [$user_id]);
+            $this->permissions = [];
+            foreach ($data as $row) {
+                $this->permissions[] = $row['permission'];
+            }
             $this->user = $user;
             $_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id'] = $user_id;
             return true;
@@ -122,6 +123,17 @@ final class Session extends InstanceMember
             error_log($exception->getMessage(), E_USER_WARNING);
             return false;
         }
+    }
+
+    /**
+     * Override session permissions.
+     *
+     * @param array $permissions
+     * @return void
+     */
+    public function overridePermissions(array $permissions): void
+    {
+        $this->permissions = $permissions;
     }
 
     /**
@@ -184,21 +196,32 @@ final class Session extends InstanceMember
      */
     public function checkPermissions($permissions): bool
     {
-        if ($this->id === null) return false;
-        if ($permissions === null) return true;
-        if (empty($permissions)) return true;
-        if (!$this->permissions) return false;
-        if (is_string($permissions) && !array_key_exists($permissions, $this->permissions)) {
+        if ($this->id === null) {
+            return false;
+        }
+        if ($permissions === null) {
+            return true;
+        }
+        if (empty($permissions)) {
+            return true;
+        }
+        if (!$this->permissions) {
+            return false;
+        }
+        if (is_string($permissions) && !in_array($permissions, $this->permissions)) {
             return false;
         } elseif (is_array($permissions)) {
-            foreach ($permissions as $value) {
-                if (!is_string($value)) {
+            foreach ($permissions as $row) {
+                if (!is_string($row)) {
                     trigger_error('Permission values must be strings when permissions are an array', E_USER_WARNING);
                     return false;
                 }
-                if (!array_key_exists($value, $this->permissions)) return false;
+                if (!in_array($row, $this->permissions)){
+                    return false;
+                }
             }
         } else {
+            trigger_error('Invalid permission check type', E_USER_WARNING);
             return false;
         }
         return true;

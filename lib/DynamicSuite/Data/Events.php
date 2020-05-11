@@ -70,27 +70,6 @@ final class Events extends InstanceMember
     }
 
     /**
-     * Get an array of events.
-     *
-     * @param string|null $package_id
-     * @param int|null $type
-     * @param int $limit
-     * @return Event[]
-     * @throws PDOException
-     */
-    public function get(?string $package_id = null, ?int $type = null, int $limit = 255): array
-    {
-        $events = [];
-        $query = (new Query())->select()->from('ds_events');
-        if ($package_id !== null) $query->where('package_id', '=', $package_id);
-        if ($type !== null) $query->where('type', '=', $type);
-        $query->limit($limit);
-        $rows = $this->ds->db->query($query);
-        foreach ($rows as $row) $events[] = new Event($row);
-        return $events;
-    }
-
-    /**
      * Create a new event log entry.
      *
      * @param Event $event
@@ -99,7 +78,7 @@ final class Events extends InstanceMember
      */
     public function create(Event $event): Event
     {
-        $event->created_by = $this->ds->session->user->username ?? null;
+        $event->created_by = $event->created_by ?? $this->ds->session->user->username ?? null;
         $event->ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
         $event->session = session_id() ? session_id() : null;
         $event->timestamp = date('Y-m-d H:i:s');

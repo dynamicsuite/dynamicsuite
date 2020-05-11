@@ -23,7 +23,6 @@ namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
-use Memcached;
 use PDOException;
 
 /**
@@ -87,100 +86,6 @@ final class Properties extends InstanceMember
     }
 
     /**
-     * Get an array of all properties for the given meta-domain and data-domain.
-     *
-     * @param string|null $meta_domain
-     * @param string|null $data_domain
-     * @return Property[]
-     * @throws PDOException
-     */
-    public function getAll(?string $meta_domain = null, ?string $data_domain = null): array
-    {
-        if (DS_CACHING) {
-            $property = $this->ds->cache->get("dynamicsuite:properties:$meta_domain:$data_domain");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $property;
-            }
-        }
-        $query = "$this->property_query WHERE `ds_properties`.`domain` = ?";
-        $data = $this->ds->db->query($query, [$data_domain, $meta_domain]);
-        $properties = [];
-        foreach ($data as $row) {
-            $properties[$row['property_id']] = new Property($row);
-        }
-        if (DS_CACHING) {
-            $this->addDomainCache($data_domain);
-            $this->ds->cache->set("dynamicsuite:properties:$meta_domain:$data_domain", $properties);
-        }
-        return $properties;
-    }
-
-    /**
-     * Get a property by $name for the given data $domain.
-     *
-     * @param string $name
-     * @param string $domain
-     * @return Property
-     * @throws PDOException
-     */
-    public function get(string $name, string $domain): Property
-    {
-        if (DS_CACHING) {
-            $property = $this->ds->cache->get("dynamicsuite:property:$name:data:$domain");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $property;
-            }
-        }
-        $query = "$this->property_query WHERE `ds_properties`.`name` = ?";
-        $data = $this->ds->db->query($query, [$domain, $name]);
-        if (count($data) !== 1 || !isset($data[0])) {
-            throw new PDOException('Property not found');
-        }
-        $property = new Property($data[0]);
-        if (DS_CACHING) {
-            $this->addDomainCache($domain);
-            $this->ds->cache->set("dynamicsuite:property:$name:data:$domain", $property);
-        }
-        return $property;
-    }
-
-    /**
-     * Attempt to find a property by name.
-     *
-     * Can filter by meta domain.
-     *
-     * Returns the property if found, or FALSE if not found.
-     *
-     * @param string $name
-     * @param string|null $domain
-     * @return Property|bool
-     * @throws PDOException
-     */
-    public function find(string $name, ?string $domain = null)
-    {
-        if (DS_CACHING) {
-            $property = $this->ds->cache->get("dynamicsuite:property:$name:meta:$domain");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $property;
-            }
-        }
-        $data = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_properties')
-            ->where('name', '=', $name)
-            ->where('domain', '=', $domain)
-        );
-        if (count($data) !== 1 || !isset($data[0])) {
-            return false;
-        }
-        $property = new Property($data[0]);
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:property:$name:meta:$domain", $property);
-        }
-        return $property;
-    }
-
-    /**
      * Create a property.
      *
      * @param Property $property
@@ -204,18 +109,80 @@ final class Properties extends InstanceMember
             ])
             ->into('ds_properties')
         );
-        $this->clearDomainCache($property);
         return $property;
     }
 
     /**
-     * Modify an existing property.
+     * Read all properties for the given meta-domain and data-domain.
+     *
+     * @param string|null $meta_domain
+     * @param string|null $data_domain
+     * @return Property[]
+     * @throws PDOException
+     */
+    public function readAll(?string $meta_domain = null, ?string $data_domain = null): array
+    {
+        $query = "$this->property_query WHERE `ds_properties`.`domain` = ?";
+        $data = $this->ds->db->query($query, [$data_domain, $meta_domain]);
+        $properties = [];
+        foreach ($data as $row) {
+            $properties[$row['property_id']] = new Property($row);
+        }
+        return $properties;
+    }
+
+    /**
+     * Read a property by $name for the given data $domain.
+     *
+     * @param string $name
+     * @param string $domain
+     * @return Property
+     * @throws PDOException
+     */
+    public function readValue(string $name, string $domain): Property
+    {
+        $query = "$this->property_query WHERE `ds_properties`.`name` = ?";
+        $data = $this->ds->db->query($query, [$domain, $name]);
+        if (count($data) !== 1 || !isset($data[0])) {
+            throw new PDOException('Property not found');
+        }
+        return new Property($data[0]);
+    }
+
+    /**
+     * Attempt to read a property by name.
+     *
+     * Can filter by meta domain.
+     *
+     * Returns the property if found, or FALSE if not found.
+     *
+     * @param string $name
+     * @param string|null $domain
+     * @return Property|bool
+     * @throws PDOException
+     */
+    public function readMeta(string $name, ?string $domain = null)
+    {
+        $data = $this->ds->db->query((new Query())
+            ->select()
+            ->from('ds_properties')
+            ->where('name', '=', $name)
+            ->where('domain', '=', $domain)
+        );
+        if (count($data) !== 1 || !isset($data[0])) {
+            return false;
+        }
+        return new Property($data[0]);
+    }
+
+    /**
+     * Update a property.
      *
      * @param Property $property
      * @return Property
      * @throws PDOException
      */
-    public function modify(Property $property): Property
+    public function update(Property $property): Property
     {
         $property->validate($property, self::COLUMN_LIMITS);
         $this->ds->db->query((new Query())
@@ -228,24 +195,6 @@ final class Properties extends InstanceMember
             ])
             ->where('property_id', '=', $property->property_id)
         );
-        $this->clearDomainCache($property);
-        return $property;
-    }
-
-    /**
-     * Delete a property.
-     *
-     * @param Property $property
-     * @return Property
-     */
-    public function delete(Property $property): Property
-    {
-        $this->ds->db->query((new Query())
-            ->delete()
-            ->from('ds_properties')
-            ->where('property_id', '=', $property->property_id)
-        );
-        $this->clearDomainCache($property);
         return $property;
     }
 
@@ -259,7 +208,6 @@ final class Properties extends InstanceMember
      */
     public function updateDataDomain(array $properties, string $data_domain)
     {
-        $this->ds->db->startTx();
         $this->ds->db->query((new Query())
             ->delete()
             ->from('ds_property_data')
@@ -277,52 +225,40 @@ final class Properties extends InstanceMember
                 ])
                 ->into('ds_property_data')
             );
-            $this->clearDomainCache($property);
         }
-        $this->ds->db->endTx();
     }
 
     /**
-     * Add a data domain to the domain cache.
-     *
-     * @param string $domain
-     * @return void
-     */
-    private function addDomainCache(string $domain): void
-    {
-        if (!DS_CACHING) {
-            return;
-        }
-        $domains = $this->ds->cache->get("dynamicsuite:properties::data-domains");
-        if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-            if (!in_array($domain, $domains)) {
-                $domains[] = $domain;
-            }
-        } else {
-            $domains = [$domain];
-        }
-        $this->ds->cache->set("dynamicsuite:properties::data-domains", $domains);
-    }
-
-    /**
-     * Clear the domain cache for a given property.
+     * Delete a property.
      *
      * @param Property $property
-     * @return void
+     * @return Property
+     * @throws PDOException
      */
-    private function clearDomainCache(Property $property): void
+    public function delete(Property $property): Property
     {
-        if (!DS_CACHING) {
-            return;
-        }
-        $this->ds->cache->delete("dynamicsuite:property:$property->name:meta:$property->meta_domain");
-        $data_domains = $this->ds->cache->get("dynamicsuite:properties::data-domains");
-        if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-            foreach ($data_domains as $domain) {
-                $this->ds->cache->delete("dynamicsuite:properties:$property->meta_domain:$domain");
-                $this->ds->cache->delete("dynamicsuite:property:$property->name:data:$domain");
-            }
-        }
+        $this->ds->db->query((new Query())
+            ->delete()
+            ->from('ds_properties')
+            ->where('property_id', '=', $property->property_id)
+        );
+        return $property;
+    }
+
+    /**
+     * Delete all of the data in a data domain.
+     *
+     * @param string $data_domain
+     * @return void
+     * @throws PDOException
+     */
+    public function deleteDataDomain(string $data_domain): void
+    {
+        $this->ds->db->query((new Query())
+            ->delete()
+            ->from('ds_property_data')
+            ->where('domain', '=', $data_domain)
+        );
     }
 
 }

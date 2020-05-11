@@ -23,7 +23,6 @@ namespace DynamicSuite\Data;
 use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\Query;
-use Memcached;
 use PDOException;
 
 /**
@@ -58,71 +57,6 @@ final class Permissions extends InstanceMember
     }
 
     /**
-     * Get all permissions.
-     *
-     * @param string|null $domain
-     * @return Permission[]
-     * @throws PDOException
-     */
-    public function getAll(?string $domain = null): array
-    {
-        if (DS_CACHING) {
-            $permissions = $this->ds->cache->get("dynamicsuite:permissions");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $permissions;
-            }
-        }
-        $permissions = [];
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_permissions')
-            ->where('domain', '=', $domain)
-        );
-        foreach ($rows as $row) {
-            $permission = new Permission($row);
-            $permissions[$permission->shorthand()] = $permission;
-        }
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:permissions", $permissions);
-        }
-        return $permissions;
-    }
-
-    /**
-     * Attempts to find a permission by shorthand format.
-     *
-     * @param string $shorthand
-     * @param string|null $domain
-     * @return Permission|bool
-     */
-    public function find(string $shorthand, ?string $domain = null)
-    {
-        $permission_info = explode(':', $shorthand);
-        if (count($permission_info) !== 2) {
-            throw new PDOException('Malformed shorthand permission');
-        }
-        if (DS_CACHING) {
-            $permission = $this->ds->cache->get("dynamicsuite:permissions:$shorthand");
-            if ($this->ds->cache->cache->getResultCode() === Memcached::RES_SUCCESS) {
-                return $permission;
-            }
-        }
-        $permission = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_permissions')
-            ->where('package_id', '=', $permission_info[0])
-            ->where('domain', '=', $domain)
-            ->where('name', '=', $permission_info[1])
-        );
-        if (count($permission) !== 1) return false;
-        $permission = new Permission($permission[0]);
-        if (DS_CACHING) {
-            $this->ds->cache->set("dynamicsuite:permissions:$shorthand", $permission);
-        }
-        return $permission;
-    }
-
-    /**
      * Create a permission.
      *
      * @param Permission $permission
@@ -144,20 +78,70 @@ final class Permissions extends InstanceMember
                 'created_on' => $permission->created_on
             ])
         );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:permissions");
-        }
         return $permission;
     }
 
     /**
-     * Modify a permission.
+     * Attempt to read a permission by shorthand format, with an optional domain.
+     *
+     * @param string|null $shorthand
+     * @param string|null $domain
+     * @return bool|Permission
+     * @throws PDOException
+     */
+    public function readByShorthand(?string $shorthand, ?string $domain = null)
+    {
+        $permission_info = explode(':', $shorthand);
+        if (count($permission_info) !== 2) {
+            throw new PDOException('Malformed shorthand permission');
+        }
+        $query = (new Query())
+            ->select()
+            ->from('ds_permissions')
+            ->where('package_id', '=', $permission_info[0])
+            ->where('name', '=', $permission_info[1]);
+        if ($domain) {
+            $query->where('domain', '=', $domain);
+        }
+        $permission = $this->ds->db->query($query);
+        if (count($permission) !== 1 || !isset($permission[0])) {
+            return false;
+        }
+        return new Permission($permission[0]);
+    }
+
+    /**
+     * Attempt to read a permission by ID, with an optional domain.
+     *
+     * @param int|null $id
+     * @param string|null $domain
+     * @return Permission|bool
+     * @throws PDOException
+     */
+    public function readyById(?int $id, ?string $domain = null)
+    {
+        $query = (new Query())
+            ->select()
+            ->from('ds_permissions')
+            ->where('permission_id', '=', $id);
+        if ($domain) {
+            $query->where('domain', '=', $domain);
+        }
+        $permission = $this->ds->db->query($query);
+        if (count($permission) !== 1 || !isset($permission[0])) {
+            return false;
+        }
+        return new Permission($permission[0]);
+    }
+
+    /**
+     * Update a permission.
      *
      * @param Permission $permission
      * @return Permission
      * @throws PDOException
      */
-    public function modify(Permission $permission): Permission
+    public function update(Permission $permission): Permission
     {
         $permission->validate($permission, self::COLUMN_LIMITS);
         $this->ds->db->query((new Query())
@@ -170,10 +154,6 @@ final class Permissions extends InstanceMember
             ])
             ->where('permission_id', '=', $permission->permission_id)
         );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:permissions");
-            $this->ds->cache->delete("dynamicsuite:permissions:" . $permission->shorthand());
-        }
         return $permission;
     }
 
@@ -191,10 +171,6 @@ final class Permissions extends InstanceMember
             ->from('ds_permissions')
             ->where('permission_id', '=', $permission->permission_id)
         );
-        if (DS_CACHING) {
-            $this->ds->cache->delete("dynamicsuite:permissions");
-            $this->ds->cache->delete("dynamicsuite:permissions:" . $permission->shorthand());
-        }
         return $permission;
     }
 

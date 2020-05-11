@@ -376,6 +376,9 @@ final class View extends InstanceMember
                     }
                 }
                 if ($action['type'] === 'static') {
+                    if (isset($action['ref']) && $action['ref']) {
+                        $action['value'] .= '?ref=' . $this->ds->request->url_string;
+                    }
                     $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";
                 } elseif ($action['type'] === 'dynamic') {
                     ob_start();
@@ -453,7 +456,6 @@ final class View extends InstanceMember
                 ]);
                 $sublinks = '';
                 $active = false;
-                /** @var $sub NavEntry */
                 foreach ($super->children as $sub) {
                     if (!$sub->public && !$this->ds->session->checkPermissions($sub->permissions)) continue;
                     if ($this->package->url === $sub->url) {
