@@ -33,7 +33,8 @@ use DynamicSuite\Base\ArrayConvertible;
  * @property bool $public
  * @property bool $navigable
  * @property bool $hide_nav
- * @property bool $hide_logout_button
+ * @property bool $hide_user_actions
+ * @property bool $hide_logout_link
  * @property string|null $nav_group
  * @property string $nav_name
  * @property string $nav_icon
@@ -93,11 +94,18 @@ final class View extends ArrayConvertible
     public bool $hide_nav = false;
 
     /**
-     * Flag to hide the logout button on the view
+     * Flag to hide the user actions button on the view
      *
      * @var bool
      */
-    public bool $hide_logout_button = false;
+    public bool $hide_user_actions = false;
+
+    /**
+     * Flag to hide the logout link on the actions area.
+     *
+     * @var bool
+     */
+    public bool $hide_logout_link = false;
 
     /**
      * View navigation group id.

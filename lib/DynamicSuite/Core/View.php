@@ -365,16 +365,47 @@ final class View extends InstanceMember
      */
     public function setNavigable(): View
     {
+        $action_area = '';
+        foreach ($this->ds->packages->action_groups as $group) {
+            $action_links = '';
+            foreach ($this->ds->packages->action_links as $text => $action) {
+                if ($action['group'] !== $group) continue;
+                if (isset($action['permissions'])) {
+                    if (!$this->ds->session->checkPermissions($action['permissions'])) {
+                        continue;
+                    }
+                }
+                if ($action['type'] === 'static') {
+                    if (isset($action['ref']) && $action['ref']) {
+                        $action['value'] .= '?ref=' . $this->ds->request->url_string;
+                    }
+                    $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";
+                } elseif ($action['type'] === 'dynamic') {
+                    ob_start();
+                    require $action['value'];
+                    $content = ob_get_clean();
+                    $action_links .= "<li>$content</li>";
+                }
+            }
+            if (mb_strlen($action_links)) {
+                $action_area .= "<ul>$action_links</ul>";
+            }
+        }
         $this->nav->replace([
-            '{{nav-header-view}}' => $this->ds->cfg->nav_header_view,
             '{{nav-header-text}}' => $this->ds->cfg->nav_header_text,
-            '{{nav-header-path}}' => $this->ds->cfg->default_view,
+            '{{nav-header-path}}' => $this->ds->cfg->nav_header_view,
             '{{login-path}}' => $this->ds->cfg->nav_login_path,
             '{{nav-footer-version}}' => DS_VERSION,
             '{{view-header}}' => $this->package->title,
-            '{{hide-logout}}' => $this->package->hide_logout_button
+            '{{action-links-icon}}' => $this->ds->cfg->action_links_icon,
+            '{{hide-user-actions}}' => $this->package->hide_user_actions
                 ? ' class="ds-hide"'
                 : '',
+            '{{action-links}}' => $action_area,
+            '{{hide-logout-link}}' => $this->package->hide_logout_link
+                ? ' class="ds-hide"'
+                : '',
+            '{{login-view}}' => $this->ds->cfg->nav_login_path,
             '{{nav-links}}' => $this->generateNavLinks(),
         ]);
         $this->document->replace([
@@ -425,7 +456,6 @@ final class View extends InstanceMember
                 ]);
                 $sublinks = '';
                 $active = false;
-                /** @var $sub NavEntry */
                 foreach ($super->children as $sub) {
                     if (!$sub->public && !$this->ds->session->checkPermissions($sub->permissions)) continue;
                     if ($this->package->url === $sub->url) {

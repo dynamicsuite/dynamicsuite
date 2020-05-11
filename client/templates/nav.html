@@ -16,9 +16,22 @@
             <i class="fas fa-bars"></i>
         </span>
             <h1 id="ds-view-header-text">{{view-header}}</h1>
-            <a id="ds-view-logout" href="{{login-path}}" {{hide-logout}}>
-                <i class="fas fa-sign-out-alt"></i>
-            </a>
+            <div id="ds-view-user-actions" {{hide-user-actions}}>
+                <i class="fas {{action-links-icon}}"></i>
+                <div id="ds-user-action-fader"></div>
+                <div id="ds-user-action-menu">
+                    <div id="ds-user-action-lists">
+                        {{action-links}}
+                    </div>
+                    <div id="ds-logout-link" {{hide-logout-link}}>
+                        <a href="{{login-view}}">
+                            Logout
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
         </header>
         <section id="ds-view">{{view-body}}</section>
     </section>

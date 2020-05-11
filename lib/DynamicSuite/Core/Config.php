@@ -51,16 +51,13 @@ use PDO;
  * @property string $js_dynamicsuite
  * @property string $nav_header_text
  * @property string $nav_login_path
+ * @property string $action_links_icon
  * @property string $db_dsn
  * @property string $db_user
  * @property string $db_pass
  * @property array $db_options
- * @property string $backup_dir
- * @property string $backup_days_keep
- * @property string $pkg_db_dir
- * @property string $pkg_build_dir
- * @property array $pkg_repos
- * @property array $pkg_blacklist
+ * @property string $memcached_host
+ * @property int $memcached_port
  */
 final class Config extends DSConfig
 {
@@ -234,6 +231,13 @@ final class Config extends DSConfig
     protected string $nav_login_path = '/login';
 
     /**
+     * The icon class to use for the user action area.
+     *
+     * @var string
+     */
+    protected string $action_links_icon = 'fa-user';
+
+    /**
      * Database data source name.
      *
      * @var string
@@ -268,48 +272,18 @@ final class Config extends DSConfig
     ];
 
     /**
-     * Backup directory for CLI backups.
+     * The host that the memcached server is running on.
      *
      * @var string
      */
-    protected string $backup_dir = '/var/backups/dynamicsuite';
+    protected string $memcached_host = '127.0.0.1';
 
     /**
-     * Number of days to keep a backup before marking it for deletion.
+     * The port that the memcached server is listening on.
      *
      * @var int
      */
-    protected int $backup_days_keep = 7;
-
-    /**
-     * Package meta directory.
-     *
-     * @var string
-     */
-    protected string $pkg_db_dir = '.dspkg';
-
-    /**
-     * Package build directory.
-     *
-     * @var string
-     */
-    protected string $pkg_build_dir = '.dspkg/build';
-
-    /**
-     * Package repositories.
-     *
-     * @var array
-     */
-    protected array $pkg_repos = [
-        'https://public-repo.dynamicsuite.io' => null
-    ];
-
-    /**
-     * An array of blacklisted packages.
-     *
-     * @var array
-     */
-    protected array $pkg_blacklist = [];
+    protected int $memcached_port = 11211;
 
     /**
      * Config constructor.

@@ -21,8 +21,6 @@
 
 namespace DynamicSuite\Base;
 
-use DynamicSuite\Core\DynamicSuite;
-
 /**
  * Class DSConfig.
  *
@@ -39,8 +37,8 @@ abstract class DSConfig extends ProtectedObject
      */
     public function __construct(string $package_id)
     {
-        $hash = DynamicSuite::getHash("dspkg-$package_id-cfg");
-        if (DS_CACHING && apcu_exists($hash)) {
+        $cache_key = "dspkg-$package_id-cfg";
+        if (DS_CACHING && apcu_exists($cache_key)) {
             return;
         }
         if (file_exists("config/$package_id.json")) {
@@ -51,7 +49,7 @@ abstract class DSConfig extends ProtectedObject
                 trigger_error("Invalid config for $package_id! Using defaults...", E_USER_WARNING);
             }
         }
-        if (DS_CACHING) apcu_store($hash, true);
+        if (DS_CACHING) apcu_store($cache_key, true);
     }
 
 }

@@ -28,6 +28,26 @@
 @mixin hover-transition
   transition: background 0.2s ease
 
+h1, h2, h3, h4, h5
+  margin: 0
+  padding: 0
+
+h1
+  font-size: 1.75rem
+  margin-bottom: 1rem
+
+h2
+  font-size: 1.5rem
+  margin-bottom: .75rem
+
+h3
+  font-size: 1.25rem
+  margin-bottom: .5rem
+
+h4, h5
+  font-size: 1rem
+  margin-bottom: .25rem
+
 /* Set root theming */
 html
   font-family: $primary-font
@@ -103,8 +123,39 @@ html
   background: lighten($primary, 10%)
   color: $header-text
 
-/* Mobile toggle button and logout button */
-#ds-nav-mobile-toggle, #ds-view-logout
+  #ds-view-user-actions
+
+    #ds-user-action-menu
+      color: white
+      font-weight: normal
+      font-size: .9rem
+      background: lighten($primary, 20%)
+
+      #ds-user-action-lists
+        &::-webkit-scrollbar-thumb
+          background: $primary
+
+        ul
+          li:hover
+            background: lighten($primary, 30%)
+
+        a
+          color: white
+
+      #ds-logout-link
+        a
+          background: $primary
+          color: white
+          text-decoration: none
+
+          &:hover
+            background: lighten($failure, 10%)
+
+    #ds-user-action-fader
+      background: rgba(0,0,0,0)
+
+/* Mobile toggle button and user actions button */
+#ds-nav-mobile-toggle, #ds-view-user-actions
   transition: background 0.2s ease
   cursor: pointer
   color: inherit
@@ -114,9 +165,12 @@ html
 #ds-nav-mobile-toggle:hover
   background: lighten($primary, 20%)
 
-/* Logout button */
-#ds-view-logout:hover
-  background: lighten($failure, 5%)
+/* User actions button */
+#ds-view-user-actions:hover
+  background: lighten($primary, 20%)
+
+  a:hover
+    text-decoration: underline
 
 /* Package view content */
 #ds-view

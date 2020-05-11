@@ -41,6 +41,7 @@ final class Permissions extends InstanceMember
     public const COLUMN_LIMITS = [
         'package_id' => 64,
         'name' => 64,
+        'domain' => 64,
         'description' => 255
     ];
 
@@ -53,48 +54,6 @@ final class Permissions extends InstanceMember
     public function __construct(DynamicSuite $ds)
     {
         parent::__construct($ds);
-    }
-
-    /**
-     * Get all permissions.
-     *
-     * @return Permission[]
-     * @throws PDOException
-     */
-    public function getAll(): array
-    {
-        $permissions = [];
-        $rows = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_permissions')
-        );
-        foreach ($rows as $row) {
-            $permission = new Permission($row);
-            $permissions[$permission->shorthand()] = $permission;
-        }
-        return $permissions;
-    }
-
-    /**
-     * Attempts to find a permission by shorthand format.
-     *
-     * @param string $shorthand
-     * @return Permission|bool
-     */
-    public function find(string $shorthand)
-    {
-        $permission_info = explode(':', $shorthand);
-        if (count($permission_info) !== 2) {
-            throw new PDOException('Malformed shorthand permission');
-        }
-        $permission = $this->ds->db->query((new Query())
-            ->select()
-            ->from('ds_permissions')
-            ->where('package_id', '=', $permission_info[0])
-            ->where('name', '=', $permission_info[1])
-        );
-        if (count($permission) !== 1) return false;
-        return new Permission($permission[0]);
     }
 
     /**
@@ -114,6 +73,7 @@ final class Permissions extends InstanceMember
             ->row([
                 'package_id' => $permission->package_id,
                 'name' => $permission->name,
+                'domain' => $permission->domain,
                 'description' => $permission->description,
                 'created_on' => $permission->created_on
             ])
@@ -122,13 +82,66 @@ final class Permissions extends InstanceMember
     }
 
     /**
-     * Modify a permission.
+     * Attempt to read a permission by shorthand format, with an optional domain.
+     *
+     * @param string|null $shorthand
+     * @param string|null $domain
+     * @return bool|Permission
+     * @throws PDOException
+     */
+    public function readByShorthand(?string $shorthand, ?string $domain = null)
+    {
+        $permission_info = explode(':', $shorthand);
+        if (count($permission_info) !== 2) {
+            throw new PDOException('Malformed shorthand permission');
+        }
+        $query = (new Query())
+            ->select()
+            ->from('ds_permissions')
+            ->where('package_id', '=', $permission_info[0])
+            ->where('name', '=', $permission_info[1]);
+        if ($domain) {
+            $query->where('domain', '=', $domain);
+        }
+        $permission = $this->ds->db->query($query);
+        if (count($permission) !== 1 || !isset($permission[0])) {
+            return false;
+        }
+        return new Permission($permission[0]);
+    }
+
+    /**
+     * Attempt to read a permission by ID, with an optional domain.
+     *
+     * @param int|null $id
+     * @param string|null $domain
+     * @return Permission|bool
+     * @throws PDOException
+     */
+    public function readyById(?int $id, ?string $domain = null)
+    {
+        $query = (new Query())
+            ->select()
+            ->from('ds_permissions')
+            ->where('permission_id', '=', $id);
+        if ($domain) {
+            $query->where('domain', '=', $domain);
+        }
+        $permission = $this->ds->db->query($query);
+        if (count($permission) !== 1 || !isset($permission[0])) {
+            return false;
+        }
+        return new Permission($permission[0]);
+    }
+
+    /**
+     * Update a permission.
      *
      * @param Permission $permission
      * @return Permission
      * @throws PDOException
      */
-    public function modify(Permission $permission): Permission
+    public function update(Permission $permission): Permission
     {
         $permission->validate($permission, self::COLUMN_LIMITS);
         $this->ds->db->query((new Query())
@@ -136,6 +149,7 @@ final class Permissions extends InstanceMember
             ->set([
                 'package_id' => $permission->package_id,
                 'name' => $permission->name,
+                'domain' => $permission->domain,
                 'description' => $permission->description
             ])
             ->where('permission_id', '=', $permission->permission_id)

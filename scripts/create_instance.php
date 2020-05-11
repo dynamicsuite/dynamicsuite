@@ -18,7 +18,6 @@
  */
 
 /** @noinspection PhpIncludeInspection */
-/** @noinspection PhpUnusedLocalVariableInspection */
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
@@ -31,19 +30,24 @@ require_once realpath(__DIR__ . '/create_environment.php');
 /** @var DynamicSuite $ds */
 $ds = (function() {
     $hash = DynamicSuite::getHash();
-    if (apcu_exists($hash) && DS_CACHING) {
+    if (DS_CACHING && apcu_exists($hash)) {
         $ds = apcu_fetch($hash);
     } else {
         $ds = new DynamicSuite();
         $ds->packages->loadPackages();
-        if (DS_CACHING) $ds->save();
+        if (DS_CACHING) {
+            $ds->save();
+        }
     }
     return $ds;
 })();
 
 // Add global package autoload paths to the autoload queue
-spl_autoload_register(function (string $class) use ($ds) {
-    if (class_exists($class)) return;
+spl_autoload_register(function (string $class) {
+    global $ds;
+    if (class_exists($class)) {
+        return;
+    }
     $file = str_replace('\\', '/', $class) . '.php';
     foreach ($ds->packages->resources->autoload as $dir) {
         $path = DS_ROOT_DIR . "/$dir/$file";

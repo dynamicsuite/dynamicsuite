@@ -56,7 +56,6 @@ final class CLI
      */
     public static function in(string $prompt, ?string $old = null): string
     {
-        if (defined('CLI_FORCE') && CLI_FORCE) return (string) $old;
         $prompt = $old ? "$prompt (Enter for `$old`): " : "$prompt: ";
         self::out($prompt, false);
         $input = trim(fgets(STDIN));
@@ -77,7 +76,6 @@ final class CLI
      */
     public static function yn(string $prompt, bool $default = false): bool
     {
-        if (CLI_FORCE) return true;
         $suffix = $default ? '[Y/n]' : '[y/N]';
         self::out("$prompt $suffix: ", false);
         $input = trim(fgets(STDIN));
@@ -120,13 +118,13 @@ final class CLI
         foreach ($columns as $column) {
             if (!empty($data)) {
                 $map[$column] = max(
-                    array_map('strlen', array_column($data, $column))
+                    array_map('mb_strlen', array_column($data, $column))
                 );
             } else {
-                $map[$column] = strlen($column);
+                $map[$column] = mb_strlen($column);
             }
-            if ($map[$column] < strlen($column)) {
-                $map[$column] = strlen($column);
+            if ($map[$column] < mb_strlen($column)) {
+                $map[$column] = mb_strlen($column);
             }
             $break .= str_repeat('-', $map[$column] + 2) . '+';
             $header .= ' ' . str_pad($column, $map[$column], ' ') . ' |';
@@ -165,7 +163,7 @@ final class CLI
      */
     public static function splitDSN(string $dsn, string $key): string
     {
-        $value = substr($dsn, strpos($dsn, "$key=") + (strlen($key) + 1));
+        $value = substr($dsn, strpos($dsn, "$key=") + (mb_strlen($key) + 1));
         $pos = strpos($value, ';');
         if ($pos !== false) $value = substr($value, 0, $pos);
         return $value;

@@ -18,7 +18,6 @@
  */
 
 /** @noinspection PhpUnused */
-/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\Core;
 use DynamicSuite\API\APIEndpoint;
@@ -26,6 +25,7 @@ use DynamicSuite\Base\ProtectedObject;
 use DynamicSuite\Data\Events;
 use DynamicSuite\Data\Groups;
 use DynamicSuite\Data\Permissions;
+use DynamicSuite\Data\Properties;
 use DynamicSuite\Data\Users;
 use DynamicSuite\Package\Packages;
 
@@ -40,10 +40,12 @@ use DynamicSuite\Package\Packages;
  * @property View $view
  * @property APIEndpoint $api
  * @property Database $db
+ * @property Cache $cache
  * @property Permissions $permissions
  * @property Groups $groups
  * @property Users $users
  * @property Events $events
+ * @property Properties $properties
  */
 final class DynamicSuite extends ProtectedObject
 {
@@ -70,6 +72,13 @@ final class DynamicSuite extends ProtectedObject
     protected Database $db;
 
     /**
+     * Memcached wrapper.
+     *
+     * @var Cache
+     */
+    protected Cache $cache;
+
+    /**
      * Permissions database interface.
      *
      * @var Permissions
@@ -91,6 +100,13 @@ final class DynamicSuite extends ProtectedObject
     protected Users $users;
 
     /**
+     * Properties database interface.
+     *
+     * @var Properties
+     */
+    protected Properties $properties;
+
+    /**
      * Instance constructor.
      *
      * @return void
@@ -105,11 +121,13 @@ final class DynamicSuite extends ProtectedObject
             $this->cfg->db_pass,
             $this->cfg->db_options
         );
+        $this->cache = new Cache($this);
         $this->permissions = new Permissions($this);
         $this->groups = new Groups($this);
         $this->users = new Users($this);
         $this->events = new Events($this);
-        if (DS_CACHING) $this->save();
+        $this->properties = new Properties($this);
+        $this->save();
     }
 
     /**
@@ -137,10 +155,12 @@ final class DynamicSuite extends ProtectedObject
                 $key === 'cfg' ||
                 $key === 'packages' ||
                 $key === 'db' ||
+                $key === 'cache' ||
                 $key === 'permissions' ||
                 $key === 'groups' ||
                 $key === 'users' ||
-                $key === 'events'
+                $key === 'events' ||
+                $key === 'properties'
             ) continue;
             $global_members[$key] = $value;
             unset($this->$key);
@@ -149,19 +169,6 @@ final class DynamicSuite extends ProtectedObject
         foreach ($global_members as $key => $value) {
             $this->$key = $value;
         }
-    }
-
-    /**
-     * Get a hash unique to the Dynamic Suite instance deployment.
-     *
-     * If a key is given, a hash will be generated unique to the Dynamic Suite instance and the key.
-     *
-     * @param string $key
-     * @return string
-     */
-    public static function getHash(string $key = ''): string
-    {
-        return crc32(DS_ROOT_DIR . $key);
     }
 
     /**
@@ -176,13 +183,26 @@ final class DynamicSuite extends ProtectedObject
     public static function getPkgClass(string $class, ...$args)
     {
         $hash = self::getHash($class);
-        if (DS_CACHING && apcu_exists($hash)) {
-            return apcu_fetch($hash);
+        if (DS_CACHING && apcu_exists($hash) && $instance = apcu_fetch($hash)) {
+            return $instance;
         } else {
-            $class = new $class(...$args);
-            if (DS_CACHING) apcu_store($hash, $class);
-            return $class;
+            $instance = new $class(...$args);
+            if (DS_CACHING) {
+                apcu_store($hash, $instance);
+            }
+            return $instance;
         }
+    }
+
+    /**
+     * Generate a hash for the given input string unique to the current instance.
+     *
+     * @param string $input
+     * @return string
+     */
+    public static function getHash(string $input = '')
+    {
+        return md5(DS_ROOT_DIR . $input);
     }
 
 }
