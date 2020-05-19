@@ -42,6 +42,10 @@ if (defined('DS_VIEW')) {
             die('Sorry, Internet Explorer is not supported.');
         }
     })();
+    $pos = strpos($_SERVER['REQUEST_URI'], '?');
+    if ($pos !== false) {
+        $_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], 0, $pos);
+    }
     if ($_SERVER['REQUEST_URI'] !== '/') {
         $ds->request->initViewable();
     } else {
