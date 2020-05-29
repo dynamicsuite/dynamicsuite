@@ -38,8 +38,12 @@ if (defined('DS_VIEW')) {
     // Dynamic suite does not work with IE, so check for it
     (function() {
         $ua = htmlentities($_SERVER['HTTP_USER_AGENT'], ENT_QUOTES, 'UTF-8');
-        if (preg_match('~MSIE|Internet Explorer~i', $ua) || strpos($ua, 'Trident/7.0; rv:11.0') !== false) {
-            die('Sorry, Internet Explorer is not supported.');
+        if (
+            preg_match('~MSIE|Internet Explorer~i', $ua) ||
+            strpos($ua, 'Trident/7.0; rv:11.0') !== false ||
+            strpos($ua, 'Edge/') !== false
+        ) {
+            die('Sorry, Internet Explorer and Edge is not supported. Support coming soon!');
         }
     })();
     $pos = strpos($_SERVER['REQUEST_URI'], '?');
