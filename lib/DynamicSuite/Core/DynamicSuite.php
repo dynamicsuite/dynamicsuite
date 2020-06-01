@@ -20,34 +20,15 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\API\APIEndpoint;
-use DynamicSuite\Base\ProtectedObject;
-use DynamicSuite\Data\Events;
-use DynamicSuite\Data\Groups;
-use DynamicSuite\Data\Permissions;
-use DynamicSuite\Data\Properties;
-use DynamicSuite\Data\Users;
-use DynamicSuite\Package\Packages;
+use DynamicSuite\Database\Database;
+use PDOException;
 
 /**
  * Class Instance.
  *
  * @package DynamicSuite\Core
- * @property Config $cfg
- * @property Packages $packages
- * @property Request $request
- * @property Session $session
- * @property View $view
- * @property APIEndpoint $api
- * @property Database $db
- * @property Cache $cache
- * @property Permissions $permissions
- * @property Groups $groups
- * @property Users $users
- * @property Events $events
- * @property Properties $properties
  */
-final class DynamicSuite extends ProtectedObject
+final class DynamicSuite
 {
 
     /**
@@ -55,154 +36,64 @@ final class DynamicSuite extends ProtectedObject
      *
      * @var Config
      */
-    protected Config $cfg;
-
-    /**
-     * Loaded packages.
-     *
-     * @var Packages
-     */
-    protected Packages $packages;
+    public static Config $cfg;
 
     /**
      * Database connection.
      *
      * @var Database
      */
-    protected Database $db;
+    public static Database $db;
 
     /**
-     * Memcached wrapper.
+     * Initialize Dynamic Suite.
      *
-     * @var Cache
+     * @return void
+     * @throws PDOException
      */
-    protected Cache $cache;
-
-    /**
-     * Permissions database interface.
-     *
-     * @var Permissions
-     */
-    protected Permissions $permissions;
-
-    /**
-     * Groups database interface.
-     *
-     * @var Groups
-     */
-    protected Groups $groups;
-
-    /**
-     * Users database interface.
-     *
-     * @var Users
-     */
-    protected Users $users;
-
-    /**
-     * Properties database interface.
-     *
-     * @var Properties
-     */
-    protected Properties $properties;
+    public static function init(): void
+    {
+        $hash = md5(__DIR__);
+        if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
+            self::$cfg = $cache['cfg'];
+        } else {
+            self::$cfg = new Config('dynamicsuite');
+            if (DS_CACHING) {
+                $store = apcu_store($hash, [
+                    'cfg' => self::$cfg
+                ]);
+                if (!$store) {
+                    error_log('Error saving `DynamicSuite` in cache, check server config');
+                }
+            }
+        }
+        self::$db = new Database(
+            self::$cfg->db_dsn,
+            self::$cfg->db_user,
+            self::$cfg->db_pass,
+            self::$cfg->db_options
+        );
+        if (self::$cfg->debug_mode) {
+            define('DS_DEBUG_MODE', true);
+        }
+        Packages::init();
+    }
 
     /**
      * Instance constructor.
      *
      * @return void
      */
-    public function __construct()
+    public static function todo()
     {
-        $this->cfg = new Config('dynamicsuite');
-        $this->packages = new Packages($this);
-        $this->db = new Database(
-            $this->cfg->db_dsn,
-            $this->cfg->db_user,
-            $this->cfg->db_pass,
-            $this->cfg->db_options
-        );
-        $this->cache = new Cache($this);
-        $this->permissions = new Permissions($this);
-        $this->groups = new Groups($this);
-        $this->users = new Users($this);
-        $this->events = new Events($this);
-        $this->properties = new Properties($this);
-        $this->save();
-    }
-
-    /**
-     * Set a Dynamic Suite property.
-     *
-     * @param string $property
-     * @param $value
-     */
-    public function set(string $property, $value): void
-    {
-        $this->$property = $value;
-    }
-
-    /**
-     * Save the Dynamic Suite instance.
-     *
-     * @return void
-     */
-    public function save(): void
-    {
-        if (!DS_CACHING) return;
-        $global_members = [];
-        foreach ($this as $key => $value) {
-            if (
-                $key === 'cfg' ||
-                $key === 'packages' ||
-                $key === 'db' ||
-                $key === 'cache' ||
-                $key === 'permissions' ||
-                $key === 'groups' ||
-                $key === 'users' ||
-                $key === 'events' ||
-                $key === 'properties'
-            ) continue;
-            $global_members[$key] = $value;
-            unset($this->$key);
-        }
-        apcu_store(self::getHash(), $this);
-        foreach ($global_members as $key => $value) {
-            $this->$key = $value;
-        }
-    }
-
-    /**
-     * Get a package class from the cache, or create a new one if not found.
-     *
-     * $class must be the class name with namespace.
-     *
-     * @param string $class
-     * @param mixed $args
-     * @return mixed|string
-     */
-    public static function getPkgClass(string $class, ...$args)
-    {
-        $hash = self::getHash($class);
-        if (DS_CACHING && apcu_exists($hash) && $instance = apcu_fetch($hash)) {
-            return $instance;
-        } else {
-            $instance = new $class(...$args);
-            if (DS_CACHING) {
-                apcu_store($hash, $instance);
-            }
-            return $instance;
-        }
-    }
-
-    /**
-     * Generate a hash for the given input string unique to the current instance.
-     *
-     * @param string $input
-     * @return string
-     */
-    public static function getHash(string $input = '')
-    {
-        return md5(DS_ROOT_DIR . $input);
+        //$this->packages = new Packages($this);
+        //$this->cache = new Cache($this);
+        //$this->permissions = new Permissions($this);
+        //$this->groups = new Groups($this);
+        //$this->users = new Users($this);
+        //$this->events = new Events($this);
+        //$this->properties = new Properties($this);
+        //$this->save();
     }
 
 }

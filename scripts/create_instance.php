@@ -23,24 +23,19 @@ namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\Request;
 use DynamicSuite\Core\Session;
+use DynamicSuite\Database\Database;
+use DynamicSuite\Database\Expression;
+use DynamicSuite\Database\Query;
+use DynamicSuite\Storable\Event;
+use DynamicSuite\Storable\Property;
+use PDO;
 
 require_once realpath(__DIR__ . '/create_environment.php');
 
 // Initialize the instance
-/** @var DynamicSuite $ds */
-$ds = (function() {
-    $hash = DynamicSuite::getHash();
-    if (DS_CACHING && apcu_exists($hash)) {
-        $ds = apcu_fetch($hash);
-    } else {
-        $ds = new DynamicSuite();
-        $ds->packages->loadPackages();
-        if (DS_CACHING) {
-            $ds->save();
-        }
-    }
-    return $ds;
-})();
+DynamicSuite::init();
+
+exit;
 
 // Add global package autoload paths to the autoload queue
 spl_autoload_register(function (string $class) {

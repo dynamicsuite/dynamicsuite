@@ -19,63 +19,68 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\Base;
+namespace DynamicSuite\Storable;
 use PDOException;
 
 /**
- * Class DatabaseItem.
+ * Class Storable.
  *
- * @package DynamicSuite\Base
+ * @package DynamicSuite\Storable
  */
-abstract class DatabaseItem extends ArrayConvertible
+abstract class Storable
 {
 
     /**
-     * DatabaseItem constructor.
+     * Storable constructor.
      *
      * @param array $array
      * @return void
      */
     public function __construct(array $array = [])
     {
-        parent::__construct($array);
+        foreach ($array as $prop => $value) {
+            if (property_exists($this, $prop)) {
+                $this->$prop = $value;
+            }
+        }
     }
 
     /**
-     * Validate the database item for the database.
+     * Validate the storable item for storing in the database.
      *
-     * $item is the database item object you are validating and limits is an associative array, where the key is the
-     * column name and the value is the maximum length of that column.
+     * Limits is an associative array, where the key is the column name and the value is the maximum length of that
+     * column.
      *
      * This will only work if your column name you are validating is a member of your object.
      *
      * Only checks for errors for the following types:
      *      int
-     *      double
+     *      float
      *      string
      *
      * If your column type does not match one of these types, do not include it in the $limits.
      *
-     * @param mixed $item
      * @param array $limits
      * @return bool
      * @throws PDOException
      */
-    public function validate(&$item, array $limits): bool
+    public function validate(array $limits): bool
     {
         $errors = [];
         foreach (array_keys($limits) as $key) {
-            if (!isset($item->$key)) continue;
-            if (
-                ((int) $item->$key === $item->$key && $item->$key > $limits[$key]) ||
-                ((double) $item->$key === $item->$key && $item->$key > $limits[$key]) ||
-                ((string) $item->$key === $item->$key && mb_strlen($item->$key) > $limits[$key])
-            ) {
-                $errors[$key] = "{$item->$key} > {$limits[$key]}";
+            if (!isset($this->$key)) {
                 continue;
             }
-            if ((string) $item->$key === $item->$key && mb_strlen($item->$key) === 0) {
-                $item->$key = null;
+            if (
+                (is_int($this->$key) && $this->$key > $limits[$key]) ||
+                (is_float($this->$key) && $this->$key > $limits[$key]) ||
+                (is_string($this->$key) && mb_strlen($this->$key) > $limits[$key])
+            ) {
+                $errors[$key] = "{$this->$key} > {$limits[$key]}";
+                continue;
+            }
+            if (is_string($this->$key) && mb_strlen($this->$key) === 0) {
+                $this->$key = null;
             }
         }
         if ($errors) {
@@ -90,7 +95,7 @@ abstract class DatabaseItem extends ArrayConvertible
     }
 
     /**
-     * Return the database item as an array.
+     * Return the storable object as an array.
      *
      * @return array
      */

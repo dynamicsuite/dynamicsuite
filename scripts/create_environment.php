@@ -22,11 +22,10 @@
 namespace DynamicSuite;
 
 define('DS_START', microtime(true));
-define('DS_VERSION', '6.0.0');
+define('DS_VERSION', '7.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
-define('DS_CACHING', false);
+define('DS_CACHING', false && !defined('STDIN'));
 ini_set('display_errors', 0);
-chdir(DS_ROOT_DIR);
 
 // Core autoloader
 spl_autoload_register(function (string $class) {

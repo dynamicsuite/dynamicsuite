@@ -23,7 +23,7 @@ namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\API\APIEndpoint;
 use DynamicSuite\API\APIResponse;
-use DynamicSuite\Core\View;
+use DynamicSuite\Core\View2;
 use Error;
 
 ob_start();
@@ -60,7 +60,7 @@ if (defined('DS_VIEW')) {
         if (DS_CACHING && apcu_exists(DS_ROOT_DIR . '_view')) {
             $ds->set('view', apcu_fetch(DS_ROOT_DIR . '_view'));
         } else {
-            $ds->set('view', new View($ds));
+            $ds->set('view', new View2($ds));
             if (DS_CACHING) apcu_store(DS_ROOT_DIR . '_view', $ds->view);
         }
     })();

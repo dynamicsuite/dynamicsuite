@@ -42,9 +42,6 @@ if (!version_compare(PHP_VERSION, '7.4.3', '>=')) {
 if (!extension_loaded('apcu')) {
     trigger_error('Missing APCU extension', E_USER_ERROR);
 }
-if (!extension_loaded('memcached')) {
-    trigger_error('Missing memcached extension', E_USER_ERROR);
-}
 if (!extension_loaded('mbstring')) {
     trigger_error('Missing mbstring extension', E_USER_ERROR);
 }
@@ -74,7 +71,7 @@ CLI::out('Checking for compatible OS...', false);
 $uname = php_uname('s');
 if ($uname !== 'Linux' && $uname !== 'Darwin') {
     CLI::out('FAILED');
-    CLI::err("Linux or MacOS OS is required, found: $uname");
+    CLI::err("Linux or MacOS is required, found: $uname");
 } else {
     CLI::out('OK');
 }

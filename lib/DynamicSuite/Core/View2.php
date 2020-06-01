@@ -46,7 +46,7 @@ use DynamicSuite\Package\View AS PackageView;
  * @property string $core_css
  * @property string $core_js
  */
-final class View extends InstanceMember
+final class View2 extends InstanceMember
 {
 
     /**
@@ -190,9 +190,9 @@ final class View extends InstanceMember
     /**
      * Initialize and load all templates.
      *
-     * @return View
+     * @return View2
      */
-    public function initTemplates(): View
+    public function initTemplates(): View2
     {
         if (!is_readable($this->ds->cfg->document_template)) {
             trigger_error("Template not readable: {$this->ds->cfg->document_template}", E_USER_ERROR);
@@ -361,9 +361,9 @@ final class View extends InstanceMember
     /**
      * Set the document to a navigable document.
      *
-     * @return View
+     * @return View2
      */
-    public function setNavigable(): View
+    public function setNavigable(): View2
     {
         $action_area = '';
         foreach ($this->ds->packages->action_groups as $group) {
@@ -417,9 +417,9 @@ final class View extends InstanceMember
     /**
      * Set the resources for the view (CSS, JS).
      *
-     * @return View
+     * @return View2
      */
-    public function setViewResources(): View
+    public function setViewResources(): View2
     {
         $this->document->replace(['{{title}}' => ($this->package->title ?? $this->ds->cfg->default_title)]);
         $css = '';

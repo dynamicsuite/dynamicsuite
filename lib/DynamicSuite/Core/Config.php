@@ -20,13 +20,13 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\Base\DSConfig;
 use PDO;
 
 /**
  * Class Config.
  *
  * @package DynamicSuite\Core
+ * @property bool $debug_mode
  * @property array $packages
  * @property string $charset
  * @property string $language
@@ -59,8 +59,17 @@ use PDO;
  * @property string $memcached_host
  * @property int $memcached_port
  */
-final class Config extends DSConfig
+final class Config extends GlobalConfig
 {
+
+    /**
+     * Debug Mode.
+     *
+     * Note: This may dump sensitive data sent through queries.
+     *
+     * @var bool
+     */
+    protected bool $debug_mode = false;
 
     /**
      * Packages to load.
@@ -267,7 +276,6 @@ final class Config extends DSConfig
         PDO::ATTR_TIMEOUT => 1,
         PDO::ATTR_PERSISTENT => true,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ];
 

@@ -19,36 +19,43 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\Base;
+namespace DynamicSuite\Storable;
 
 /**
- * Class ArrayConvertible.
+ * Interface IStorable.
  *
- * @package DynamicSuite\Base
+ * @package DynamicSuite\Storable
  */
-abstract class ArrayConvertible
+interface IStorable
 {
 
     /**
-     * DatabaseItem constructor.
+     * Create a storable object in the database.
      *
-     * @param array $array
-     * @return void
+     * @return Storable
      */
-    public function __construct(array $array = [])
-    {
-        foreach ($array as $prop => $value) if (property_exists($this, $prop)) $this->$prop = $value;
-    }
+    public function create(): Storable;
 
     /**
-     * Parameter getter magic method.
+     * Read a storable object from the database by ID.
      *
-     * @param string $property
-     * @return mixed
+     * @param int $id
+     * @return Storable|bool
      */
-    public function __get(string $property)
-    {
-        return $this->$property;
-    }
+    public static function readById(int $id);
+
+    /**
+     * Update a stored object in the database.
+     *
+     * @return Storable
+     */
+    public function update(): Storable;
+
+    /**
+     * Delete a stored object from the database.
+     *
+     * @return Storable
+     */
+    public function delete(): Storable;
 
 }
