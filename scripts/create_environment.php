@@ -26,6 +26,8 @@ define('DS_VERSION', '7.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_CACHING', false && !defined('STDIN'));
 ini_set('display_errors', 0);
+mb_internal_encoding('UTF-8');
+mb_http_output('UTF-8');
 
 // Core autoloader
 spl_autoload_register(function (string $class) {

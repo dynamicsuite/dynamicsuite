@@ -21,6 +21,7 @@
 
 namespace DynamicSuite\Core;
 use DynamicSuite\Database\Database;
+use DynamicSuite\Package\Packages;
 use PDOException;
 
 /**

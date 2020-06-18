@@ -19,12 +19,13 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\Core;
+namespace DynamicSuite\Package;
+use DynamicSuite\Core\DynamicSuite;
 
 /**
  * Class Packages.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite\Package
  */
 final class Packages
 {

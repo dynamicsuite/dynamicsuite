@@ -796,6 +796,7 @@ final class Query
      *
      * @param string[] $values
      * @param string|null $separator
+     * @param string|null $alias
      * @return string
      * @throws Exception
      */

@@ -21,30 +21,24 @@
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Core\Request;
-use DynamicSuite\Core\Session;
-use DynamicSuite\Database\Database;
-use DynamicSuite\Database\Expression;
-use DynamicSuite\Database\Query;
-use DynamicSuite\Storable\Event;
-use DynamicSuite\Storable\Property;
-use PDO;
+use DynamicSuite\Package\Packages;
 
-require_once realpath(__DIR__ . '/create_environment.php');
+// Create the environment
+require_once __DIR__ . '/create_environment.php';
 
 // Initialize the instance
 DynamicSuite::init();
 
+var_dump(Packages::$loaded);
 exit;
 
 // Add global package autoload paths to the autoload queue
 spl_autoload_register(function (string $class) {
-    global $ds;
     if (class_exists($class)) {
         return;
     }
     $file = str_replace('\\', '/', $class) . '.php';
-    foreach ($ds->packages->resources->autoload as $dir) {
+    foreach (Packages::$global['autoload'] as $dir) {
         $path = DS_ROOT_DIR . "/$dir/$file";
         if (DS_CACHING && opcache_is_script_cached($path)) {
             require_once $path;
@@ -56,21 +50,7 @@ spl_autoload_register(function (string $class) {
     }
 });
 
-// Set request type
-if (Request::isViewable()) {
-    define('DS_VIEW', true);
-} elseif (Request::isApi()) {
-    define('DS_API', true);
-} elseif (Request::isCli()) {
-    define('DS_CLI', true);
-} else {
-    trigger_error('Unknown request type', E_USER_ERROR);
-}
-
-$ds->set('session', new Session($ds));
-$ds->set('request', new Request());
-
 // Run global package initialization scripts
-foreach ($ds->packages->resources->init as $script) {
+foreach (Packages::$global['init'] as $script) {
     require_once $script;
 }

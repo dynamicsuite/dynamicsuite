@@ -90,6 +90,17 @@ final class Database
     }
 
     /**
+     * Parameter getter magic method.
+     *
+     * @param string $property
+     * @return mixed
+     */
+    public function __get(string $property)
+    {
+        return $this->$property;
+    }
+
+    /**
      * Connect to the database.
      *
      * Returns the new connection on success.

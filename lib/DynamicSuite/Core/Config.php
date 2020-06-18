@@ -251,7 +251,7 @@ final class Config extends GlobalConfig
      *
      * @var string
      */
-    protected string $db_dsn = 'mysql:unix_socket=/tmp/mysql.sock;dbname=dynamicsuite';
+    protected string $db_dsn = 'mysql:unix_socket=/tmp/mysql.sock;dbname=dynamicsuite;charset=utf8mb4';
 
     /**
      * Database username.
