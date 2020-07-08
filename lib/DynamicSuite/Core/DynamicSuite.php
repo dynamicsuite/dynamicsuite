@@ -18,8 +18,11 @@
  */
 
 /** @noinspection PhpUnused */
+/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\Core;
+use DynamicSuite\API\Request;
+use DynamicSuite\API\Response;
 use DynamicSuite\Database\Database;
 use DynamicSuite\Package\Packages;
 use PDOException;
@@ -47,6 +50,13 @@ final class DynamicSuite
     public static Database $db;
 
     /**
+     * View interface.
+     *
+     * @var View
+     */
+    public static View $view;
+
+    /**
      * Initialize Dynamic Suite.
      *
      * @return void
@@ -57,14 +67,18 @@ final class DynamicSuite
         $hash = md5(__DIR__);
         if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
             self::$cfg = $cache['cfg'];
+            self::$view = $cache['view'];
         } else {
             self::$cfg = new Config('dynamicsuite');
+            self::$view = new View();
+            self::$view->init();
             if (DS_CACHING) {
                 $store = apcu_store($hash, [
-                    'cfg' => self::$cfg
+                    'cfg' => self::$cfg,
+                    'view' => self::$view
                 ]);
                 if (!$store) {
-                    error_log('Error saving `DynamicSuite` in cache, check server config');
+                    error_log('Error saving "DynamicSuite" in cache, check server config');
                 }
             }
         }
@@ -74,27 +88,71 @@ final class DynamicSuite
             self::$cfg->db_pass,
             self::$cfg->db_options
         );
-        if (self::$cfg->debug_mode) {
-            define('DS_DEBUG_MODE', true);
-        }
+        define('DS_DEBUG_MODE', self::$cfg->debug_mode);
+        \DynamicSuite\Core\Request::init();
+        Session::init();
         Packages::init();
     }
 
     /**
-     * Instance constructor.
+     * Call an API request.
      *
-     * @return void
+     * @param Request $request
+     * @return Response
      */
-    public static function todo()
+    public static function callApi(Request $request): Response
     {
-        //$this->packages = new Packages($this);
-        //$this->cache = new Cache($this);
-        //$this->permissions = new Permissions($this);
-        //$this->groups = new Groups($this);
-        //$this->users = new Users($this);
-        //$this->events = new Events($this);
-        //$this->properties = new Properties($this);
-        //$this->save();
+        $prefix = "[API] Package \"$request->package_id\" api \"$request->api_id\"";
+        $api = Packages::$loaded[$request->package_id]->apis[$request->api_id] ?? null;
+        $response = new Response();
+        if (!$api) {
+            error_log("$prefix not found");
+            return $response;
+        }
+        foreach ($api->post as $key) {
+            if (!array_key_exists($key, $request->data)) {
+                trigger_error("$prefix missing required post key: $key", E_USER_WARNING);
+                return $response;
+            }
+        }
+        if (!$api->public && (!Session::checkPermissions($api->permissions))) {
+            trigger_error("$prefix authentication required", E_USER_WARNING);
+            return $response;
+        }
+        if (!defined('DS_PKG_DIR')) {
+            define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$request->package_id}");
+        }
+        spl_autoload_register(function (string $class) use ($api) {
+            if (class_exists($class)) {
+                return;
+            }
+            $file = str_replace('\\', '/', $class) . '.php';
+            foreach ($api->autoload as $dir) {
+                $path = DS_ROOT_DIR . "/$dir/$file";
+                if (DS_CACHING && opcache_is_script_cached($path)) {
+                    require_once $path;
+                    break;
+                } elseif (file_exists($path)) {
+                    require_once $path;
+                    break;
+                }
+            }
+        });
+        $return = (function () use ($api, $request) {
+            foreach ($api->init as $script) {
+                require_once $script;
+            }
+            $_POST = $request->data;
+            putenv("DS_API_ENTRY=$api->entry");
+            unset($api, $request);
+            return (require_once getenv('DS_API_ENTRY'));
+        })();
+        if ($return instanceof Response) {
+            return $return;
+        } else {
+            trigger_error("$prefix bad output");
+            return $response;
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpUnusedPrivateFieldInspection */
+<?php
 /*
  * Dynamic Suite
  * Copyright (C) 2020 Dynamic Suite Team

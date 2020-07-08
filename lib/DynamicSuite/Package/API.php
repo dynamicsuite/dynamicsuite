@@ -36,7 +36,7 @@ use Exception;
  * @property string[] $autoload
  * @property string[] $init
  */
-final class Api
+final class API
 {
 
     /**
@@ -109,31 +109,29 @@ final class Api
         $this->api_id = $api_id;
         $this->package_id = $package_id;
         $error = function(string $key, string $message): string {
-            return "[API Structure] `$this->api_id`.`$key` $message for package `$this->package_id`";
+            return "[Structure] Package \"$this->package_id\" api \"$this->api_id\" key \"$key\": $message";
         };
         foreach ($structure as $prop => $value) {
             if ($prop === 'entry') {
                 $value = Format::formatServerPath($package_id, $value);
             }
             if (in_array($prop, ['permissions', 'post', 'autoload', 'init'])) {
-                if (is_string($value)) {
-                    $value = [$value];
-                } elseif ($value === null) {
+                if ($value === null) {
                     $value = [];
                 } elseif (is_array($value)) {
                     foreach ($value as $k => $v) {
                         if (!is_string($v)) {
-                            throw new Exception($error($prop, 'must be a string or array of strings'));
+                            throw new Exception($error($prop, 'must be a array of strings (paths)'));
                         }
                         if ($prop === 'autoload' || $prop === 'init') {
                             $value[$k] = Format::formatServerPath($this->package_id, $value);
                         }
                     }
                 } else {
-                    throw new Exception($error($prop, 'must be a string or array of strings'));
+                    throw new Exception($error($prop, 'must be a array of strings (paths)'));
                 }
             }
-            if (isset($this->$prop)) {
+            if (property_exists($this, $prop)) {
                 $this->$prop = $value;
             }
         }

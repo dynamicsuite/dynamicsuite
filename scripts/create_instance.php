@@ -29,9 +29,6 @@ require_once __DIR__ . '/create_environment.php';
 // Initialize the instance
 DynamicSuite::init();
 
-var_dump(Packages::$loaded);
-exit;
-
 // Add global package autoload paths to the autoload queue
 spl_autoload_register(function (string $class) {
     if (class_exists($class)) {

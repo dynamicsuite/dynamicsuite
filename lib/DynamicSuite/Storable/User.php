@@ -142,6 +142,9 @@ class User extends Storable implements IStorable
      */
     public function __construct(array $user = [])
     {
+        if (array_key_exists('inactive', $user)) {
+            $user['inactive'] = (bool) $user['inactive'];
+        }
         parent::__construct($user);
     }
 

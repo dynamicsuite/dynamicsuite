@@ -63,6 +63,13 @@ final class View
     protected string $package_id;
 
     /**
+     * View URL path.
+     *
+     * @var string
+     */
+    protected string $path;
+
+    /**
      * View entry point script file path.
      *
      * @var string|null
@@ -144,28 +151,28 @@ final class View
      *
      * @var string[]
      */
-    protected array $autoload = [];
+    public array $autoload = [];
 
     /**
      * Scripts to run before the view (initialization scripts).
      *
      * @var string[]
      */
-    protected array $init = [];
+    public array $init = [];
 
     /**
      * JS client scripts to include.
      *
      * @var string[]
      */
-    protected array $js = [];
+    public array $js = [];
 
     /**
      * CSS resources to include.
      *
      * @var string[]
      */
-    protected array $css = [];
+    public array $css = [];
 
     /**
      * View constructor.
@@ -181,34 +188,32 @@ final class View
         $this->view_id = $view_id;
         $this->package_id = $package_id;
         $error = function(string $key, string $message): string {
-            return "[View Structure] `$this->view_id`.`$key` $message for package `$this->package_id`";
+            return "[Structure] Package \"$this->package_id\" view \"$this->view_id\" key \"$key\": $message";
         };
         foreach ($structure as $prop => $value) {
             if ($prop === 'entry') {
                 $value = Format::formatServerPath($package_id, $value);
             }
             if (in_array($prop, ['permissions', 'autoload', 'init', 'js', 'css'])) {
-                if (is_string($value)) {
-                    $value = [$value];
-                } elseif ($value === null) {
+                if ($value === null) {
                     $value = [];
                 } elseif (is_array($value)) {
-                    foreach ($value as $k => $v) {
-                        if (!is_string($v)) {
-                            throw new Exception($error($prop, 'must be a string or array of strings'));
+                    foreach ($value as $type => $path) {
+                        if (!is_string($path)) {
+                            throw new Exception($error($prop, 'must be a array of strings (paths)'));
                         }
                         if ($prop === 'autoload' || $prop === 'init') {
-                            $value[$k] = Format::formatServerPath($this->package_id, $v);
+                            $value[$type] = Format::formatServerPath($this->package_id, $path);
                         }
                         if ($prop === 'js' || $prop === 'css') {
-                            $value[$k] = Format::formatClientPath($this->package_id, $v);
+                            $value[$type] = Format::formatClientPath($this->package_id, $path);
                         }
                     }
                 } else {
-                    throw new Exception($error($prop, 'must be a string or array of strings'));
+                    throw new Exception($error($prop, 'must be a array of strings (paths)'));
                 }
             }
-            if (isset($this->$prop)) {
+            if (property_exists($this, $prop)) {
                 $this->$prop = $value;
             }
         }

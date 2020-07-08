@@ -97,16 +97,14 @@ final class ActionLink
         $this->link_id = $link_id;
         $this->package_id = $package_id;
         $error = function(string $key, string $message): string {
-            return "[Action Link Structure] `$this->link_id`.`$key` $message for package `$this->package_id`";
+            return "[Structure] Package \"$this->package_id\" action link \"$this->link_id\" key \"$key\": $message";
         };
         foreach ($structure as $prop => $value) {
             if ($prop === 'permissions') {
-                if (is_string($value)) {
-                    $value = [$value];
-                } elseif ($value === null) {
+                if ($value === null) {
                     $value = [];
                 } elseif (is_array($value)) {
-                    foreach ($value as $key => $permission) {
+                    foreach ($value as $permission) {
                         if (!is_string($permission)) {
                             throw new Exception($error('permissions', 'must be a string or array of strings'));
                         }
@@ -115,7 +113,7 @@ final class ActionLink
                     throw new Exception($error('permissions', 'must be a string or array of strings'));
                 }
             }
-            if (isset($this->$prop)) {
+            if (property_exists($this, $prop)) {
                 $this->$prop = $value;
             }
         }

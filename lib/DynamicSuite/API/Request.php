@@ -20,51 +20,50 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\API;
-use DynamicSuite\Base\ProtectedObject;
 
 /**
- * Class APIResponse.
+ * Class Request.
  *
  * @package DynamicSuite\API
- * @property string|null $status
- * @property string|null $message
- * @property mixed $data
+ * @property string $package_id
+ * @property string $api_id
+ * @property array $data
  */
-class APIResponse extends ProtectedObject
+class Request
 {
 
     /**
-     * API error status code.
+     * Requested package ID.
      *
      * @var string
      */
-    public ?string $status = null;
+    public string $package_id;
 
     /**
-     * User-friendly message.
+     * Requested API ID.
      *
      * @var string
      */
-    public ?string $message = null;
+    public string $api_id;
 
     /**
-     * Response data (if any).
+     * Request data payload.
      *
-     * @var mixed
+     * @var array
      */
-    public $data = null;
+    public array $data = [];
 
     /**
-     * APIResponse constructor.
+     * Request constructor.
      *
-     * @param string $status
-     * @param string $message
-     * @param mixed $data
-     * @return void
+     * @param string $package_id
+     * @param string $api_id
+     * @param array $data
      */
-    public function __construct(?string $status = 'EMPTY_RESPONSE', string $message = 'Empty Response', $data = null) {
-        $this->status = $status;
-        $this->message = $message;
+    public function __construct(string $package_id, string $api_id, $data = [])
+    {
+        $this->package_id = $package_id;
+        $this->api_id = $api_id;
         $this->data = $data;
     }
 

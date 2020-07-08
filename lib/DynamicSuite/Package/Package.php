@@ -40,7 +40,7 @@ use Exception;
  * @property string[] $action_groups
  * @property ActionLink[] $action_links
  * @property View[] $views
- * @property Api[] $apis
+ * @property API[] $apis
  */
 final class Package
 {
@@ -132,7 +132,7 @@ final class Package
     /**
      * Package APIs.
      *
-     * @var Api[]
+     * @var API[]
      */
     protected array $apis = [];
 
@@ -189,12 +189,12 @@ final class Package
             return false;
         }
         if (!is_array($structure[$group])) {
-            error_log("[Package Structure] Resource group `$group` must be an array for package `$this->package_id`");
+            error_log("[Structure] Package \"$this->package_id\" resource group \"$group\" must be an array");
             return false;
         }
         $types = ['autoload', 'init', 'js', 'css'];
         $error_log = function (string $group, string $key, string $message) {
-            error_log("[Package Structure] Resource group `$group`.`$key` $message for package `$this->package_id`");
+            error_log("[Structure] Package \"$this->package_id\" resource group \"$group\" key \"$key\": $message");
         };
         foreach ($types as $type) {
             if (!array_key_exists($type, $structure[$group])) {
@@ -238,12 +238,13 @@ final class Package
             return false;
         }
         if (!is_array($structure['nav_groups'])) {
-            error_log("[Package Structure] `nav_groups` must be an array for package `$this->package_id`");
+            error_log("[Structure] Package \"$this->package_id\" key \"nav_groups\" must be an array");
             return false;
         }
         foreach ($structure['nav_groups'] as $group_id => $group) {
             try {
                 $this->nav_groups[$group_id] = new NavGroup($group_id, $this->package_id, $group);
+                Packages::$nav_groups[$group_id] = $this->nav_groups[$group_id];
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
                 continue;
@@ -264,7 +265,7 @@ final class Package
             return false;
         }
         $error = function (string $message) {
-            return "[Package Structure] `action_groups` $message for `$this->package_id`";
+            return "[Structure] Package \"$this->package_id\" key \"action_groups\": $message";
         };
         if (is_string($structure['action_groups'])) {
             $structure['action_groups'] = [$structure['action_groups']];
@@ -282,6 +283,7 @@ final class Package
             return false;
         }
         $this->action_groups = $structure['action_groups'];
+        Packages::$action_groups = array_merge(Packages::$action_groups, $this->action_groups);
         return true;
     }
 
@@ -297,7 +299,7 @@ final class Package
             return false;
         }
         if (!is_array($structure['action_links'])) {
-            error_log("[Package Structure] `action_links` must be an array for package `$this->package_id`");
+            error_log("[Structure] Package \"$this->package_id\" key \"action_links\" must be an array");
             return false;
         }
         foreach ($structure['action_links'] as $link_id => $link) {
@@ -325,14 +327,13 @@ final class Package
             return false;
         }
         if (!is_array($structure['views'])) {
-            error_log(
-                "[Package Structure] `views` must be an array of valid views for package `$this->package_id`"
-            );
+            error_log("[Structure] Package \"$this->package_id\" key \"views\" must be an array of valid views");
             return false;
         }
         foreach ($structure['views'] as $view_id => $view) {
             try {
                 $this->views[$view_id] = new View($view_id, $this->package_id, $view);
+                Packages::$views[$view_id] = $this->views[$view_id];
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
                 continue;
@@ -355,12 +356,12 @@ final class Package
             return false;
         }
         if (!is_array($structure['apis'])) {
-            error_log("[Package Structure] `apis` must be an array of APIs for package `$this->package_id`");
+            error_log("[Structure] Package \"$this->package_id\" key \"apis\" must be an array of APIs");
             return false;
         }
         foreach ($structure['apis'] as $api_id => $api) {
             try {
-                $this->apis[$api_id] = new Api($api_id, $this->package_id, $api);
+                $this->apis[$api_id] = new API($api_id, $this->package_id, $api);
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
                 continue;

@@ -32,6 +32,7 @@ use Exception;
  * @property string $icon
  * @property bool $public
  * @property string[] $permissions
+ * @property View[] $views
  */
 final class NavGroup
 {
@@ -79,6 +80,13 @@ final class NavGroup
     protected array $permissions = [];
 
     /**
+     * Views array for navigation building.
+     *
+     * @var View[]
+     */
+    public array $views = [];
+
+    /**
      * NavGroup constructor.
      *
      * @param string $group_id
@@ -92,16 +100,14 @@ final class NavGroup
         $this->group_id = $group_id;
         $this->package_id = $package_id;
         $error = function(string $key, string $message): string {
-            return "[Nav Group Structure] `$this->group_id`.`$key` $message for package `$this->package_id`";
+            return "[Structure] Package \"$this->package_id\" nav group \"$this->group_id\" key \"$key\": $message";
         };
         foreach ($structure as $prop => $value) {
             if ($prop === 'permissions') {
-                if (is_string($value)) {
-                    $value = [$value];
-                } elseif ($value === null) {
+                if ($value === null) {
                     $value = [];
                 } elseif (is_array($value)) {
-                    foreach ($value as $key => $permission) {
+                    foreach ($value as $permission) {
                         if (!is_string($permission)) {
                             throw new Exception($error('permissions', 'must be a string or array of strings'));
                         }
@@ -110,7 +116,7 @@ final class NavGroup
                     throw new Exception($error('permissions', 'must be a string or array of strings'));
                 }
             }
-            if (isset($this->$prop)) {
+            if (property_exists($this, $prop)) {
                 $this->$prop = $value;
             }
         }

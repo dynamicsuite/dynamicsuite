@@ -80,28 +80,41 @@ final class Session
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        if ($_SESSION['user_id'])
-        try {
-            if (!$user = User::readById($_SESSION['user_id'])) {
+        if (isset($_SESSION['user_id'])) {
+            try {
+                if (!$user = User::readById($_SESSION['user_id'])) {
+                    return;
+                }
+                self::$id = session_id();
+                self::$permissions = (new Query())
+                    ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
+                    ->from('ds_groups_permissions')
+                    ->join('ds_permissions')
+                    ->on('ds_groups_permissions.permission_id', '=', 'ds_permissions.permission_id')
+                    ->where('group_id', 'IN', (new Query())
+                        ->select(['group_id'])
+                        ->from('ds_users_groups')
+                        ->where('user_id', '=', $_SESSION['user_id']))
+                    ->groupBy('ds_groups_permissions.permission_id')
+                    ->execute(false, PDO::FETCH_COLUMN);
+                self::$user_id = $user->user_id;
+            } catch (PDOException | Exception $exception) {
+                error_log($exception->getMessage(), E_USER_WARNING);
                 return;
             }
-            self::$id = session_id();
-            self::$permissions = (new Query())
-                ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
-                ->from('ds_groups_permissions')
-                ->join('ds_permissions')
-                ->on('ds_groups_permissions.permission_id', '=', 'ds_permissions.permission_id')
-                ->where('group_id', 'IN', (new Query())
-                    ->select(['group_id'])
-                    ->from('ds_users_groups')
-                    ->where('user_id', '=', $_SESSION['user_id']))
-                ->groupBy('ds_groups_permissions.permission_id')
-                ->execute(false, PDO::FETCH_COLUMN);
-            self::$user_id = $user->user_id;
-        } catch (PDOException | Exception $exception) {
-            error_log($exception->getMessage(), E_USER_WARNING);
-            return;
         }
+    }
+
+    /**
+     * Create and generate the session (post-authorization).
+     *
+     * @param int $user_id
+     * @return void
+     */
+    public static function create(int $user_id): void
+    {
+        $_SESSION['user_id'] = $user_id;
+        self::init();
     }
 
     /**

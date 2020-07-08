@@ -38,6 +38,34 @@ final class Packages
     public static array $loaded = [];
 
     /**
+     * Loaded package views.
+     *
+     * @var View[]
+     */
+    public static array $views = [];
+
+    /**
+     * Loaded navigation groups.
+     *
+     * @var NavGroup[]
+     */
+    public static array $nav_groups = [];
+
+    /**
+     * Loaded action groups.
+     *
+     * @var string[]
+     */
+    public static array $action_groups = [];
+
+    /**
+     * Loaded action links.
+     *
+     * @var ActionLink[]
+     */
+    public static array $action_links = [];
+
+    /**
      * Global resources defined by packages.
      *
      * @var array[]
@@ -62,6 +90,10 @@ final class Packages
         if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
             self::$loaded = $cache['loaded'];
             self::$global = $cache['global'];
+            self::$views = $cache['views'];
+            self::$nav_groups = $cache['nav_groups'];
+            self::$action_groups = $cache['action_groups'];
+            self::$action_links = $cache['action_links'];
         } else {
             foreach (DynamicSuite::$cfg->packages as $package_id) {
                 self::load($package_id);
@@ -69,10 +101,14 @@ final class Packages
             if (DS_CACHING) {
                 $store = apcu_store($hash, [
                     'loaded' => self::$loaded,
-                    'global' => self::$global
+                    'global' => self::$global,
+                    'views' => self::$views,
+                    'nav_groups' => self::$nav_groups,
+                    'action_groups' => self::$action_groups,
+                    'action_links' => self::$action_links
                 ]);
                 if (!$store) {
-                    error_log('Error saving `Packages` in cache, check server config');
+                    error_log('Error saving "Packages" in cache, check server config');
                 }
             }
         }

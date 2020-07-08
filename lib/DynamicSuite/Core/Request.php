@@ -57,6 +57,13 @@ final class Request
         }
         self::$url_string = rtrim($url, '/');
         self::$url_array = explode('/',  trim($url, '/'));
+        if (defined('STDIN')) {
+            return;
+        } elseif (self::urlKey(0, 'dynamicsuite') && self::urlKey(1, 'api')) {
+            define('DS_API', true);
+        } else {
+            define('DS_VIEW', true);
+        }
     }
 
     /**

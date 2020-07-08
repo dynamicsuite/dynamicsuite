@@ -33,7 +33,6 @@ use PDO;
  * @property string $default_view
  * @property string $nav_header_view
  * @property string $login_view
- * @property string $default_title
  * @property string $document_template
  * @property string $stylesheet_template
  * @property string $script_template
@@ -112,13 +111,6 @@ final class Config extends GlobalConfig
      * @var string
      */
     protected string $login_view = '/login';
-
-    /**
-     * The default title to use on all structured views.
-     *
-     * @var string
-     */
-    protected string $default_title = 'Dynamic Suite';
 
     /**
      * Application document template.
@@ -278,20 +270,6 @@ final class Config extends GlobalConfig
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_EMULATE_PREPARES => false
     ];
-
-    /**
-     * The host that the memcached server is running on.
-     *
-     * @var string
-     */
-    protected string $memcached_host = '127.0.0.1';
-
-    /**
-     * The port that the memcached server is listening on.
-     *
-     * @var int
-     */
-    protected int $memcached_port = 11211;
 
     /**
      * Config constructor.
