@@ -24,7 +24,7 @@ namespace DynamicSuite;
 define('DS_START', microtime(true));
 define('DS_VERSION', '7.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
-define('DS_CACHING', false && !defined('STDIN'));
+define('DS_CACHING', false);
 ini_set('display_errors', 0);
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');

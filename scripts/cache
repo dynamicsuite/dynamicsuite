@@ -44,9 +44,9 @@ function setState(bool $state): void
     $script = file_get_contents(realpath(__DIR__ . '/create_environment.php'));
     $state = $state ? 'true' : 'false';
     $replace = DS_CACHING
-        ? "define('DS_CACHING', true && !defined('STDIN'));"
-        : "define('DS_CACHING', false && !defined('STDIN'));";
-    $script = str_replace($replace, "define('DS_CACHING', $state && !defined('STDIN'));", $script);
+        ? "define('DS_CACHING', true);"
+        : "define('DS_CACHING', false);";
+    $script = str_replace($replace, "define('DS_CACHING', $state);", $script);
     file_put_contents(realpath(__DIR__ . '/create_environment.php'), $script);
     CLI::out('Caching state changed');
     if (CLI::yn('Reset cache now (restart apache)?')) {
