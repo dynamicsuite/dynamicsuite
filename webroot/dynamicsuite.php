@@ -73,7 +73,7 @@ if (defined('DS_VIEW')) {
                     }
                     $file = str_replace('\\', '/', $class) . '.php';
                     foreach (DynamicSuite::$view->structure->autoload as $dir) {
-                        $path = DS_ROOT_DIR . "/$dir/$file";
+                        $path ="$dir/$file";
                         if (DS_CACHING && opcache_is_script_cached($path)) {
                             require_once $path;
                             break;

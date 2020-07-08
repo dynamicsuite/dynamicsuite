@@ -36,7 +36,7 @@ spl_autoload_register(function (string $class) {
     }
     $file = str_replace('\\', '/', $class) . '.php';
     foreach (Packages::$global['autoload'] as $dir) {
-        $path = DS_ROOT_DIR . "/$dir/$file";
+        $path = "$dir/$file";
         if (DS_CACHING && opcache_is_script_cached($path)) {
             require_once $path;
             break;

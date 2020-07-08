@@ -36,7 +36,10 @@ abstract class GlobalConfig
      */
     public function __construct(string $package_id)
     {
-        $path = realpath(DS_ROOT_DIR . "/config/$package_id.json");
+        $path = DS_ROOT_DIR . "/config/$package_id.json";
+        if (!file_exists($path)) {
+            return;
+        }
         $hash = md5($path);
         if (DS_CACHING && apcu_exists($hash)) {
             $cfg = apcu_fetch($hash);
