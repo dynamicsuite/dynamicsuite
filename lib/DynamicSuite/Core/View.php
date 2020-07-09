@@ -165,17 +165,6 @@ final class View
     }
 
     /**
-     * Initialize the view.
-     *
-     * @return void
-     */
-    public function init(): void
-    {
-        $this->initTemplates();
-        $this->initCoreResources();
-    }
-
-    /**
      * Reset the view.
      *
      * @return void
@@ -184,6 +173,7 @@ final class View
     {
         $this->document = clone $this->document_template;
         $this->nav = clone $this->nav_template;
+        $this->initCoreResources();
     }
 
     /**

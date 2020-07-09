@@ -64,14 +64,14 @@ final class DynamicSuite
      */
     public static function init(): void
     {
-        $hash = md5(__DIR__);
+        $hash = md5(__FILE__);
         if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
             self::$cfg = $cache['cfg'];
             self::$view = $cache['view'];
         } else {
             self::$cfg = new Config('dynamicsuite');
             self::$view = new View();
-            self::$view->init();
+            self::$view->initTemplates();
             if (DS_CACHING) {
                 $store = apcu_store($hash, [
                     'cfg' => self::$cfg,
@@ -88,10 +88,10 @@ final class DynamicSuite
             self::$cfg->db_pass,
             self::$cfg->db_options
         );
-        define('DS_DEBUG_MODE', self::$cfg->debug_mode);
         \DynamicSuite\Core\Request::init();
         Session::init();
         Packages::init();
+        define('DS_DEBUG_MODE', self::$cfg->debug_mode);
     }
 
     /**
