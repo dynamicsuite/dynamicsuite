@@ -19,53 +19,43 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\API;
-use DynamicSuite\Base\ProtectedObject;
+namespace DynamicSuite\Storable;
 
 /**
- * Class APIResponse.
+ * Interface IStorable.
  *
- * @package DynamicSuite\API
- * @property string|null $status
- * @property string|null $message
- * @property mixed $data
+ * @package DynamicSuite\Storable
  */
-class APIResponse extends ProtectedObject
+interface IStorable
 {
 
     /**
-     * API error status code.
+     * Create a storable object in the database.
      *
-     * @var string
+     * @return Storable
      */
-    public ?string $status = null;
+    public function create(): Storable;
 
     /**
-     * User-friendly message.
+     * Read a storable object from the database by ID.
      *
-     * @var string
+     * @param int $id
+     * @return Storable|bool
      */
-    public ?string $message = null;
+    public static function readById(int $id);
 
     /**
-     * Response data (if any).
+     * Update a stored object in the database.
      *
-     * @var mixed
+     * @return Storable
      */
-    public $data = null;
+    public function update(): Storable;
 
     /**
-     * APIResponse constructor.
+     * Delete a stored object from the database.
      *
-     * @param string $status
-     * @param string $message
-     * @param mixed $data
-     * @return void
+     * @return Storable
      */
-    public function __construct(?string $status = 'EMPTY_RESPONSE', string $message = 'Empty Response', $data = null) {
-        $this->status = $status;
-        $this->message = $message;
-        $this->data = $data;
-    }
+    public function delete(): Storable;
 
 }

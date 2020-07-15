@@ -20,22 +20,19 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\Base\InstanceMember;
-use DynamicSuite\Data\Permission;
-use DynamicSuite\Data\Group;
-use DynamicSuite\Data\User;
+
+use DynamicSuite\Database\Query;
+use DynamicSuite\Storable\User;
+use Exception;
+use PDO;
 use PDOException;
 
 /**
  * Class Session.
  *
- * @package DynamicSuite\Session
- * @property string|null $id
- * @property Permission[] $permissions
- * @property Group[] $groups
- * @property User|null $user
+ * @package DynamicSuite\Core
  */
-final class Session extends InstanceMember
+final class Session
 {
 
     /**
@@ -43,147 +40,96 @@ final class Session extends InstanceMember
      *
      * @var string
      */
-    protected ?string $id = null;
+    public static ?string $id = null;
 
     /**
-     * Array of the current user's permissions.
+     * Array of the current user's permissions (Array of shorthands).
      *
-     * @var Permission[]
+     * @var string[]
      */
-    protected array $permissions = [];
+    public static array $permissions = [];
 
     /**
-     * The current user.
+     * The current user's ID.
      *
-     * @var User|null
+     * @var int|null
      */
-    protected ?User $user = null;
+    public static ?int $user_id = null;
 
     /**
-     * Session constructor.
+     * A friendly user name for display in messages and logs.
      *
-     * @param DynamicSuite $ds
-     * @return void
+     * @var string|null
      */
-    public function __construct(DynamicSuite $ds)
-    {
-        parent::__construct($ds);
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        $this->getSaved();
-    }
+    public static ?string $user_name = null;
 
     /**
-     * Check to see if the current session is valid.
+     * If the current user is a root user (bypasses permissions).
      *
-     * @return bool
+     * @var bool
      */
-    public function isValid(): bool
-    {
-        return isset($_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id']) && $this->user instanceof User;
-    }
+    public static bool $root = false;
 
     /**
-     * Get the session saved to the user's cookie.
+     * Initialize the user session.
      *
      * @return void
      */
-    public function getSaved(): void
+    public static function init(): void
     {
-        if (isset($_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id'])) {
-            $this->create($_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id']);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (isset($_SESSION['user_id'])) {
+            try {
+                if (!$user = User::readById($_SESSION['user_id'])) {
+                    return;
+                }
+                self::$id = session_id();
+                self::$permissions = (new Query())
+                    ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
+                    ->from('ds_groups_permissions')
+                    ->join('ds_permissions')
+                    ->on('ds_groups_permissions.permission_id', '=', 'ds_permissions.permission_id')
+                    ->where('group_id', 'IN', (new Query())
+                        ->select(['group_id'])
+                        ->from('ds_users_groups')
+                        ->where('user_id', '=', $_SESSION['user_id']))
+                    ->groupBy('ds_groups_permissions.permission_id')
+                    ->execute(false, PDO::FETCH_COLUMN);
+                self::$user_id = $user->user_id;
+            } catch (PDOException | Exception $exception) {
+                error_log($exception->getMessage(), E_USER_WARNING);
+                return;
+            }
         }
     }
 
     /**
-     * Create a new session given a user ID.
+     * Create and generate the session (post-authorization).
      *
      * @param int $user_id
-     * @return bool
-     */
-    public function create(int $user_id): bool
-    {
-        try {
-            $user = $this->ds->users->readById($user_id);
-            if (!$user) {
-                return false;
-            }
-            $this->id = session_id();
-            $query =
-                'SELECT CONCAT(`package_id`, ":", `name`) AS `permission` ' .
-                'FROM `ds_view_user_permissions` WHERE `user_id` = ?';
-            $data = $this->ds->db->query($query, [$user_id]);
-            $this->permissions = [];
-            foreach ($data as $row) {
-                $this->permissions[] = $row['permission'];
-            }
-            $this->user = $user;
-            $_SESSION['dynamicsuite_' . DS_ROOT_DIR]['user_id'] = $user_id;
-            return true;
-        } catch (PDOException $exception) {
-            error_log($exception->getMessage(), E_USER_WARNING);
-            return false;
-        }
-    }
-
-    /**
-     * Override session permissions.
-     *
-     * @param array $permissions
      * @return void
      */
-    public function overridePermissions(array $permissions): void
+    public static function create(int $user_id): void
     {
-        $this->permissions = $permissions;
+        $_SESSION['user_id'] = $user_id;
+        self::init();
     }
 
     /**
      * Destroy the current authenticated session.
      *
-     * @return Session
+     * @return void
      */
-    public function destroy(): Session
+    public static function destroy(): void
     {
-        $this->id = null;
-        $this->permissions = [];
-        $this->groups = [];
-        $this->user = null;
-        $_SESSION['dynamicsuite_' . DS_ROOT_DIR] = null;
+        self::$id = null;
+        self::$permissions = [];
+        self::$user_id = null;
+        self::$root = false;
+        $_SESSION = null;
         session_regenerate_id();
-        return $this;
-    }
-
-    /**
-     * Set a key on the session to specific data.
-     *
-     * @param string $key
-     * @param $data
-     * @return void
-     */
-    public function set(string $key, $data): void
-    {
-        $_SESSION['dynamicsuite_' . DS_ROOT_DIR][$key] = $data;
-    }
-
-    /**
-     * Get data from the session given a specific key.
-     *
-     * @param string $key
-     * @return mixed
-     */
-    public function get(string $key)
-    {
-        return $_SESSION['dynamicsuite_' . DS_ROOT_DIR][$key] ?? null;
-    }
-
-    /**
-     * Delete data from the session at a specific key.
-     *
-     * @param string $key
-     * @return void
-     */
-    public function delete(string $key): void
-    {
-        unset($_SESSION['dynamicsuite_' . DS_ROOT_DIR][$key]);
     }
 
     /**
@@ -191,12 +137,12 @@ final class Session extends InstanceMember
      *
      * $permission can either be a shorthand permission string or an array of shorthand strings.
      *
-     * @param string|array $permissions
+     * @param string|string[] $permissions
      * @return bool
      */
-    public function checkPermissions($permissions): bool
+    public static function checkPermissions($permissions): bool
     {
-        if ($this->id === null) {
+        if (self::$id === null) {
             return false;
         }
         if ($permissions === null) {
@@ -205,18 +151,15 @@ final class Session extends InstanceMember
         if (empty($permissions)) {
             return true;
         }
-        if (!$this->permissions) {
-            return false;
-        }
-        if (is_string($permissions) && !in_array($permissions, $this->permissions)) {
+        if (is_string($permissions) && !in_array($permissions, self::$permissions)) {
             return false;
         } elseif (is_array($permissions)) {
-            foreach ($permissions as $row) {
-                if (!is_string($row)) {
+            foreach ($permissions as $permission) {
+                if (!is_string($permission)) {
                     trigger_error('Permission values must be strings when permissions are an array', E_USER_WARNING);
                     return false;
                 }
-                if (!in_array($row, $this->permissions)){
+                if (!in_array($permission, self::$permissions)){
                     return false;
                 }
             }

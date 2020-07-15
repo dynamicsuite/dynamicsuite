@@ -20,106 +20,135 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Package;
-use DynamicSuite\Base\ArrayConvertible;
+use DynamicSuite\Util\Format;
+use Exception;
 
 /**
- * Class API.
+ * Class Api.
  *
  * @package DynamicSuite\Package
- * @property string $package_id
  * @property string $api_id
- * @property string $entry
- * @property array $post
- * @property mixed $permissions
+ * @property string $package_id
+ * @property string|null $entry
+ * @property string[] $post
+ * @property string[] $permissions
  * @property bool $public
- * @property Resources $resources
+ * @property string[] $autoload
+ * @property string[] $init
  */
-final class API extends ArrayConvertible
+final class API
 {
 
     /**
-     * The package ID the package belongs to.
+     * API ID string.
      *
      * @var string
      */
-    public string $package_id;
+    protected string $api_id;
 
     /**
-     * Set the API endpoint ID.
+     * Package ID string
      *
      * @var string
      */
-    public string $api_id;
+    protected string $package_id;
 
     /**
-     * Api entry point script path.
+     * API entry point path.
      *
-     * @var string
+     * @var string|null
      */
-    public string $entry;
+    protected ?string $entry = null;
 
     /**
-     * Api required post keys.
+     * Required input POST keys.
      *
-     * @var array
+     * @var string[]
      */
-    public array $post = [];
+    protected array $post = [];
 
     /**
-     * Api required permissions.
+     * Required permissions (array of shorthands).
      *
-     * @var array|string|null
+     * @var string[]
      */
-    public $permissions = null;
+    protected array $permissions = [];
 
     /**
-     * Api public state.
+     * If the API is public (no auth required).
      *
      * @var bool
      */
-    public bool $public = false;
+    protected bool $public = false;
 
     /**
-     * API package resources.
+     * API specific autoload paths.
      *
-     * Note: APIs are a server-side construct, the $js and $css properties of
-     * this object are ignored at runtime.
-     *
-     * @var Resources
+     * @var string[]
      */
-    protected Resources $resources;
+    protected array $autoload = [];
 
     /**
-     * PackageApi constructor.
+     * API specific init scripts.
      *
-     * @param string $package_id
+     * @var string[]
+     */
+    protected array $init = [];
+
+    /**
+     * Api constructor.
+     *
      * @param string $api_id
+     * @param string $package_id
      * @param array $structure
      * @return void
+     * @throws Exception
      */
-    public function __construct(string $package_id, string $api_id, array $structure = [])
+    public function __construct(string $api_id, string $package_id, array $structure)
     {
-        parent::__construct($structure);
-        $this->package_id = $package_id;
         $this->api_id = $api_id;
-        $this->resources = new Resources($this->package_id);
-        $this->setResources($structure);
+        $this->package_id = $package_id;
+        $error = function(string $key, string $message): string {
+            return "[Structure] Package \"$this->package_id\" api \"$this->api_id\" key \"$key\": $message";
+        };
+        foreach ($structure as $prop => $value) {
+            if ($prop === 'entry') {
+                $value = Format::formatServerPath($package_id, $value);
+            }
+            if (in_array($prop, ['permissions', 'post', 'autoload', 'init'])) {
+                if ($value === null) {
+                    $value = [];
+                } elseif (is_array($value)) {
+                    foreach ($value as $k => $v) {
+                        if (!is_string($v)) {
+                            throw new Exception($error($prop, 'must be a array of strings (paths)'));
+                        }
+                        if ($prop === 'autoload' || $prop === 'init') {
+                            $value[$k] = Format::formatServerPath($this->package_id, $value);
+                        }
+                    }
+                } else {
+                    throw new Exception($error($prop, 'must be a array of strings (paths)'));
+                }
+            }
+            if (property_exists($this, $prop)) {
+                $this->$prop = $value;
+            }
+        }
+        if ($this->entry === null) {
+            throw new Exception($error('entry', 'missing'));
+        }
     }
 
     /**
-     * Set the resources for the API.
+     * Parameter getter magic method.
      *
-     * Note: APIs are a server-side construct, the $js and $css properties of
-     * this object are ignored at runtime.
-     *
-     * @param array $structure
-     * @return API
+     * @param string $property
+     * @return mixed
      */
-    public function setResources(array $structure = []): API
+    public function __get(string $property)
     {
-        $this->resources->setAutoload($structure['autoload'] ?? []);
-        $this->resources->setInit($structure['init'] ?? []);
-        return $this;
+        return $this->$property;
     }
 
 }

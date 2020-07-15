@@ -19,14 +19,12 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
-use Memcached;
 
 set_time_limit(0);
 ini_set('memory_limit', -1);
 
-/** @noinspection PhpIncludeInspection */
+/** @noinspection ALL */
 require_once realpath(__DIR__ . '/create_environment.php');
 
 // Print command usage
@@ -43,19 +41,22 @@ function printUsage(): void
 // Set the caching state
 function setState(bool $state): void
 {
-    $script = file_get_contents('scripts/create_environment.php');
+    $script = file_get_contents(realpath(__DIR__ . '/create_environment.php'));
     $state = $state ? 'true' : 'false';
-    $replace = DS_CACHING ? "define('DS_CACHING', true);" : "define('DS_CACHING', false);";
+    $replace = DS_CACHING
+        ? "define('DS_CACHING', true);"
+        : "define('DS_CACHING', false);";
     $script = str_replace($replace, "define('DS_CACHING', $state);", $script);
-    file_put_contents('scripts/create_environment.php', $script);
+    file_put_contents(realpath(__DIR__ . '/create_environment.php'), $script);
     CLI::out('Caching state changed');
     if (CLI::yn('Reset cache now (restart apache)?')) {
-        $err = exec('apachectl restart');
-        if ($err) CLI::err($err);
+        if ($err = exec('apachectl restart')) {
+            CLI::err($err);
+        }
     }
 }
 
-$options = getopt('h', ['help', 'enable', 'disable', 'flush']);
+$options = getopt('h', ['help', 'enable', 'disable']);
 
 // Show help
 if (CLI::actionIs(['h', 'help'], $options)) {
@@ -70,19 +71,6 @@ elseif (CLI::actionIs('enable', $options)) {
 // Disable caching
 elseif (CLI::actionIs('disable', $options)) {
     setState(false);
-}
-
-// Flush the cache
-elseif (CLI::actionIs('flush', $options)) {
-    require_once realpath(__DIR__ . '/create_instance.php');
-    /** @var DynamicSuite $ds */
-    $ds->cache->connect();
-    if ($ds->cache->cache instanceof Memcached) {
-        $ds->cache->cache->flush();
-        CLI::out('Cache flushed');
-    } else {
-        CLI::err('Caching not enabled, nothing flushed');
-    }
 }
 
 // Invalid usage

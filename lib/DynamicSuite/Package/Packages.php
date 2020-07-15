@@ -20,187 +20,124 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Package;
-use DynamicSuite\Base\InstanceMember;
 use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Util\File;
-use TypeError;
 
 /**
  * Class Packages.
  *
  * @package DynamicSuite\Package
- * @property array $loaded
- * @property Resources $resources
- * @property array $views
- * @property array $nav_groups
- * @property array $nav_tree
- * @property array $apis
- * @property array $action_groups
- * @property array $action_links
  */
-final class Packages extends InstanceMember
+final class Packages
 {
 
     /**
-     * All loaded packages.
+     * Loaded package structure files as an array.
      *
-     * @var Structure[]
+     * @var Package[]
      */
-    protected array $loaded = [];
+    public static array $loaded = [];
 
     /**
-     * Package resources global to all packages.
-     *
-     * @var Resources
-     */
-    protected Resources $resources;
-
-    /**
-     * All valid views.
+     * Loaded package views.
      *
      * @var View[]
      */
-    protected array $views = [];
+    public static array $views = [];
 
     /**
-     * Package navigation groups.
+     * Loaded navigation groups.
      *
      * @var NavGroup[]
      */
-    protected array $nav_groups = [];
+    public static array $nav_groups = [];
 
     /**
-     * Package views navigation tree.
+     * Loaded action groups.
      *
-     * @var NavEntry[]
+     * @var string[]
      */
-    protected array $nav_tree = [];
+    public static array $action_groups = [];
 
     /**
-     * All package apis.
+     * Loaded action links.
      *
-     * @var API[]
+     * @var ActionLink[]
      */
-    protected array $apis = [];
+    public static array $action_links = [];
 
     /**
-     * All action groups.
+     * Global resources defined by packages.
      *
-     * @var array
+     * @var array[]
      */
-    protected array $action_groups = [];
+    public static array $global = [
+        'autoload' => [],
+        'init' => [],
+        'js' => [],
+        'css' => []
+    ];
 
     /**
-     * All action links.
+     * Initialize all package structures.
      *
-     * @var array
-     */
-    protected array $action_links = [];
-
-    /**
-     * Packages constructor.
+     * Also sets any package defined global includes.
      *
-     * @param DynamicSuite $ds
      * @return void
      */
-    public function __construct(DynamicSuite $ds)
+    public static function init(): void
     {
-        parent::__construct($ds);
-        $this->resources = new Resources();
+        $hash = md5(__FILE__);
+        if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
+            self::$loaded = $cache['loaded'];
+            self::$global = $cache['global'];
+            self::$views = $cache['views'];
+            self::$nav_groups = $cache['nav_groups'];
+            self::$action_groups = $cache['action_groups'];
+            self::$action_links = $cache['action_links'];
+        } else {
+            foreach (DynamicSuite::$cfg->packages as $package_id) {
+                self::load($package_id);
+            }
+            if (DS_CACHING) {
+                $store = apcu_store($hash, [
+                    'loaded' => self::$loaded,
+                    'global' => self::$global,
+                    'views' => self::$views,
+                    'nav_groups' => self::$nav_groups,
+                    'action_groups' => self::$action_groups,
+                    'action_links' => self::$action_links
+                ]);
+                if (!$store) {
+                    error_log('Error saving "Packages" in cache, check server config');
+                }
+            }
+        }
     }
 
     /**
-     * Load a package.
+     * Parse a packages structure file and add it to the loaded packages list.
+     *
+     * Given a $package_id, it will look for the structure file at packages/$package_id/$package_id.json
+     *
+     * Returns TRUE on success and FALSE on failure (parse issue).
+     *
+     * Errors will be logged in the host log file.
      *
      * @param string $package_id
-     * @return Structure|bool
-     */
-    public function loadPackage(string $package_id)
-    {
-        $package_dir = "packages/$package_id";
-        $json_path = "$package_dir/$package_id.json";
-        if (!is_dir($package_dir)) {
-            trigger_error("Package not found: $package_id", E_USER_WARNING);
-            return false;
-        }
-        if (!is_readable($json_path)) {
-            trigger_error("Package missing structure: $package_id", E_USER_WARNING);
-            return false;
-        }
-        if (!$structure = File::jsonToArray($json_path)) {
-            trigger_error("Package structure invalid: $package_id", E_USER_WARNING);
-            return false;
-        }
-        try {
-            $structure = new Structure($package_id, $structure);
-        } catch (TypeError $exception) {
-            trigger_error($exception->getMessage(), E_USER_WARNING);
-            return false;
-        }
-        $this->resources->merge($structure->global_resources);
-        $this->nav_groups = array_replace($this->nav_groups, $structure->nav_groups);
-        $this->views = array_replace($this->views, $structure->views);
-        $this->apis[$package_id] = $structure->apis;
-        foreach ($structure->action_groups as $group) {
-            if (!in_array($group, $this->action_groups)) {
-                $this->action_groups[] = $group;
-            }
-        }
-        $this->action_links = array_replace($this->action_links, $structure->action_links);
-        return $structure;
-    }
-
-    /**
-     * Attempt to load all package ids defined in the config.
-     *
      * @return bool
      */
-    public function loadPackages()
+    public static function load(string $package_id): bool
     {
-        if (!is_array($this->ds->cfg->packages)) {
-            trigger_error("Invalid packages in global config", E_USER_WARNING);
+        $json_path = DS_ROOT_DIR . "/packages/$package_id/$package_id.json";
+        if (!is_readable($json_path)) {
+            error_log("Package missing structure: $package_id", E_USER_WARNING);
             return false;
         }
-        foreach ($this->ds->cfg->packages as $package_id) {
-            if (!is_string($package_id)) {
-                trigger_error("Invalid package value in global config", E_USER_WARNING);
-                return false;
-            }
-            $package = $this->loadPackage($package_id);
-            if ($package) $this->loaded[$package_id] = $package;
+        if (!$structure = json_decode(file_get_contents($json_path), true)) {
+            error_log("Package structure invalid: $package_id", E_USER_WARNING);
+            return false;
         }
-        /** @var $view View */
-        foreach ($this->views as $url => $view) {
-            if (!$view->navigable) continue;
-            $hash = $view->nav_group
-                ? md5($view->nav_group)
-                : md5("$view->package_id:$url");
-            $child = new NavEntry();
-            $child->name = $view->nav_name;
-            $child->icon = $view->nav_icon;
-            $child->url = $url;
-            $child->public = $view->public;
-            $child->permissions = $view->permissions;
-            if ($view->nav_group) {
-                if (!isset($this->nav_groups[$view->nav_group])) {
-                    error_log("Orphaned view at $view->package_id:$view->nav_group", E_USER_WARNING);
-                    continue;
-                }
-                if (isset($this->nav_tree[$hash])) {
-                    $this->nav_tree[$hash]->addChild($child);
-                } else {
-                    $parent = new NavEntry();
-                    $parent->name = $this->nav_groups[$view->nav_group]->name;
-                    $parent->icon = $this->nav_groups[$view->nav_group]->icon;
-                    $parent->public = $this->nav_groups[$view->nav_group]->public;
-                    $parent->permissions = $this->nav_groups[$view->nav_group]->permissions;
-                    $parent->addChild($child);
-                    $this->nav_tree[$hash] = $parent;
-                }
-            } else {
-                $this->nav_tree[$hash] = $child;
-            }
-        }
+        self::$loaded[$package_id] = new Package($package_id, $structure);
         return true;
     }
 

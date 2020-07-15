@@ -19,36 +19,52 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\Base;
+namespace DynamicSuite\API;
 
 /**
- * Class ArrayConvertible.
+ * Class Request.
  *
- * @package DynamicSuite\Base
+ * @package DynamicSuite\API
+ * @property string $package_id
+ * @property string $api_id
+ * @property array $data
  */
-abstract class ArrayConvertible
+class Request
 {
 
     /**
-     * DatabaseItem constructor.
+     * Requested package ID.
      *
-     * @param array $array
-     * @return void
+     * @var string
      */
-    public function __construct(array $array = [])
-    {
-        foreach ($array as $prop => $value) if (property_exists($this, $prop)) $this->$prop = $value;
-    }
+    public string $package_id;
 
     /**
-     * Parameter getter magic method.
+     * Requested API ID.
      *
-     * @param string $property
-     * @return mixed
+     * @var string
      */
-    public function __get(string $property)
+    public string $api_id;
+
+    /**
+     * Request data payload.
+     *
+     * @var array
+     */
+    public array $data = [];
+
+    /**
+     * Request constructor.
+     *
+     * @param string $package_id
+     * @param string $api_id
+     * @param array $data
+     */
+    public function __construct(string $package_id, string $api_id, $data = [])
     {
-        return $this->$property;
+        $this->package_id = $package_id;
+        $this->api_id = $api_id;
+        $this->data = $data;
     }
 
 }

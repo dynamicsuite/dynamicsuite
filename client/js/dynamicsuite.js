@@ -18,14 +18,9 @@
 let ds = {
     api: {
         call: (package_id, api_id, data, callback) => {
-            if (data instanceof FormData) {
-                let form_data = {};
-                data.forEach((v, k) => { form_data[k] = v });
-                data = form_data;
-            }
-            fetch('/dynamicsuite/api', {
+            fetch('/dynamicsuite/api/' + package_id + '/' + api_id, {
                 method: 'POST',
-                body: JSON.stringify({package_id: package_id, api_id: api_id, data: data})
+                body: JSON.stringify(data ? data : [])
             })
             .then(response => response.json())
             .then(json => callback(json), () => callback({

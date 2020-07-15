@@ -19,37 +19,52 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\Base;
+namespace DynamicSuite\API;
 
 /**
- * Class DSConfig.
+ * Class Response.
  *
- * @package DynamicSuite\Base
+ * @package DynamicSuite\API
+ * @property string $status
+ * @property string $message
+ * @property mixed $data
  */
-abstract class DSConfig extends ProtectedObject
+class Response
 {
 
     /**
-     * DSConfig constructor.
+     * API error status code.
      *
-     * @param string $package_id
+     * @var string
+     */
+    public string $status;
+
+    /**
+     * User-friendly message.
+     *
+     * @var string
+     */
+    public string $message;
+
+    /**
+     * Response data (if any).
+     *
+     * @var mixed
+     */
+    public $data = null;
+
+    /**
+     * Response constructor.
+     *
+     * @param string $status
+     * @param string $message
+     * @param mixed $data
      * @return void
      */
-    public function __construct(string $package_id)
-    {
-        $cache_key = "dspkg-$package_id-cfg";
-        if (DS_CACHING && apcu_exists($cache_key)) {
-            return;
-        }
-        if (file_exists("config/$package_id.json")) {
-            $cfg = json_decode(file_get_contents("config/$package_id.json"), true);
-            if ($cfg) {
-                foreach ($cfg as $key => $value) $this->$key = $value;
-            } else {
-                trigger_error("Invalid config for $package_id! Using defaults...", E_USER_WARNING);
-            }
-        }
-        if (DS_CACHING) apcu_store($cache_key, true);
+    public function __construct(string $status = 'EMPTY_RESPONSE', string $message = 'Empty Response', $data = null) {
+        $this->status = $status;
+        $this->message = $message;
+        $this->data = $data;
     }
 
 }
