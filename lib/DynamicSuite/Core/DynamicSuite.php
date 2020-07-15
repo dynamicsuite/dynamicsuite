@@ -143,6 +143,10 @@ final class DynamicSuite
                 require_once $script;
             }
             $_POST = $request->data;
+            if (DS_DEBUG_MODE) {
+                error_log("[API DEBUG] API $request->package_id:$request->api_id called with the following POST data:");
+                error_log(print_r($_POST, 1));
+            }
             putenv("DS_API_ENTRY=$api->entry");
             unset($api, $request);
             return (require_once getenv('DS_API_ENTRY'));
