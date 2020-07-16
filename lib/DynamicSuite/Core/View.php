@@ -250,16 +250,17 @@ final class View
         foreach (Packages::$views as $path => $view) {
             if (Request::urlIs($path, $url)) {
                 $this->structure = $view;
-                $this->structure->autoload = array_replace(
+                $this->structure->autoload = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['autoload'], $this->structure->autoload
                 );
-                $this->structure->init = array_replace(
+                $this->structure->init = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['init'], $this->structure->init
                 );
-                $this->structure->js = array_replace(
+                $this->structure->js = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['js'], $this->structure->js
                 );
-                $this->structure->css = array_replace(
+                error_log(print_r($this->structure->js, 1));
+                $this->structure->css = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['css'], $this->structure->css
                 );
                 return true;
