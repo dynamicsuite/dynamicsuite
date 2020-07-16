@@ -259,7 +259,6 @@ final class View
                 $this->structure->js = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['js'], $this->structure->js
                 );
-                error_log(print_r($this->structure->js, 1));
                 $this->structure->css = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['css'], $this->structure->css
                 );
