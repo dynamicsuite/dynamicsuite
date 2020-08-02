@@ -667,7 +667,7 @@ final class Query
                     $this->args[] = $value;
                 }
                 $columns = rtrim($columns, ', ');
-                $this->query .= "SET $columns";
+                $this->query .= " SET $columns";
                 if ($this->where) {
                     $this->query .= ' WHERE ' . $this->buildWhere($this->where, $this->args);
                 }
