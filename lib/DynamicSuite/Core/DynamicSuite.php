@@ -104,6 +104,7 @@ final class DynamicSuite
     {
         $prefix = "[API] Package \"$request->package_id\" api \"$request->api_id\"";
         $api = Packages::$loaded[$request->package_id]->apis[$request->api_id] ?? null;
+        $local = Packages::$loaded[$request->package_id]->local;
         $response = new Response();
         if (!$api) {
             error_log("$prefix not found");
@@ -122,13 +123,24 @@ final class DynamicSuite
         if (!defined('DS_PKG_DIR')) {
             define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$request->package_id}");
         }
-        spl_autoload_register(function (string $class) use ($api) {
+        spl_autoload_register(function (string $class) use ($local, $api) {
             if (class_exists($class)) {
                 return;
             }
             $file = str_replace('\\', '/', $class) . '.php';
+            foreach ($local['autoload'] as $dir) {
+                $path = "$dir/$file";
+                error_log($path);
+                if (DS_CACHING && opcache_is_script_cached($path)) {
+                    require_once $path;
+                    break;
+                } elseif (file_exists($path)) {
+                    require_once $path;
+                    break;
+                }
+            }
             foreach ($api->autoload as $dir) {
-                $path = DS_ROOT_DIR . "/$dir/$file";
+                $path = "$dir/$file";
                 if (DS_CACHING && opcache_is_script_cached($path)) {
                     require_once $path;
                     break;
@@ -138,7 +150,10 @@ final class DynamicSuite
                 }
             }
         });
-        $return = (function () use ($api, $request) {
+        $return = (function () use ($local, $api, $request) {
+            foreach ($local['init'] as $script) {
+                require_once $script;
+            }
             foreach ($api->init as $script) {
                 require_once $script;
             }
@@ -148,7 +163,7 @@ final class DynamicSuite
                 error_log(print_r($_POST, 1));
             }
             putenv("DS_API_ENTRY=$api->entry");
-            unset($api, $request);
+            unset($local, $api, $request);
             return (require_once getenv('DS_API_ENTRY'));
         })();
         if ($return instanceof Response) {
