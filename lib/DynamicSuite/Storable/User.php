@@ -257,8 +257,9 @@ class User extends Storable implements IStorable
     public function update(): User
     {
         $this->validate(self::COLUMN_LIMITS);
-        $this->user_id = (new Query())
-            ->insert([
+        (new Query())
+            ->update('ds_users')
+            ->set([
                 'username' => $this->username,
                 'password' => $this->password,
                 'inactive' => $this->inactive ? 1 : null,
@@ -268,7 +269,7 @@ class User extends Storable implements IStorable
                 'login_last_success' => $this->login_last_success,
                 'login_last_ip' => $this->login_last_ip
             ])
-            ->into('ds_users')
+            ->where('user_id', '=', $this->user_id)
             ->execute();
         return $this;
     }
