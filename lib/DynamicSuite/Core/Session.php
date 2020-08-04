@@ -38,7 +38,7 @@ final class Session
     /**
      * The session ID.
      *
-     * @var string
+     * @var string|null
      */
     public static ?string $id = null;
 
@@ -168,6 +168,16 @@ final class Session
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check to see if the session is valid.
+     *
+     * @return bool
+     */
+    public static function isValid(): bool
+    {
+        return isset(self::$id, self::$user_id);
     }
 
 }
