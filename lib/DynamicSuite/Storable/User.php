@@ -275,6 +275,38 @@ class User extends Storable implements IStorable
     }
 
     /**
+     * Update the groups for the user.
+     *
+     * Groups is an array of integers, where each integer matches the group ID of the group.
+     *
+     * This method contains multiple queries and should be run inside of a transaction.
+     *
+     * @param int[] $groups
+     * @return User
+     * @throws PDOException|Exception
+     */
+    public function updateGroups(array $groups): User
+    {
+        $insert = [];
+        foreach ($groups as $group_id) {
+            $insert[] = [
+                'user_id' => $this->user_id,
+                'group_id' => $group_id
+            ];
+        }
+        (new Query())
+            ->delete()
+            ->from('ds_users_groups')
+            ->where('user_id', '=', $this->user_id)
+            ->execute();
+        (new Query())
+            ->insert($insert)
+            ->into('ds_users_groups')
+            ->execute();
+        return $this;
+    }
+
+    /**
      * Delete the user from the database.
      *
      * @return User
