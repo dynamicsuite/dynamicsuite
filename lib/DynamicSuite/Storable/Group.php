@@ -169,6 +169,38 @@ class Group extends Storable implements IStorable
     }
 
     /**
+     * Update the permissions for the group.
+     *
+     * Permissions is an array of integers, where each integer matches the permission ID of the permission.
+     *
+     * This method contains multiple queries and should be run inside of a transaction.
+     *
+     * @param int[] $permissions
+     * @return Group
+     * @throws PDOException|Exception
+     */
+    public function updatePermissions(array $permissions): Group
+    {
+        $insert = [];
+        foreach ($permissions as $permission_id) {
+            $insert[] = [
+                'group_id' => $this->group_id,
+                'permission_id' => $permission_id
+            ];
+        }
+        (new Query())
+            ->delete()
+            ->from('ds_groups_permissions')
+            ->where('group_id', '=', $this->group_id)
+            ->execute();
+        (new Query())
+            ->insert($insert)
+            ->into('ds_groups_permissions')
+            ->execute();
+        return $this;
+    }
+
+    /**
      * Delete the group from the database.
      *
      * @return Group
