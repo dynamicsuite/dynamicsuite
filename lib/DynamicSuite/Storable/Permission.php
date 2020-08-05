@@ -190,6 +190,37 @@ class Permission extends Storable implements IStorable
     }
 
     /**
+     * Update a domain's properties and values.
+     *
+     * Properties must be given as an associative array, where the key is the property ID and the value is the value
+     * of the property.
+     *
+     * @param string $domain
+     * @param array $properties
+     * @throws Exception
+     */
+    public static function updateDomain(string $domain, array $properties): void
+    {
+        $insert = [];
+        foreach ($properties as $property_id => $value) {
+            $insert[] = [
+                'property_id' => $property_id,
+                'domain' => $domain,
+                'value' => $value
+            ];
+        }
+        (new Query())
+            ->delete()
+            ->from('ds_properties_data')
+            ->where('domain', '=', $domain)
+            ->execute();
+        (new Query())
+            ->insert($insert)
+            ->into('ds_properties_data')
+            ->execute();
+    }
+
+    /**
      * Delete the permission from the database.
      *
      * @return Permission
