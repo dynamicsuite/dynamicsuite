@@ -153,11 +153,11 @@ class Permission extends Storable implements IStorable
      *
      * Returns the Permission if found, or FALSE if not found.
      *
-     * @param int $id
+     * @param int|null $id
      * @return bool|Permission
      * @throws Exception|PDOException
      */
-    public static function readById(int $id)
+    public static function readById(?int $id = null)
     {
         $permission = (new Query())
             ->select()

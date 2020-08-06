@@ -174,11 +174,11 @@ class Event extends Storable implements IStorable
      *
      * Returns the Event if found, or FALSE if not found.
      *
-     * @param int $id
+     * @param int|null $id
      * @return bool|Event
      * @throws Exception|PDOException
      */
-    public static function readById(int $id)
+    public static function readById(?int $id = null)
     {
         $event = (new Query())
             ->select()

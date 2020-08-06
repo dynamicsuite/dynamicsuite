@@ -234,11 +234,11 @@ class User extends Storable implements IStorable
      *
      * Returns the User if found, or FALSE if not found.
      *
-     * @param int $id
+     * @param int|null $id
      * @return bool|User
      * @throws Exception|PDOException
      */
-    public static function readById(int $id)
+    public static function readById(?int $id = null)
     {
         $user = (new Query())
             ->select()

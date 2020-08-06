@@ -39,10 +39,10 @@ interface IStorable
     /**
      * Read a storable object from the database by ID.
      *
-     * @param int $id
+     * @param int|null $id
      * @return Storable|bool
      */
-    public static function readById(int $id);
+    public static function readById(?int $id = null);
 
     /**
      * Update a stored object in the database.
