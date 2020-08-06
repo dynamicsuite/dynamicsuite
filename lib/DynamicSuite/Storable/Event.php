@@ -180,6 +180,9 @@ class Event extends Storable implements IStorable
      */
     public static function readById(?int $id = null)
     {
+        if ($id === null) {
+            return false;
+        }
         $event = (new Query())
             ->select()
             ->from('ds_events')

@@ -161,6 +161,9 @@ class Property extends Storable implements IStorable
      */
     public static function readById(?int $id = null)
     {
+        if ($id === null) {
+            return false;
+        }
         $property = (new Query())
             ->select()
             ->from('ds_properties')
