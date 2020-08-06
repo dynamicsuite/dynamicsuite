@@ -35,12 +35,25 @@ class DynamicSuite
             method: 'POST',
             body: JSON.stringify(data ? data : [])
         })
-            .then(response => response.json())
-            .then(json => callback(json), () => callback({
+        .then(response => {
+            if (response.ok) {
+                return response;
+            }
+            throw new Error('A server error has occurred');
+        })
+        .then(response => response.json())
+        .then(json => callback(json), json => callback({
+            status: 'SERVER_ERROR',
+            message: 'A malformed response was returned',
+            data: null
+        }))
+        .catch(() => {
+            callback({
                 status: 'SERVER_ERROR',
                 message: 'A malformed response was returned',
                 data: null
-            }));
+            });
+        });
     }
 
     /**
