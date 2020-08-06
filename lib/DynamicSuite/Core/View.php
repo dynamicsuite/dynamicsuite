@@ -241,10 +241,10 @@ final class View
     /**
      * Set the package view based on the URL.
      *
-     * @param string $url
+     * @param string|null $url
      * @return bool
      */
-    public function setPackageView($url = null): bool
+    public function setPackageView(?string $url = null): bool
     {
         $url = $url ?? Request::$url_string;
         foreach (Packages::$views as $path => $view) {
