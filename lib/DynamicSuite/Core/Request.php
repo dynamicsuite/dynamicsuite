@@ -32,7 +32,7 @@ final class Request
     /**
      * String URL string with stripped GET parameters.
      *
-     * @var string
+     * @var string|null
      */
     public static ?string $url_string = null;
 
@@ -46,9 +46,9 @@ final class Request
     /**
      * Initialize the request URL.
      *
-     * @return void
+     * @return bool
      */
-    public static function init(): void
+    public static function init(): bool
     {
         $url = $_SERVER['REQUEST_URI'] ?? '/';
         $pos = strpos($url, '?');
@@ -58,12 +58,15 @@ final class Request
         self::$url_string = rtrim($url, '/');
         self::$url_array = explode('/',  trim($url, '/'));
         if (defined('STDIN')) {
-            return;
+            return false;
         } elseif (self::urlKey(0, 'dynamicsuite') && self::urlKey(1, 'api')) {
             define('DS_API', true);
+            define('DS_VIEW', false);
         } else {
             define('DS_VIEW', true);
+            define('DS_API', false);
         }
+        return true;
     }
 
     /**
@@ -110,7 +113,7 @@ final class Request
      * Check to see if the input URL matches the current URL or given.
      *
      * @param string $needle
-     * @param string $haystack
+     * @param string|null $haystack
      * @return bool
      */
     public static function urlIs(string $needle, string $haystack = null): bool
