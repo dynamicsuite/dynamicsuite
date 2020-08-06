@@ -312,7 +312,7 @@ final class Query
      * From table for statements that use FROM for their table selection.
      *
      * @param string $table
-     * @param string $table_alias
+     * @param string|null $table_alias
      * @return Query
      */
     public function from(string $table, ?string $table_alias = null): Query
@@ -600,7 +600,6 @@ final class Query
                     if (is_string($column)) {
                         $columns .= "$column, ";
                     } elseif ($column instanceof Expression) {
-                        /** @var Expression $column */
                         $column->build();
                         $columns .= "$column->expression, ";
                         $this->args = array_merge($this->args, $column->args);
