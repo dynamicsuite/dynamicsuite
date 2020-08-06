@@ -129,7 +129,6 @@ final class Session
         self::$user_id = null;
         self::$root = false;
         $_SESSION = null;
-        session_regenerate_id();
     }
 
     /**
