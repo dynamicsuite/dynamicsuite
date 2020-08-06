@@ -145,6 +145,9 @@ final class Session
         if (self::$id === null) {
             return false;
         }
+        if (self::$root) {
+            return true;
+        }
         if ($permissions === null) {
             return true;
         }

@@ -34,7 +34,7 @@ if (defined('STDIN')) {
 ob_clean();
 
 // Views
-if (defined('DS_VIEW')) {
+if (DS_VIEW) {
 
     // Dynamic Suite does not work with IE, so check for it
     (function() {
@@ -125,7 +125,7 @@ if (defined('DS_VIEW')) {
 }
 
 // Apis
-elseif(defined('DS_API')) {
+elseif(DS_API) {
     header('Content-Type: application/json');
     if (count(Request::$url_array) !== 4) {
         error_log('[API] Malformed API request (' . Request::$url_string . ')');
