@@ -68,7 +68,7 @@ final class Database
     /**
      * Database connection.
      *
-     * @var PDO
+     * @var PDO|null
      */
     protected ?PDO $conn = null;
 
