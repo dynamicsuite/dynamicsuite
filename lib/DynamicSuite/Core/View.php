@@ -503,4 +503,14 @@ final class View
         return $html;
     }
 
+    /**
+     * Set pre-rendered page data.
+     *
+     * @param array $data
+     */
+    public static function setPageData(array $data)
+    {
+        echo '<script>const DS_PAGE_DATA = ' . json_encode($data) . ';</script>';
+    }
+
 }

@@ -42,7 +42,7 @@ class DynamicSuite
             throw new Error('A server error has occurred');
         })
         .then(response => response.json())
-        .then(json => callback(json), json => callback({
+        .then(json => callback(json), () => callback({
             status: 'SERVER_ERROR',
             message: 'A malformed response was returned',
             data: null
@@ -116,6 +116,17 @@ class DynamicSuite
      */
     static isMobile() {
         return window.innerWidth < 1280;
+    }
+
+    /**
+     * Get the page data initialized with the view.
+     *
+     * @returns Object
+     */
+    static getPageData() {
+        if (typeof DS_PAGE_DATA !== 'undefined') {
+            return DS_PAGE_DATA;
+        }
     }
 
 }
