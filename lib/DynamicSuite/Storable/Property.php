@@ -212,21 +212,6 @@ class Property extends Storable implements IStorable
     }
 
     /**
-     * Delete all of the property values from a domain.
-     *
-     * @param string $domain
-     * @throws Exception|PDOException
-     */
-    public static function clearDomain(string $domain): void
-    {
-        (new Query())
-            ->delete()
-            ->from('ds_properties_data')
-            ->where('domain', '=', $domain)
-            ->execute();
-    }
-
-    /**
      * Read a property by name for the given domain.
      *
      * @param string $name
@@ -260,6 +245,21 @@ class Property extends Storable implements IStorable
             settype($property['value'], $property['type']);
             return $property['value'];
         }
+    }
+
+    /**
+     * Delete all of the property values from a domain.
+     *
+     * @param string $domain
+     * @throws Exception|PDOException
+     */
+    public static function clearDomain(string $domain): void
+    {
+        (new Query())
+            ->delete()
+            ->from('ds_properties_data')
+            ->where('domain', '=', $domain)
+            ->execute();
     }
 
 }
