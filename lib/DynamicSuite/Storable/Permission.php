@@ -171,6 +171,36 @@ class Permission extends Storable implements IStorable
     }
 
     /**
+     * Attempt to read a permission by shorthand format with an optional domain.
+     *
+     * Returns the Permission if found, or FALSE if not found.
+     *
+     * @param string $shorthand
+     * @param string|null $domain
+     * @return bool|Permission
+     * @throws Exception|PDOException
+     */
+    public static function readByShorthand(string $shorthand, ?string $domain = null)
+    {
+        $shorthand = explode(':', $shorthand);
+        if (count($shorthand) !== 2) {
+            throw new Exception('Invalid shorthand permission format for read');
+        }
+        $permission = (new Query())
+            ->select()
+            ->from('ds_permissions')
+            ->where('package_id', '=', $shorthand[0])
+            ->where('name', '=', $shorthand[1]);
+        if ($domain) {
+            $permission->where('domain', '=', $domain);
+        } else {
+            $permission->where('domain', 'IS', null);
+        }
+        $permission = $permission->execute(true);
+        return $permission ? new Permission($permission) : false;
+    }
+
+    /**
      * Update the permission in the database.
      *
      * @return Permission
