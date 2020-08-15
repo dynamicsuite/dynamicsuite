@@ -151,6 +151,27 @@ class Group extends Storable implements IStorable
     }
 
     /**
+     * Attempt to read a group by name for a specific domain.
+     *
+     * Returns the Group if found, or FALSE if not found.
+     *
+     * @param string $name
+     * @param string $domain
+     * @return bool|Group
+     * @throws Exception|PDOException
+     */
+    public static function readByName(string $name, string $domain)
+    {
+        $group = (new Query())
+            ->select()
+            ->from('ds_groups')
+            ->where('name', '=', $name)
+            ->where('domain', '=', $domain)
+            ->execute(true);
+        return $group ? new Group($group) : false;
+    }
+
+    /**
      * Update the group in the database.
      *
      * @return Group
