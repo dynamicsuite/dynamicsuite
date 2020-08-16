@@ -283,4 +283,26 @@ class Group extends Storable implements IStorable
         return $this;
     }
 
+    /**
+     * Validate a list of groups (ids) for the given domain.
+     *
+     * @param int[] $groups
+     * @param string $domain
+     * @throws Exception
+     */
+    public static function validateForDomain(array $groups, string $domain): void
+    {
+        foreach ($groups as $group_id) {
+            $group = (new Query())
+                ->select(['group_id'])
+                ->from('ds_groups')
+                ->where('group_id', '=', $group_id)
+                ->where('domain', '=', $domain)
+                ->execute(true);
+            if (!$group) {
+                throw new Exception('Trying to add a group out of domain');
+            }
+        }
+    }
+
 }
