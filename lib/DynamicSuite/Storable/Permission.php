@@ -201,6 +201,27 @@ class Permission extends Storable implements IStorable
     }
 
     /**
+     * Read all of the permissions for the given domain.
+     *
+     * This method returns a regular array for use in API responses and direct manipulation.
+     *
+     * Which columns are returned on each row (permission) can be set with the $columns parameter.
+     *
+     * @param string|null $domain
+     * @param string[] $columns
+     * @return array
+     * @throws PDOException|Exception
+     */
+    public static function readAvailable(?string $domain, array $columns = ['*']): array
+    {
+        return (new Query())
+            ->select($columns)
+            ->from('ds_permissions')
+            ->where('domain', $domain ? '=' : 'IS', $domain)
+            ->execute();
+    }
+
+    /**
      * Update the permission in the database.
      *
      * @return Permission
@@ -267,6 +288,28 @@ class Permission extends Storable implements IStorable
             ->where('permission_id', '=', $this->permission_id)
             ->execute();
         return $this;
+    }
+
+    /**
+     * Validate a list of permissions (ids) for the given domain.
+     *
+     * @param int[] $permissions
+     * @param string $domain
+     * @throws Exception
+     */
+    public static function validateForDomain(array $permissions, string $domain): void
+    {
+        foreach ($permissions as $permission_id) {
+            $permission = (new Query())
+                ->select(['permission_id'])
+                ->from('ds_permissions')
+                ->where('permission_id', '=', $permission_id)
+                ->where('domain', '=', $domain)
+                ->execute(true);
+            if (!$permission) {
+                throw new Exception('Trying to add a permission out of domain');
+            }
+        }
     }
 
 }
