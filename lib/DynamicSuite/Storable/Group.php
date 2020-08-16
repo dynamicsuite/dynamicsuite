@@ -156,19 +156,62 @@ class Group extends Storable implements IStorable
      * Returns the Group if found, or FALSE if not found.
      *
      * @param string $name
-     * @param string $domain
+     * @param string|null $domain
      * @return bool|Group
      * @throws Exception|PDOException
      */
-    public static function readByName(string $name, string $domain)
+    public static function readByName(string $name, ?string $domain = null)
     {
         $group = (new Query())
             ->select()
             ->from('ds_groups')
             ->where('name', '=', $name)
-            ->where('domain', '=', $domain)
+            ->where('domain', $domain ? '=' : 'IS', $domain)
             ->execute(true);
         return $group ? new Group($group) : false;
+    }
+
+    /**
+     * Read all of the groups for the given domain.
+     *
+     * This method returns a regular array for use in API responses and direct manipulation.
+     *
+     * Which columns are returned on each row (group) can be set with the $columns parameter.
+     *
+     * @param string|null $domain
+     * @param string[] $columns
+     * @return array
+     * @throws PDOException|Exception
+     */
+    public static function readAvailable(?string $domain, array $columns = ['*']): array
+    {
+        return (new Query())
+            ->select($columns)
+            ->from('ds_groups')
+            ->where('domain', $domain ? '=' : 'IS', $domain)
+            ->execute();
+    }
+
+    /**
+     * Read all of the permissions for the group.
+     *
+     * This method returns a regular array for use in API responses and direct manipulation.
+     *
+     * Which columns are returned on each row (permission) can be set with the $columns parameter.
+     *
+     * @param array|string[] $columns
+     * @return array
+     * @throws PDOException|Exception
+     */
+    public function readPermissions(array $columns = ['ds_groups.permission_id', 'ds_groups.name']): array
+    {
+        return (new Query())
+            ->select($columns)
+            ->from('ds_groups_permissions')
+            ->join('ds_permissions')
+            ->on('ds_permissions.permission_id', '=', 'ds_groups_permissions.permission_id')
+            ->where('ds_groups_permissions.group_id', '=', $this->group_id)
+            ->execute();
     }
 
     /**
