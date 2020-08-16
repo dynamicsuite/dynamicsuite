@@ -215,6 +215,50 @@ class Group extends Storable implements IStorable
     }
 
     /**
+     * Read the permission groups for the given domain and the given user ID.
+     *
+     * The result array contains a list of assigned and unassigned groups.
+     *
+     * This method returns a regular array for use with client components.
+     *
+     * @param string $domain
+     * @param int|null $user_id
+     * @return array[]
+     * @throws PDOException|Exception
+     */
+    public static function readForComponent(string $domain, ?int $user_id = null): array
+    {
+        $groups = [
+            'assigned' => [],
+            'unassigned' => []
+        ];
+        $assigned = [];
+        if ($user_id) {
+            $assigned = (new Query())
+                ->select(['ds_groups.group_id', 'ds_groups.name'])
+                ->from('ds_users_groups')
+                ->join('ds_groups')
+                ->on('ds_groups.group_id', '=', 'ds_users_groups.group_id')
+                ->where('ds_groups.domain', '=', $domain)
+                ->where('ds_users_groups.user_id', '=', $user_id)
+                ->execute();
+        }
+        $unassigned = (new Query())
+            ->select(['group_id', 'name'])
+            ->from('ds_groups')
+            ->where('domain', '=', $domain)
+            ->execute();
+        foreach ($unassigned as $value) {
+            $groups['unassigned'][$value['group_id']] = $value['name'];
+        }
+        foreach ($assigned as $value) {
+            unset($groups['unassigned'][$value['group_id']]);
+            $groups['assigned'][$value['group_id']] = $value['name'];
+        }
+        return $groups;
+    }
+
+    /**
      * Update the group in the database.
      *
      * @return Group
