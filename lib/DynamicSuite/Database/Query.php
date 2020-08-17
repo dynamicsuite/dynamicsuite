@@ -421,6 +421,10 @@ final class Query
         foreach ($this->where_depth as $key) {
             $where = &$where[$key];
         }
+        if ($value === null) {
+            $value = 'NULL';
+            $literal = true;
+        }
         if (is_string($term)) {
             if (!is_string($operand)) {
                 throw new Exception('Query where operand must be a string');
