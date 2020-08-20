@@ -128,6 +128,8 @@ class DynamicSuite
     static getPageData() {
         if (typeof DS_PAGE_DATA !== 'undefined') {
             return DS_PAGE_DATA;
+        } else {
+            return false;
         }
     }
 

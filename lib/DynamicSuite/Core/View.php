@@ -507,8 +507,9 @@ final class View
      * Set pre-rendered page data.
      *
      * @param array $data
+     * @return void
      */
-    public static function setPageData(array $data)
+    public static function setPageData(array $data): void
     {
         echo '<script>const DS_PAGE_DATA = ' . json_encode($data) . ';</script>';
     }
