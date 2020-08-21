@@ -25,6 +25,8 @@ use DynamicSuite\API\Request;
 use DynamicSuite\API\Response;
 use DynamicSuite\Database\Database;
 use DynamicSuite\Package\Packages;
+use Error;
+use Exception;
 use PDOException;
 
 /**
@@ -150,22 +152,30 @@ final class DynamicSuite
                 }
             }
         });
-        $return = (function () use ($local, $api, $request) {
-            foreach ($local['init'] as $script) {
-                require_once $script;
-            }
-            foreach ($api->init as $script) {
-                require_once $script;
-            }
-            $_POST = $request->data;
-            if (DS_DEBUG_MODE) {
-                error_log("[API DEBUG] API $request->package_id:$request->api_id called with the following POST data:");
-                error_log(print_r($_POST, 1));
-            }
-            putenv("DS_API_ENTRY=$api->entry");
-            unset($local, $api, $request);
-            return (require_once getenv('DS_API_ENTRY'));
-        })();
+        try {
+            $return = (function () use ($local, $api, $request) {
+                foreach ($local['init'] as $script) {
+                    require_once $script;
+                }
+                foreach ($api->init as $script) {
+                    require_once $script;
+                }
+                $_POST = $request->data;
+                if (DS_DEBUG_MODE) {
+                    error_log(
+                        "[API DEBUG] API $request->package_id:$request->api_id called with the following POST data:"
+                    );
+                    error_log(print_r($_POST, 1));
+                }
+                putenv("DS_API_ENTRY=$api->entry");
+                unset($local, $api, $request);
+                return (require_once getenv('DS_API_ENTRY'));
+            })();
+        } catch (Error | Exception | PDOException $exception) {
+            error_log($exception->getMessage());
+            error_log('  ' . $exception->getFile() . ':' . $exception->getLine());
+            return new Response('SERVER_ERROR', 'A server error has occurred');
+        }
         if ($return instanceof Response) {
             return $return;
         } else {

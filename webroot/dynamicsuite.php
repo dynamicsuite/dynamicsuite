@@ -25,6 +25,8 @@ use DynamicSuite\Core\Request;
 use DynamicSuite\API\Request as APIRequest;
 use DynamicSuite\Core\Session;
 use Error;
+use Exception;
+use PDOException;
 
 ob_start();
 require_once '../scripts/create_instance.php';
@@ -88,7 +90,9 @@ if (DS_VIEW) {
                     foreach (DynamicSuite::$view->structure->init as $script) {
                         require_once $script;
                     }
-                    require_once DynamicSuite::$view->structure->entry;
+                    if ((require_once DynamicSuite::$view->structure->entry) === false) {
+                        DynamicSuite::$view->error500();
+                    }
                 })();
                 DynamicSuite::$view->setViewResources();
                 if (DynamicSuite::$view->structure->hide_nav) {
@@ -101,9 +105,10 @@ if (DS_VIEW) {
                         '{{view-body}}' => ob_get_clean()
                     ]);
                 }
-            } catch (Error $exception) {
+            } catch (Error | Exception | PDOException $exception) {
                 ob_clean();
                 error_log($exception->getMessage());
+                error_log('  ' . $exception->getFile() . ':' . $exception->getLine());
                 DynamicSuite::$view->error500();
             }
         }
