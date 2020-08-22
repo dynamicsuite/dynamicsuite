@@ -107,7 +107,7 @@ final class Expression
             $this->type = 'IF';
         }
         if (is_string($condition)) {
-            $this->condition = "($condition)";
+            $this->condition = "$condition";
         } else {
             /** @var Query $condition */
             $condition->build();
