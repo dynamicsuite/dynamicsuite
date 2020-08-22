@@ -133,6 +133,15 @@ class DynamicSuite
         }
     }
 
+    /**
+     * Clear the page data on the view.
+     *
+     * @return void
+     */
+    static clearPageData() {
+        DS_PAGE_DATA = false;
+    }
+
 }
 
 // Initialize the view
