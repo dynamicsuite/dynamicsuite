@@ -511,7 +511,7 @@ final class View
      */
     public static function setPageData(array $data): void
     {
-        echo '<script>const DS_PAGE_DATA = ' . json_encode($data) . ';</script>';
+        echo '<script>let DS_PAGE_DATA = ' . json_encode($data) . ';</script>';
     }
 
 }
