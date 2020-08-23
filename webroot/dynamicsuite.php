@@ -111,7 +111,7 @@ if (DS_VIEW) {
                 error_log('  @ ' . $exception->getFile() . ':' . $exception->getLine());
                 $trace = $exception->getTrace();
                 for ($i = 0, $count = count($trace); $i < $count; $i++) {
-                    error_log("  #$i {$trace[$i]['file']}:{$trace[$i]['line']}");
+                    error_log("  #$i {$trace[$i]['function']} ~ {$trace[$i]['file']}:{$trace[$i]['line']}");
                 }
                 DynamicSuite::$view->error500();
             }

@@ -302,10 +302,12 @@ class User extends Storable implements IStorable
             ->from('ds_users_groups')
             ->where('user_id', '=', $this->user_id)
             ->execute();
-        (new Query())
-            ->insert($insert)
-            ->into('ds_users_groups')
-            ->execute();
+        if ($insert) {
+            (new Query())
+                ->insert($insert)
+                ->into('ds_users_groups')
+                ->execute();
+        }
         return $this;
     }
 
