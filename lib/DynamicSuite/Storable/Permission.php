@@ -256,11 +256,11 @@ class Permission extends Storable implements IStorable
             ->where('domain', '=', $domain)
             ->execute();
         foreach ($unassigned as $value) {
-            $groups['unassigned'][$value['group_id']] = $value['name'];
+            $groups['unassigned'][$value['permission_id']] = $value['description'];
         }
         foreach ($assigned as $value) {
-            unset($groups['unassigned'][$value['group_id']]);
-            $groups['assigned'][$value['group_id']] = $value['name'];
+            unset($groups['unassigned'][$value['permission_id']]);
+            $groups['assigned'][$value['permission_id']] = $value['description'];
         }
         return $groups;
     }
