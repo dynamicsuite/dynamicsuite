@@ -347,20 +347,24 @@ final class View
         foreach (Packages::$action_groups as $group) {
             $action_links = '';
             foreach (Packages::$action_links as $text => $action) {
-                if ($action['group'] !== $group) continue;
-                if (isset($action['permissions'])) {
+                if ($action->group !== $group) {
+                    continue;
+                }
+                if (isset($action->permissions)) {
                     if (!Session::checkPermissions($action['permissions'])) {
                         continue;
                     }
                 }
-                if ($action['type'] === 'static') {
-                    if (isset($action['ref']) && $action['ref']) {
-                        $action['value'] .= '?ref=' . Request::$url_string;
+                if ($action->type === 'static') {
+                    if ($action->ref) {
+                        $value = $action->value .= '?ref=' . Request::$url_string;
+                    } else {
+                        $value = $action->value;
                     }
-                    $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";
-                } elseif ($action['type'] === 'dynamic') {
+                    $action_links .= "<li><a href=\"$value\">$text</a></li>";
+                } elseif ($action->type === 'dynamic') {
                     ob_start();
-                    require $action['value'];
+                    require $action->value;
                     $content = ob_get_clean();
                     $action_links .= "<li>$content</li>";
                 }

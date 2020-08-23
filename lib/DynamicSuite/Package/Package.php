@@ -305,6 +305,7 @@ final class Package
         foreach ($structure['action_links'] as $link_id => $link) {
             try {
                 $this->action_links[$link_id] = new ActionLink($link_id, $this->package_id, $link);
+                Packages::$action_links = array_merge(Packages::$action_links, $this->action_links);
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
                 continue;

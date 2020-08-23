@@ -33,6 +33,7 @@ use Exception;
  * @property string|null $value
  * @property string|null $group
  * @property string[] $permissions
+ * @property string|null $ref
  */
 final class ActionLink
 {
@@ -82,6 +83,13 @@ final class ActionLink
      * @var string[]
      */
     protected array $permissions = [];
+
+    /**
+     * Link reference for static links.
+     *
+     * @var string|null
+     */
+    protected ?string $ref = null;
 
     /**
      * ActionLink constructor.
