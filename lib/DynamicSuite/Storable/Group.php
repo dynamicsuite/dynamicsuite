@@ -304,10 +304,12 @@ class Group extends Storable implements IStorable
             ->from('ds_groups_permissions')
             ->where('group_id', '=', $this->group_id)
             ->execute();
-        (new Query())
-            ->insert($insert)
-            ->into('ds_groups_permissions')
-            ->execute();
+        if ($insert) {
+            (new Query())
+                ->insert($insert)
+                ->into('ds_groups_permissions')
+                ->execute();
+        }
         return $this;
     }
 
