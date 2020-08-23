@@ -155,12 +155,12 @@ class Group extends Storable implements IStorable
      *
      * Returns the Group if found, or FALSE if not found.
      *
-     * @param string $name
+     * @param string|null $name
      * @param string|null $domain
      * @return bool|Group
      * @throws Exception|PDOException
      */
-    public static function readByName(string $name, ?string $domain = null)
+    public static function readByName(?string $name, ?string $domain = null)
     {
         $group = (new Query())
             ->select()
