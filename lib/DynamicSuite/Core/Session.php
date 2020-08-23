@@ -20,7 +20,6 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
-
 use DynamicSuite\Database\Query;
 use DynamicSuite\Storable\User;
 use Exception;
