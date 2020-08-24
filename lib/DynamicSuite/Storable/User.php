@@ -179,8 +179,9 @@ class User extends Storable implements IStorable
      * @param bool|null $inactive
      * @return void
      */
-    public function setInactive(bool $inactive = true): void
+    public function setInactive(?bool $inactive = true): void
     {
+        $inactive ??= false;
         $this->inactive = $inactive;
         $this->inactive_on = $inactive ? date('Y-m-d H:i:s') : null;
     }
