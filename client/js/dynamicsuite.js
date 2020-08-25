@@ -15,73 +15,135 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-let ds = {
-    api: {
-        call: (package_id, api_id, data, callback) => {
-            if (data instanceof FormData) {
-                let form_data = {};
-                data.forEach((v, k) => { form_data[k] = v });
-                data = form_data;
+
+// noinspection JSUnusedGlobalSymbols
+
+/**
+ * Class DynamicSuite.
+ */
+class DynamicSuite
+{
+
+    /**
+     * Call a Dynamic Suite API.
+     *
+     * @param package_id
+     * @param api_id
+     * @param data
+     * @param callback
+     */
+    static call(package_id, api_id, data, callback) {
+        fetch('/dynamicsuite/api/' + package_id + '/' + api_id, {
+            method: 'POST',
+            body: JSON.stringify(data ? data : [])
+        })
+        .then(response => {
+            if (response.ok) {
+                return response;
             }
-            fetch('/dynamicsuite/api', {
-                method: 'POST',
-                body: JSON.stringify({package_id: package_id, api_id: api_id, data: data})
-            })
-            .then(response => response.json())
-            .then(json => callback(json), () => callback({
+            throw new Error('A server error has occurred');
+        })
+        .then(response => response.json())
+        .then(json => callback(json), () => callback({
+            status: 'SERVER_ERROR',
+            message: 'A malformed response was returned',
+            data: null
+        }))
+        .catch(() => {
+            callback({
                 status: 'SERVER_ERROR',
                 message: 'A malformed response was returned',
                 data: null
-            }))
-        },
-        data: el => {
-            return new FormData(document.querySelector(el))
-        }
-    },
-    body: {
-        nav: document.getElementById('ds-nav-container'),
-        view: document.getElementById('ds-view-container'),
-        groups: document.getElementsByClassName('ds-nav-group'),
-        mobileToggleBtn: document.getElementById('ds-nav-mobile-toggle'),
-        init: () => {
-            if (ds.body.nav === null) return false;
-            window.onresize = () => {
-                if (!ds.body.isMobile()) ds.body.nav.classList.remove('ds-nav-show-mobile');
-            };
-            for (let i = 0, c = ds.body.groups.length; i < c; i++) {
-                let group = ds.body.groups[i];
-                group.addEventListener('click', () => {
-                    let hidden = group.nextElementSibling.classList.contains("ds-hide"),
-                        sublinks = group.nextElementSibling.classList,
-                        chevron = group.lastElementChild.classList;
-                    ds.body.clearNav();
-                    group.classList.add('ds-nav-selected');
-                    sublinks.replace(hidden ? 'ds-hide' : 'ds-show', hidden ? 'ds-show' : 'ds-hide');
-                    chevron.replace(
-                        hidden ? 'fa-chevron-right' : 'fa-chevron-down',
-                        hidden ? 'fa-chevron-down' : 'fa-chevron-right'
-                    );
-                });
-            }
-            ds.body.mobileToggleBtn.addEventListener('click', () => {
-                ds.body.nav.classList.toggle('ds-nav-show-mobile');
             });
-        },
-        clearNav: () => {
-            for (let i = 0, c = ds.body.groups.length; i < c; i++) {
-                let group = ds.body.groups[i];
-                group.classList.remove('ds-nav-selected');
-                let sublinks = group.nextElementSibling.classList,
-                    chevron = group.lastElementChild.classList;
-                sublinks.remove('ds-show');
-                sublinks.add('ds-hide');
-                chevron.replace('fa-chevron-down', 'fa-chevron-right');
+        });
+    }
+
+    /**
+     * Initialize a Dynamic Suite view.
+     *
+     * If the view does not show the navigation, this function will return false.
+     *
+     * @return boolean
+     */
+    static initView() {
+        this.nav = document.getElementById('ds-nav-container');
+        if (this.nav === null) {
+            return false;
+        }
+        this.view = document.getElementById('ds-view-container');
+        this.groups = document.getElementsByClassName('ds-nav-group');
+        this.mobile_toggle_btn = document.getElementById('ds-nav-mobile-toggle');
+        window.onresize = () => {
+            if (!this.isMobile()) {
+                this.nav.classList.remove('ds-nav-show-mobile');
             }
-        },
-        isMobile: () => {
-            return window.innerWidth < 1280;
+        };
+        for (let i = 0, c = this.groups.length; i < c; i++) {
+            this.groups[i].addEventListener('click', () => {
+                let hidden = this.groups[i].nextElementSibling.classList.contains("ds-hide"),
+                    sublinks = this.groups[i].nextElementSibling.classList,
+                    chevron = this.groups[i].lastElementChild.classList;
+                this.clearNav();
+                this.groups[i].classList.add('ds-nav-selected');
+                sublinks.replace(hidden ? 'ds-hide' : 'ds-show', hidden ? 'ds-show' : 'ds-hide');
+                chevron.replace(
+                    hidden ? 'fa-chevron-right' : 'fa-chevron-down',
+                    hidden ? 'fa-chevron-down' : 'fa-chevron-right'
+                );
+            });
+        }
+        this.mobile_toggle_btn.addEventListener('click', () => {
+            this.nav.classList.toggle('ds-nav-show-mobile');
+        });
+    }
+
+    /**
+     * Clear the navigation and reset all collapsable groups.
+     *
+     * @return void
+     */
+    static clearNav() {
+        for (let i = 0, c = this.groups.length; i < c; i++) {
+            this.groups[i].classList.remove('ds-nav-selected');
+            this.groups[i].nextElementSibling.classList.remove('ds-show');
+            this.groups[i].nextElementSibling.classList.add('ds-hide');
+            this.groups[i].lastElementChild.classList.replace('fa-chevron-down', 'fa-chevron-right');
         }
     }
-};
-ds.body.init();
+
+    /**
+     * If the current window size is the mobile or desktop version.
+     *
+     * @return boolean
+     */
+    static isMobile() {
+        return window.innerWidth < 1280;
+    }
+
+    /**
+     * Get the page data initialized with the view.
+     *
+     * @returns Object
+     */
+    static getPageData() {
+        if (typeof DS_PAGE_DATA !== 'undefined') {
+            return DS_PAGE_DATA;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Clear the page data on the view.
+     *
+     * @return void
+     */
+    static clearPageData() {
+        DS_PAGE_DATA = false;
+    }
+
+}
+
+// Initialize the view
+DynamicSuite.initView();
 

@@ -20,17 +20,16 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\API;
-use DynamicSuite\Base\ProtectedObject;
 
 /**
- * Class APIResponse.
+ * Class Response.
  *
  * @package DynamicSuite\API
- * @property string|null $status
- * @property string|null $message
+ * @property string $status
+ * @property string $message
  * @property mixed $data
  */
-class APIResponse extends ProtectedObject
+class Response
 {
 
     /**
@@ -38,14 +37,14 @@ class APIResponse extends ProtectedObject
      *
      * @var string
      */
-    public ?string $status = null;
+    public string $status;
 
     /**
      * User-friendly message.
      *
      * @var string
      */
-    public ?string $message = null;
+    public string $message;
 
     /**
      * Response data (if any).
@@ -55,14 +54,14 @@ class APIResponse extends ProtectedObject
     public $data = null;
 
     /**
-     * APIResponse constructor.
+     * Response constructor.
      *
      * @param string $status
      * @param string $message
      * @param mixed $data
      * @return void
      */
-    public function __construct(?string $status = 'EMPTY_RESPONSE', string $message = 'Empty Response', $data = null) {
+    public function __construct(string $status = 'EMPTY_RESPONSE', string $message = 'Empty Response', $data = null) {
         $this->status = $status;
         $this->message = $message;
         $this->data = $data;

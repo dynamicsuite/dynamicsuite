@@ -20,41 +20,53 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\Base\ProtectedObject;
 
 /**
  * Class Request.
  *
  * @package DynamicSuite\Core
- * @property string[] $url_array
- * @property string $url_string
  */
-final class Request extends ProtectedObject
+final class Request
 {
 
     /**
-     * Array of URL components.
+     * String URL string with stripped GET parameters.
      *
-     * @var string[]
+     * @var string|null
      */
-    protected array $url_array = [];
+    public static ?string $url_string = null;
 
     /**
-     * String URL with stripped GET parameters.
+     * The URL string represented as an array indexed from 0.
      *
-     * @var string
+     * @var string[]|null
      */
-    protected string $url_string = '';
+    public static ?array $url_array = null;
 
     /**
-     * Initialize the request.
+     * Initialize the request URL.
      *
-     * @param string $url
-     * @return void
+     * @return bool
      */
-    public function initViewable(string $url = null): void
+    public static function init(): bool
     {
-        $this->setUrl($url);
+        $url = $_SERVER['REQUEST_URI'] ?? '/';
+        $pos = strpos($url, '?');
+        if ($pos !== false) {
+            $url = substr($url, 0, $pos);
+        }
+        self::$url_string = rtrim($url, '/');
+        self::$url_array = explode('/',  trim($url, '/'));
+        if (defined('STDIN')) {
+            return false;
+        } elseif (self::urlKey(0, 'dynamicsuite') && self::urlKey(1, 'api')) {
+            define('DS_API', true);
+            define('DS_VIEW', false);
+        } else {
+            define('DS_VIEW', true);
+            define('DS_API', false);
+        }
+        return true;
     }
 
     /**
@@ -65,27 +77,10 @@ final class Request extends ProtectedObject
      * @param string $path
      * @return void
      */
-    public function redirect(string $path): void
+    public static function redirect(string $path): void
     {
         header("Location: $path");
         exit;
-    }
-
-    /**
-     * Set the URL parameters (strip GET).
-     *
-     * @param string $url
-     * @return void
-     */
-    public function setUrl(string $url = null): void
-    {
-        $url = $url ?? $_SERVER['REQUEST_URI'] ?? '/';
-        $pos = strpos($url, '?');
-        if ($pos !== false) {
-            $url = substr($url, 0, $pos);
-        }
-        $this->url_string = rtrim($url, '/');
-        $this->url_array = explode('/',  trim($url, '/'));
     }
 
     /**
@@ -100,14 +95,17 @@ final class Request extends ProtectedObject
      * @param bool $strict
      * @return bool
      */
-    public function urlKey(int $key, string $value, bool $strict = false): bool
+    public static function urlKey(int $key, string $value, bool $strict = false): bool
     {
-        if (!isset($this->url_array[$key])) {
+        if (self::$url_array === null) {
+            self::init();
+        }
+        if (!isset(self::$url_array[$key])) {
             return false;
         } elseif ($strict) {
-            return $this->url_array[$key] === $value;
+            return self::$url_array[$key] === $value;
         } else {
-            return strcasecmp($this->url_array[$key], $value) === 0;
+            return strcasecmp(self::$url_array[$key], $value) === 0;
         }
     }
 
@@ -115,55 +113,15 @@ final class Request extends ProtectedObject
      * Check to see if the input URL matches the current URL or given.
      *
      * @param string $needle
-     * @param string $haystack
+     * @param string|null $haystack
      * @return bool
      */
-    public function urlIs(string $needle, string $haystack = null): bool
+    public static function urlIs(string $needle, string $haystack = null): bool
     {
-        return rtrim($needle, '/') === ($haystack ?? $this->url_string);
-    }
-
-    /**
-     * Check if the instance is a viewable instance.
-     *
-     * @return bool
-     */
-    public static function isViewable(): bool
-    {
-        return
-            defined('DS_VIEW') || (
-                isset($_SERVER, $_SERVER['REQUEST_URI']) &&
-                $_SERVER['REQUEST_URI'] !== '/dynamicsuite/api'
-            );
-    }
-
-    /**
-     * Check if the instance is an API initialized instance.
-     *
-     * @return bool
-     */
-    public static function isApi(): bool
-    {
-        return
-            defined('DS_API') || (
-                isset(
-                    $_SERVER,
-                    $_SERVER['REQUEST_URI'],
-                    $_SERVER['REQUEST_METHOD']
-                ) &&
-                $_SERVER['REQUEST_URI'] === '/dynamicsuite/api' &&
-                $_SERVER['REQUEST_METHOD'] === 'POST'
-            );
-    }
-
-    /**
-     * Check if the instance is a command-line initialized instance.
-     *
-     * @return bool
-     */
-    public static function isCli(): bool
-    {
-        return defined('DS_CLI') || defined('STDIN');
+        if (self::$url_string === null) {
+            self::init();
+        }
+        return rtrim($needle, '/') === ($haystack ?? self::$url_string);
     }
 
     /**

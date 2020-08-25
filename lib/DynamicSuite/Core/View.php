@@ -18,43 +18,42 @@
  */
 
 /** @noinspection PhpUnused */
+/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\Base\InstanceMember;
-use DynamicSuite\Util\File;
+use DynamicSuite\Package\NavGroup;
+use DynamicSuite\Package\Packages;
 use DynamicSuite\Util\Template;
-use DynamicSuite\Package\NavEntry;
-use DynamicSuite\Package\View AS PackageView;
 
 /**
  * Class View.
  *
  * @package DynamicSuite\View
- * @property PackageView $package
+ * @property \DynamicSuite\Package\View $structure
  * @property Template $document
  * @property Template $document_template
- * @property Template $stylesheet
- * @property Template $script
- * @property Template $error404
- * @property Template $error500
- * @property Template $about
+ * @property Template $stylesheet_template
+ * @property Template $script_template
+ * @property Template $error_404_template
+ * @property Template $error_500_template
+ * @property Template $about_template
  * @property Template $nav
  * @property Template $nav_template
- * @property Template $nav_group
- * @property Template $nav_single
- * @property Template $nav_sublink
+ * @property Template $nav_group_template
+ * @property Template $nav_single_template
+ * @property Template $nav_sublink_template
  * @property string $core_css
  * @property string $core_js
  */
-final class View extends InstanceMember
+final class View
 {
 
     /**
-     * Package view metadata.
+     * Package view structure.
      *
-     * @var PackageView
+     * @var \DynamicSuite\Package\View
      */
-    protected PackageView $package;
+    protected \DynamicSuite\Package\View $structure;
 
     /**
      * Viewable document.
@@ -75,35 +74,35 @@ final class View extends InstanceMember
      *
      * @var Template
      */
-    protected Template $stylesheet;
+    protected Template $stylesheet_template;
 
     /**
      * JS script template.
      *
      * @var Template
      */
-    protected Template $script;
+    protected Template $script_template;
 
     /**
      * 404 error page template.
      *
      * @var Template
      */
-    protected Template $error404;
+    protected Template $error_404_template;
 
     /**
      * 500 error page template.
      *
      * @var Template
      */
-    protected Template $error500;
+    protected Template $error_500_template;
 
     /**
      * About Dynamic Suite template.
      *
      * @var Template
      */
-    protected Template $about;
+    protected Template $about_template;
 
     /**
      * Viewable navigation template.
@@ -124,21 +123,21 @@ final class View extends InstanceMember
      *
      * @var Template
      */
-    protected Template $nav_group;
+    protected Template $nav_group_template;
 
     /**
      * Navigation single view template.
      *
      * @var Template
      */
-    protected Template $nav_single;
+    protected Template $nav_single_template;
 
     /**
      * Navigation sublink template.
      *
      * @var Template
      */
-    protected Template $nav_sublink;
+    protected Template $nav_sublink_template;
 
     /**
      * HTML block of core CSS resources.
@@ -155,98 +154,59 @@ final class View extends InstanceMember
     protected string $core_js;
 
     /**
-     * View constructor.
+     * Parameter getter magic method.
      *
-     * @param DynamicSuite $ds
-     * @return void
+     * @param string $property
+     * @return mixed
      */
-    public function __construct(DynamicSuite $ds)
+    public function __get(string $property)
     {
-        parent::__construct($ds);
-        $this->initTemplates();
-        $this->initCoreResources();
+        return $this->$property;
     }
 
     /**
-     * Reset the document template.
+     * Reset the view.
      *
      * @return void
      */
-    public function resetDocument(): void
+    public function reset(): void
     {
         $this->document = clone $this->document_template;
-    }
-
-    /**
-     * Reset the navigation template.
-     *
-     * @return void
-     */
-    public function resetNav(): void
-    {
         $this->nav = clone $this->nav_template;
+        $this->initCoreResources();
     }
 
     /**
      * Initialize and load all templates.
      *
-     * @return View
+     * @return void
      */
-    public function initTemplates(): View
+    public function initTemplates()
     {
-        if (!is_readable($this->ds->cfg->document_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->document_template}", E_USER_ERROR);
-        } else {
-            $this->document_template = new Template(File::contents($this->ds->cfg->document_template));
+        foreach ([
+            'document_template',
+            'stylesheet_template',
+            'script_template',
+            'error_404_template',
+            'error_500_template',
+            'about_template',
+            'nav_template',
+            'nav_group_template',
+            'nav_single_template',
+            'nav_sublink_template'
+        ] as $template) {
+            if (!is_readable(DS_ROOT_DIR . '/' . DynamicSuite::$cfg->$template)) {
+                error_log('[View] Template not readable: ' . DynamicSuite::$cfg->$template, E_USER_ERROR);
+            } else {
+                $this->$template = new Template(file_get_contents(DS_ROOT_DIR . '/' . DynamicSuite::$cfg->$template));
+            }
         }
-        if (!is_readable($this->ds->cfg->stylesheet_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->stylesheet_template}", E_USER_ERROR);
-        } else {
-            $this->stylesheet = new Template(File::contents($this->ds->cfg->stylesheet_template));
-        }
-        if (!is_readable($this->ds->cfg->script_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->script_template}", E_USER_ERROR);
-        } else {
-            $this->script = new Template(File::contents($this->ds->cfg->script_template));
-        }
-        if (!is_readable($this->ds->cfg->error_404_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->error_404_template}", E_USER_ERROR);
-        } else {
-            $this->error404 = new Template(File::contents($this->ds->cfg->error_404_template));
-        }
-        if (!is_readable($this->ds->cfg->error_500_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->error_500_template}", E_USER_ERROR);
-        } else {
-            $this->error500 = new Template(File::contents($this->ds->cfg->error_500_template));
-        }
-        if (!is_readable($this->ds->cfg->about_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->about_template}", E_USER_ERROR);
-        } else {
-            $this->about = new Template(File::contents($this->ds->cfg->about_template));
-        }
-        if (!is_readable($this->ds->cfg->nav_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->nav_template}", E_USER_ERROR);
-        } else {
-            $this->nav_template = new Template(File::contents($this->ds->cfg->nav_template));
-        }
-        if (!is_readable($this->ds->cfg->nav_group_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->nav_group_template}", E_USER_ERROR);
-        } else {
-            $this->nav_group = new Template(File::contents($this->ds->cfg->nav_group_template));
-        }
-        if (!is_readable($this->ds->cfg->nav_single_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->nav_single_template}", E_USER_ERROR);
-        } else {
-            $this->nav_single = new Template(File::contents($this->ds->cfg->nav_single_template));
-        }
-        if (!is_readable($this->ds->cfg->nav_sublink_template)) {
-            trigger_error("Template not readable: {$this->ds->cfg->nav_sublink_template}", E_USER_ERROR);
-        } else {
-            $this->nav_sublink = new Template(File::contents($this->ds->cfg->nav_sublink_template));
-        }
-        $this->document_template->replace(['{{charset}}' => $this->ds->cfg->charset]);
-        $this->document_template->replace(['{{language}}' => $this->ds->cfg->language]);
-        return $this;
+        $this->document_template->replace([
+            '{{charset}}' => DynamicSuite::$cfg->charset
+        ]);
+        $this->document_template->replace([
+            '{{language}}' => DynamicSuite::$cfg->language
+        ]);
     }
 
     /**
@@ -257,42 +217,58 @@ final class View extends InstanceMember
     public function initCoreResources()
     {
         $css = array_unique(array_merge([
-            $this->ds->cfg->css_fontawesome,
-            $this->ds->cfg->css_style,
-            $this->ds->cfg->css_theme
-        ], $this->ds->packages->resources->css));
+            DynamicSuite::$cfg->css_fontawesome,
+            DynamicSuite::$cfg->css_style,
+            DynamicSuite::$cfg->css_theme
+        ], Packages::$global['css']));
         $this->core_css = '';
         foreach ($css as $href) {
-            $stylesheet = clone $this->stylesheet;
-            $this->core_css .= $stylesheet->replace(['{{href}}' => $href,])->contents;
+            $stylesheet = clone $this->stylesheet_template;
+            $this->core_css .= $stylesheet->replace([
+                '{{href}}' => $href
+            ])->contents;
         }
-        $js = array_unique(array_merge([
-            $this->ds->cfg->js_dynamicsuite
-        ], $this->ds->packages->resources->js));
+        $js = array_unique(array_merge([DynamicSuite::$cfg->js_dynamicsuite], Packages::$global['js']));
         $this->core_js = '';
         foreach ($js as $src) {
-            $script = clone $this->script;
-            $this->core_js .= $script->replace(['{{src}}' => $src])->contents;
+            $script = clone $this->script_template;
+            $this->core_js .= $script->replace([
+                '{{src}}' => $src
+            ])->contents;
         }
     }
 
     /**
      * Set the package view based on the URL.
      *
-     * @param string $url
+     * @param string|null $url
      * @return bool
      */
-    public function setPackageView($url = null): bool
+    public function setPackageView(?string $url = null): bool
     {
-        $url ??= $this->ds->request->url_string;
-        foreach ($this->ds->packages->views as $view_path => $package_view) {
-            if ($this->ds->request->urlIs($view_path, $url)) {
-                $this->package = $package_view;
+        $url = $url ?? Request::$url_string;
+        foreach (Packages::$views as $path => $view) {
+            if (Request::urlIs($path, $url)) {
+                $this->structure = $view;
+                $this->structure->autoload = array_merge(
+                    Packages::$loaded[$this->structure->package_id]->local['autoload'], $this->structure->autoload
+                );
+                $this->structure->init = array_merge(
+                    Packages::$loaded[$this->structure->package_id]->local['init'], $this->structure->init
+                );
+                $this->structure->js = array_merge(
+                    Packages::$loaded[$this->structure->package_id]->local['js'], $this->structure->js
+                );
+                $this->structure->css = array_merge(
+                    Packages::$loaded[$this->structure->package_id]->local['css'], $this->structure->css
+                );
                 return true;
             }
         }
         $pos = strrpos($url, '/');
-        if ($pos === false) return false;
+        if ($pos === false) {
+            return false;
+        }
         return $this->setPackageView(substr($url, 0, $pos));
     }
 
@@ -309,8 +285,10 @@ final class View extends InstanceMember
             '{{css}}' => '',
             '{{js}}' => ''
         ]);
-        $body = clone $this->error404;
-        $body->replace(['{{version}}' => DS_VERSION]);
+        $body = clone $this->error_404_template;
+        $body->replace([
+            '{{version}}' => DS_VERSION
+        ]);
         $this->document->replace([
             '{{body}}' => $body->contents
         ]);
@@ -330,7 +308,7 @@ final class View extends InstanceMember
             '{{css}}' => '',
             '{{js}}' => ''
         ]);
-        $body = clone $this->error500;
+        $body = clone $this->error_500_template;
         $body->replace(['{{version}}' => DS_VERSION]);
         $this->document->replace([
             '{{body}}' => $body->contents
@@ -351,7 +329,7 @@ final class View extends InstanceMember
             '{{css}}' => '',
             '{{js}}' => ''
         ]);
-        $body = clone $this->about;
+        $body = clone $this->about_template;
         $body->replace(['{{version}}' => DS_VERSION]);
         $this->document->replace([
             '{{body}}' => $body->contents
@@ -361,28 +339,32 @@ final class View extends InstanceMember
     /**
      * Set the document to a navigable document.
      *
-     * @return View
+     * @return void
      */
-    public function setNavigable(): View
+    public function setNavigable(): void
     {
         $action_area = '';
-        foreach ($this->ds->packages->action_groups as $group) {
+        foreach (Packages::$action_groups as $group) {
             $action_links = '';
-            foreach ($this->ds->packages->action_links as $text => $action) {
-                if ($action['group'] !== $group) continue;
-                if (isset($action['permissions'])) {
-                    if (!$this->ds->session->checkPermissions($action['permissions'])) {
+            foreach (Packages::$action_links as $text => $action) {
+                if ($action->group !== $group) {
+                    continue;
+                }
+                if (isset($action->permissions)) {
+                    if (!Session::checkPermissions($action['permissions'])) {
                         continue;
                     }
                 }
-                if ($action['type'] === 'static') {
-                    if (isset($action['ref']) && $action['ref']) {
-                        $action['value'] .= '?ref=' . $this->ds->request->url_string;
+                if ($action->type === 'static') {
+                    if ($action->ref) {
+                        $value = $action->value .= '?ref=' . Request::$url_string;
+                    } else {
+                        $value = $action->value;
                     }
-                    $action_links .= "<li><a href=\"{$action['value']}\">$text</a></li>";
-                } elseif ($action['type'] === 'dynamic') {
+                    $action_links .= "<li><a href=\"$value\">$text</a></li>";
+                } elseif ($action->type === 'dynamic') {
                     ob_start();
-                    require $action['value'];
+                    require $action->value;
                     $content = ob_get_clean();
                     $action_links .= "<li>$content</li>";
                 }
@@ -392,49 +374,57 @@ final class View extends InstanceMember
             }
         }
         $this->nav->replace([
-            '{{nav-header-text}}' => $this->ds->cfg->nav_header_text,
-            '{{nav-header-path}}' => $this->ds->cfg->nav_header_view,
-            '{{login-path}}' => $this->ds->cfg->nav_login_path,
+            '{{nav-header-text}}' => DynamicSuite::$cfg->nav_header_text,
+            '{{nav-header-path}}' => DynamicSuite::$cfg->nav_header_view,
+            '{{login-path}}' => DynamicSuite::$cfg->nav_login_path,
             '{{nav-footer-version}}' => DS_VERSION,
-            '{{view-header}}' => $this->package->title,
-            '{{action-links-icon}}' => $this->ds->cfg->action_links_icon,
-            '{{hide-user-actions}}' => $this->package->hide_user_actions
+            '{{view-header}}' => $this->structure->title,
+            '{{action-links-icon}}' => DynamicSuite::$cfg->action_links_icon,
+            '{{hide-user-actions}}' => $this->structure->hide_user_actions
                 ? ' class="ds-hide"'
                 : '',
             '{{action-links}}' => $action_area,
-            '{{hide-logout-link}}' => $this->package->hide_logout_link
+            '{{hide-logout-link}}' => $this->structure->hide_logout_button
                 ? ' class="ds-hide"'
                 : '',
-            '{{login-view}}' => $this->ds->cfg->nav_login_path,
+            '{{login-view}}' => DynamicSuite::$cfg->nav_login_path,
             '{{nav-links}}' => $this->generateNavLinks(),
         ]);
         $this->document->replace([
             '{{body}}' => $this->nav->contents
         ]);
-        return $this;
     }
 
     /**
      * Set the resources for the view (CSS, JS).
      *
-     * @return View
+     * @return void
      */
-    public function setViewResources(): View
+    public function setViewResources(): void
     {
-        $this->document->replace(['{{title}}' => ($this->package->title ?? $this->ds->cfg->default_title)]);
+        $this->document->replace([
+            '{{title}}' => $this->structure->title
+        ]);
         $css = '';
-        foreach ($this->package->resources->css as $href) {
-            $stylesheet = clone $this->stylesheet;
-            $css .= $stylesheet->replace(['{{href}}' => $href])->contents;
+        foreach ($this->structure->css as $href) {
+            $stylesheet = clone $this->stylesheet_template;
+            $css .= $stylesheet->replace([
+                '{{href}}' => $href
+            ])->contents;
         }
-        $this->document->replace(['{{css}}' => $this->core_css . $css]);
+        $this->document->replace([
+            '{{css}}' => $this->core_css . $css
+        ]);
         $js = '';
-        foreach ($this->package->resources->js as $src) {
-            $script = clone $this->script;
-            $js .= $script->replace(['{{src}}' => $src])->contents;
+        foreach ($this->structure->js as $src) {
+            $script = clone $this->script_template;
+            $js .= $script->replace([
+                '{{src}}' => $src
+            ])->contents;
         }
-        $this->document->replace(['{{js}}' => $this->core_js . $js]);
-        return $this;
+        $this->document->replace([
+            '{{js}}' => $this->core_js . $js
+        ]);
     }
 
     /**
@@ -444,32 +434,56 @@ final class View extends InstanceMember
      */
     public function generateNavLinks(): string
     {
-        $nav_links = '';
-        /** @var $super NavEntry */
-        foreach ($this->ds->packages->nav_tree as $super) {
-            if (!$super->public && !$this->ds->session->checkPermissions($super->permissions)) continue;
-            if ($super->hasChildren()) {
-                $superlink = clone $this->nav_group;
+        $tree = [];
+        foreach (Packages::$nav_groups as $group_id => $group) {
+            if (!$group->public && !Session::checkPermissions($group->permissions)) {
+                unset(Packages::$nav_groups[$group_id]);
+            }
+        }
+        foreach (Packages::$views as $view_id => $view) {
+            if (!$view->navigable) {
+                continue;
+            }
+            if (!$view->public && !Session::checkPermissions($view->permissions)) {
+                continue;
+            }
+            if ($view->nav_group && isset($tree["nav_group.$view->nav_group"])) {
+                $tree["nav_group.$view->nav_group"]->views[] = $view;
+            } elseif ($view->nav_group && isset(Packages::$nav_groups[$view->nav_group])) {
+                $tree["nav_group.$view->nav_group"] = Packages::$nav_groups[$view->nav_group];
+                $tree["nav_group.$view->nav_group"]->views[] = $view;
+            } elseif(!$view->nav_group) {
+                $tree["view.$view->package_id.$view_id"] = $view;
+            } else {
+                error_log("[Structure] Package \"$view->package_id\" view \"$view_id\" belongs to unknown nav group");
+            }
+        }
+        $html = '';
+        foreach ($tree as $branch) {
+            if ($branch instanceof NavGroup && empty($branch->views)) {
+                continue;
+            } elseif ($branch instanceof NavGroup) {
+                $superlink = clone $this->nav_group_template;
                 $superlink->replace([
-                    '{{icon}}' => $super->icon,
-                    '{{name}}' => $super->name
+                    '{{icon}}' => $branch->icon,
+                    '{{name}}' => $branch->name
                 ]);
-                $sublinks = '';
                 $active = false;
-                foreach ($super->children as $sub) {
-                    if (!$sub->public && !$this->ds->session->checkPermissions($sub->permissions)) continue;
-                    if ($this->package->url === $sub->url) {
+                $sublinks = '';
+                /** @var \DynamicSuite\Package\View $view */
+                foreach ($branch->views as $view) {
+                    if ($view->view_id === $this->structure->view_id) {
                         $active_class = ' ds-nav-active';
                         $active = true;
                     } else {
                         $active_class = '';
                     }
-                    $sublink = clone $this->nav_sublink;
+                    $sublink = clone $this->nav_sublink_template;
                     $sublink->replace([
                         '{{active}}' => $active_class,
-                        '{{path}}' => $sub->url,
-                        '{{icon}}' => $sub->icon,
-                        '{{name}}' => $sub->name
+                        '{{path}}' => $view->view_id,
+                        '{{icon}}' => $view->nav_icon,
+                        '{{name}}' => $view->nav_name
                     ]);
                     $sublinks .= $sublink->contents;
                 }
@@ -480,17 +494,28 @@ final class View extends InstanceMember
                     '{{sublinks}}' => $sublinks
                 ]);
             } else {
-                $superlink = clone $this->nav_single;
+                $superlink = clone $this->nav_single_template;
                 $superlink->replace([
-                    '{{active}}' => $this->package->url === $super->url ? ' ds-nav-active' : '',
-                    '{{path}}' => $super->url,
-                    '{{icon}}' => $super->icon,
-                    '{{name}}' => $super->name
+                    '{{active}}' => $this->structure->view_id === $branch->view_id ? ' ds-nav-active' : '',
+                    '{{path}}' => $branch->view_id,
+                    '{{icon}}' => $branch->nav_icon,
+                    '{{name}}' => $branch->nav_name
                 ]);
             }
-            $nav_links .= $superlink->contents;
+            $html .= $superlink->contents;
         }
-        return $nav_links;
+        return $html;
+    }
+
+    /**
+     * Set pre-rendered page data.
+     *
+     * @param array $data
+     * @return void
+     */
+    public static function setPageData(array $data): void
+    {
+        echo '<script>let DS_PAGE_DATA = ' . json_encode($data) . ';</script>';
     }
 
 }

@@ -20,170 +20,219 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Package;
-use DynamicSuite\Base\ArrayConvertible;
+use DynamicSuite\Util\Format;
+use Exception;
 
 /**
  * Class View.
  *
  * @package DynamicSuite\Package
+ * @property string $view_id
  * @property string $package_id
- * @property string $url
- * @property string $entry
- * @property string $title
+ * @property string|null $entry
+ * @property string|null $title
  * @property bool $public
  * @property bool $navigable
  * @property bool $hide_nav
  * @property bool $hide_user_actions
- * @property bool $hide_logout_link
- * @property string|null $nav_group
- * @property string $nav_name
+ * @property bool $hide_logout_button
+ * @property string|null $nav_name
  * @property string $nav_icon
- * @property array|null $permissions
- * @property Resources $resources
+ * @property string|null $nav_group
+ * @property string[] $permissions
+ * @property string[] $autoload
+ * @property string[] $init
+ * @property string[] $js
+ * @property string[] $css
  */
-final class View extends ArrayConvertible
+final class View
 {
 
     /**
-     * Package ID of the package the view belongs to.
+     * View ID (URL path string).
      *
      * @var string
      */
-    public string $package_id;
+    protected string $view_id;
 
     /**
-     * URL string path for the view.
+     * Associated package ID.
      *
      * @var string
      */
-    public string $url;
+    protected string $package_id;
 
     /**
-     * Script path to the view entry point.
+     * View URL path.
      *
      * @var string
      */
-    public string $entry;
+    protected string $path;
 
     /**
-     * View title (HTML title/header ribbon title).
-     *
-     * @var string
-     */
-    public string $title;
-
-    /**
-     * View public state.
-     *
-     * @var bool
-     */
-    public bool $public = false;
-
-    /**
-     * View navigable state.
-     *
-     * @var bool
-     */
-    public bool $navigable = true;
-
-    /**
-     * Hidden navigation state.
-     *
-     * @var bool
-     */
-    public bool $hide_nav = false;
-
-    /**
-     * Flag to hide the user actions button on the view
-     *
-     * @var bool
-     */
-    public bool $hide_user_actions = false;
-
-    /**
-     * Flag to hide the logout link on the actions area.
-     *
-     * @var bool
-     */
-    public bool $hide_logout_link = false;
-
-    /**
-     * View navigation group id.
+     * View entry point script file path.
      *
      * @var string|null
      */
-    public ?string $nav_group = null;
+    protected ?string $entry = null;
 
     /**
-     * Navigation element name.
+     * View title (HTML and nav).
      *
-     * @var string
+     * @var string|null
      */
-    public string $nav_name;
+    protected ?string $title = null;
+
+    /**
+     * If the view is public (no auth required).
+     *
+     * @var bool
+     */
+    protected bool $public = false;
+
+    /**
+     * If the view is navigable.
+     *
+     * @var bool
+     */
+    protected bool $navigable = true;
+
+    /**
+     * If the navigation should be hidden.
+     *
+     * @var bool
+     */
+    protected bool $hide_nav = false;
+
+    /**
+     * If the user action area should be hidden.
+     *
+     * @var bool
+     */
+    protected bool $hide_user_actions = false;
+
+    /**
+     * If the logout button should be hidden.
+     *
+     * @var bool
+     */
+    protected bool $hide_logout_button = false;
+
+    /**
+     * Navigation name (under nav bar).
+     *
+     * @var string|null
+     */
+    protected ?string $nav_name = null;
 
     /**
      * Navigation icon.
      *
      * @var string
      */
-    public string $nav_icon = 'fas fa-cogs';
+    protected string $nav_icon = 'fas fa-cogs';
 
     /**
-     * View array of required permissions.
+     * Navigation group.
      *
-     * @var array|null
+     * @var string|null
      */
-    public ?array $permissions = null;
+    protected ?string $nav_group = null;
 
     /**
-     * Package resources belonging to the view.
+     * Required permissions (array of shorthands).
      *
-     * @var Resources
+     * @var string[]
      */
-    public Resources $resources;
+    protected array $permissions = [];
 
     /**
-     * PackageView constructor.
+     * Paths to autoload.
      *
+     * @var string[]
+     */
+    public array $autoload = [];
+
+    /**
+     * Scripts to run before the view (initialization scripts).
+     *
+     * @var string[]
+     */
+    public array $init = [];
+
+    /**
+     * JS client scripts to include.
+     *
+     * @var string[]
+     */
+    public array $js = [];
+
+    /**
+     * CSS resources to include.
+     *
+     * @var string[]
+     */
+    public array $css = [];
+
+    /**
+     * View constructor.
+     *
+     * @param string $view_id
      * @param string $package_id
-     * @param string $url
      * @param array $structure
      * @return void
+     * @throws Exception
      */
-    public function __construct(string $package_id, string $url, $structure = [])
+    public function __construct(string $view_id, string $package_id, array $structure)
     {
+        $this->view_id = $view_id;
         $this->package_id = $package_id;
-        $this->url = $url;
-        parent::__construct($structure);
-        $this->title = $this->title ?? $this->url;
-        $this->nav_name = $this->nav_name ?? $this->url;
-        $this->resources = new Resources($this->package_id);
-        $this->setResources($structure);
+        $error = function(string $key, string $message): string {
+            return "[Structure] Package \"$this->package_id\" view \"$this->view_id\" key \"$key\": $message";
+        };
+        foreach ($structure as $prop => $value) {
+            if ($prop === 'entry') {
+                $value = Format::formatServerPath($package_id, $value);
+            }
+            if (in_array($prop, ['permissions', 'autoload', 'init', 'js', 'css'])) {
+                if ($value === null) {
+                    $value = [];
+                } elseif (is_array($value)) {
+                    foreach ($value as $type => $path) {
+                        if (!is_string($path)) {
+                            throw new Exception($error($prop, 'must be a array of strings (paths)'));
+                        }
+                        if ($prop === 'autoload' || $prop === 'init') {
+                            $value[$type] = Format::formatServerPath($this->package_id, $path);
+                        }
+                        if ($prop === 'js' || $prop === 'css') {
+                            $value[$type] = Format::formatClientPath($this->package_id, $path);
+                        }
+                    }
+                } else {
+                    throw new Exception($error($prop, 'must be a array of strings (paths)'));
+                }
+            }
+            if (property_exists($this, $prop)) {
+                $this->$prop = $value;
+            }
+        }
+        if ($this->entry === null) {
+            throw new Exception($error('entry', 'missing'));
+        }
+        $this->title ??= $this->view_id;
+        $this->nav_name ??= $this->view_id;
     }
 
     /**
-     * Get the package view entry point.
+     * Parameter getter magic method.
      *
-     * @return string
+     * @param string $property
+     * @return mixed
      */
-    public function trueEntryPoint(): string
+    public function __get(string $property)
     {
-        return Structure::formatServerPath($this->package_id, $this->entry);
-    }
-
-    /**
-     * Set the resources for the view from a structure array.
-     *
-     * @param array $structure
-     * @return View
-     */
-    public function setResources(array $structure = []): View
-    {
-        $this->resources->setAutoload($structure['autoload'] ?? []);
-        $this->resources->setInit($structure['init'] ?? []);
-        $this->resources->setJs($structure['js'] ?? []);
-        $this->resources->setCss($structure['css'] ?? []);
-        return $this;
+        return $this->$property;
     }
 
 }

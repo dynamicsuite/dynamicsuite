@@ -6,16 +6,12 @@
 
 DROP TABLE IF EXISTS `ds_events`;
 DROP TABLE IF EXISTS `ds_groups`;
-DROP TABLE IF EXISTS `ds_group_permissions`;
+DROP TABLE IF EXISTS `ds_groups_permissions`;
 DROP TABLE IF EXISTS `ds_permissions`;
-DROP TABLE IF EXISTS `ds_users`;
-DROP TABLE IF EXISTS `ds_user_groups`;
 DROP TABLE IF EXISTS `ds_properties`;
-DROP TABLE IF EXISTS `ds_property_data`;
-
-DROP VIEW IF EXISTS `ds_view_group_permissions`;
-DROP VIEW IF EXISTS `ds_view_user_groups`;
-DROP VIEW IF EXISTS `ds_view_user_permissions`;
+DROP TABLE IF EXISTS `ds_properties_data`;
+DROP TABLE IF EXISTS `ds_users`;
+DROP TABLE IF EXISTS `ds_users_groups`;
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;

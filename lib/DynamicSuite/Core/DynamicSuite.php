@@ -18,36 +18,23 @@
  */
 
 /** @noinspection PhpUnused */
+/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\Core;
-use DynamicSuite\API\APIEndpoint;
-use DynamicSuite\Base\ProtectedObject;
-use DynamicSuite\Data\Events;
-use DynamicSuite\Data\Groups;
-use DynamicSuite\Data\Permissions;
-use DynamicSuite\Data\Properties;
-use DynamicSuite\Data\Users;
+use DynamicSuite\API\Request;
+use DynamicSuite\API\Response;
+use DynamicSuite\Database\Database;
 use DynamicSuite\Package\Packages;
+use Error;
+use Exception;
+use PDOException;
 
 /**
  * Class Instance.
  *
  * @package DynamicSuite\Core
- * @property Config $cfg
- * @property Packages $packages
- * @property Request $request
- * @property Session $session
- * @property View $view
- * @property APIEndpoint $api
- * @property Database $db
- * @property Cache $cache
- * @property Permissions $permissions
- * @property Groups $groups
- * @property Users $users
- * @property Events $events
- * @property Properties $properties
  */
-final class DynamicSuite extends ProtectedObject
+final class DynamicSuite
 {
 
     /**
@@ -55,154 +42,150 @@ final class DynamicSuite extends ProtectedObject
      *
      * @var Config
      */
-    protected Config $cfg;
-
-    /**
-     * Loaded packages.
-     *
-     * @var Packages
-     */
-    protected Packages $packages;
+    public static Config $cfg;
 
     /**
      * Database connection.
      *
      * @var Database
      */
-    protected Database $db;
+    public static Database $db;
 
     /**
-     * Memcached wrapper.
+     * View interface.
      *
-     * @var Cache
+     * @var View
      */
-    protected Cache $cache;
+    public static View $view;
 
     /**
-     * Permissions database interface.
-     *
-     * @var Permissions
-     */
-    protected Permissions $permissions;
-
-    /**
-     * Groups database interface.
-     *
-     * @var Groups
-     */
-    protected Groups $groups;
-
-    /**
-     * Users database interface.
-     *
-     * @var Users
-     */
-    protected Users $users;
-
-    /**
-     * Properties database interface.
-     *
-     * @var Properties
-     */
-    protected Properties $properties;
-
-    /**
-     * Instance constructor.
+     * Initialize Dynamic Suite.
      *
      * @return void
+     * @throws PDOException
      */
-    public function __construct()
+    public static function init(): void
     {
-        $this->cfg = new Config('dynamicsuite');
-        $this->packages = new Packages($this);
-        $this->db = new Database(
-            $this->cfg->db_dsn,
-            $this->cfg->db_user,
-            $this->cfg->db_pass,
-            $this->cfg->db_options
-        );
-        $this->cache = new Cache($this);
-        $this->permissions = new Permissions($this);
-        $this->groups = new Groups($this);
-        $this->users = new Users($this);
-        $this->events = new Events($this);
-        $this->properties = new Properties($this);
-        $this->save();
-    }
-
-    /**
-     * Set a Dynamic Suite property.
-     *
-     * @param string $property
-     * @param $value
-     */
-    public function set(string $property, $value): void
-    {
-        $this->$property = $value;
-    }
-
-    /**
-     * Save the Dynamic Suite instance.
-     *
-     * @return void
-     */
-    public function save(): void
-    {
-        if (!DS_CACHING) return;
-        $global_members = [];
-        foreach ($this as $key => $value) {
-            if (
-                $key === 'cfg' ||
-                $key === 'packages' ||
-                $key === 'db' ||
-                $key === 'cache' ||
-                $key === 'permissions' ||
-                $key === 'groups' ||
-                $key === 'users' ||
-                $key === 'events' ||
-                $key === 'properties'
-            ) continue;
-            $global_members[$key] = $value;
-            unset($this->$key);
-        }
-        apcu_store(self::getHash(), $this);
-        foreach ($global_members as $key => $value) {
-            $this->$key = $value;
-        }
-    }
-
-    /**
-     * Get a package class from the cache, or create a new one if not found.
-     *
-     * $class must be the class name with namespace.
-     *
-     * @param string $class
-     * @param mixed $args
-     * @return mixed|string
-     */
-    public static function getPkgClass(string $class, ...$args)
-    {
-        $hash = self::getHash($class);
-        if (DS_CACHING && apcu_exists($hash) && $instance = apcu_fetch($hash)) {
-            return $instance;
+        $hash = md5(__FILE__);
+        if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
+            self::$cfg = $cache['cfg'];
+            self::$view = $cache['view'];
         } else {
-            $instance = new $class(...$args);
+            self::$cfg = new Config('dynamicsuite');
+            self::$view = new View();
+            self::$view->initTemplates();
             if (DS_CACHING) {
-                apcu_store($hash, $instance);
+                $store = apcu_store($hash, [
+                    'cfg' => self::$cfg,
+                    'view' => self::$view
+                ]);
+                if (!$store) {
+                    error_log('Error saving "DynamicSuite" in cache, check server config');
+                }
             }
-            return $instance;
         }
+        self::$db = new Database(
+            self::$cfg->db_dsn,
+            self::$cfg->db_user,
+            self::$cfg->db_pass,
+            self::$cfg->db_options
+        );
+        \DynamicSuite\Core\Request::init();
+        Session::init();
+        Packages::init();
+        define('DS_DEBUG_MODE', self::$cfg->debug_mode);
     }
 
     /**
-     * Generate a hash for the given input string unique to the current instance.
+     * Call an API request.
      *
-     * @param string $input
-     * @return string
+     * @param Request $request
+     * @return Response
      */
-    public static function getHash(string $input = '')
+    public static function callApi(Request $request): Response
     {
-        return md5(DS_ROOT_DIR . $input);
+        $prefix = "[API] Package \"$request->package_id\" api \"$request->api_id\"";
+        $api = Packages::$loaded[$request->package_id]->apis[$request->api_id] ?? null;
+        $local = Packages::$loaded[$request->package_id]->local;
+        $response = new Response();
+        if (!$api) {
+            error_log("$prefix not found");
+            return $response;
+        }
+        foreach ($api->post as $key) {
+            if (!array_key_exists($key, $request->data)) {
+                trigger_error("$prefix missing required post key: $key", E_USER_WARNING);
+                return $response;
+            }
+        }
+        if (!$api->public && (!Session::checkPermissions($api->permissions))) {
+            trigger_error("$prefix authentication required", E_USER_WARNING);
+            return $response;
+        }
+        if (!defined('DS_PKG_DIR')) {
+            define('DS_PKG_DIR', DS_ROOT_DIR . "/packages/{$request->package_id}");
+        }
+        spl_autoload_register(function (string $class) use ($local, $api) {
+            if (class_exists($class)) {
+                return;
+            }
+            $file = str_replace('\\', '/', $class) . '.php';
+            foreach ($local['autoload'] as $dir) {
+                $path = "$dir/$file";
+                error_log($path);
+                if (DS_CACHING && opcache_is_script_cached($path)) {
+                    require_once $path;
+                    break;
+                } elseif (file_exists($path)) {
+                    require_once $path;
+                    break;
+                }
+            }
+            foreach ($api->autoload as $dir) {
+                $path = "$dir/$file";
+                if (DS_CACHING && opcache_is_script_cached($path)) {
+                    require_once $path;
+                    break;
+                } elseif (file_exists($path)) {
+                    require_once $path;
+                    break;
+                }
+            }
+        });
+        try {
+            $return = (function () use ($local, $api, $request) {
+                foreach ($local['init'] as $script) {
+                    require_once $script;
+                }
+                foreach ($api->init as $script) {
+                    require_once $script;
+                }
+                $_POST = $request->data;
+                if (DS_DEBUG_MODE) {
+                    error_log(
+                        "[API DEBUG] API $request->package_id:$request->api_id called with the following POST data:"
+                    );
+                    error_log(print_r($_POST, 1));
+                }
+                putenv("DS_API_ENTRY=$api->entry");
+                unset($local, $api, $request);
+                return (require_once getenv('DS_API_ENTRY'));
+            })();
+        } catch (Error | Exception | PDOException $exception) {
+            error_log($exception->getMessage());
+            error_log('  @ ' . $exception->getFile() . ':' . $exception->getLine());
+            $trace = $exception->getTrace();
+            for ($i = 0, $count = count($trace); $i < $count; $i++) {
+                error_log("  #$i {$trace[$i]['function']} ~ {$trace[$i]['file']}:{$trace[$i]['line']}");
+            }
+            return new Response('SERVER_ERROR', 'A server error has occurred');
+        }
+        if ($return instanceof Response) {
+            return $return;
+        } else {
+            trigger_error("$prefix bad output");
+            return $response;
+        }
     }
 
 }

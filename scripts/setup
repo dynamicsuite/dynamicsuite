@@ -19,17 +19,14 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Util\CLI;
 
 set_time_limit(0);
 ini_set('memory_limit', -1);
+chdir(__DIR__ . '/..');
 
 // Create environment
-/** @noinspection PhpIncludeInspection */
-require_once realpath(__DIR__ . '/create_environment.php');
-
-/** @var DynamicSuite $ds */
+require_once 'create_environment.php';
 
 CLI::out('Running environment checks');
 
@@ -41,9 +38,6 @@ if (!version_compare(PHP_VERSION, '7.4.3', '>=')) {
 // Extension check
 if (!extension_loaded('apcu')) {
     trigger_error('Missing APCU extension', E_USER_ERROR);
-}
-if (!extension_loaded('memcached')) {
-    trigger_error('Missing memcached extension', E_USER_ERROR);
 }
 if (!extension_loaded('mbstring')) {
     trigger_error('Missing mbstring extension', E_USER_ERROR);
@@ -62,19 +56,19 @@ if (!file_exists('packages') && !mkdir('packages')) {
 if (!file_exists('logs') && !mkdir('logs')) {
     trigger_error('Could not create logs directory', E_USER_ERROR);
 }
-if (!file_exists('logs/dynamicsuite-error.log') && !touch('logs/dynamicsuite-error.log')) {
+if (!file_exists('logs/error.log') && !touch('logs/error.log')) {
     trigger_error('Could not create error log', E_USER_ERROR);
 }
-if (!file_exists('logs/dynamicsuite-access.log') && !touch('logs/dynamicsuite-access.log')) {
+if (!file_exists('logs/access.log') && !touch('logs/access.log')) {
     trigger_error('Could not create access log', E_USER_ERROR);
 }
 
 // Check for linux
 CLI::out('Checking for compatible OS...', false);
-$uname = php_uname('s');
-if ($uname !== 'Linux' && $uname !== 'Darwin') {
+$name = php_uname('s');
+if ($name !== 'Linux' && $name !== 'Darwin') {
     CLI::out('FAILED');
-    CLI::err("Linux or MacOS OS is required, found: $uname");
+    CLI::err("Linux or MacOS is required, found: $name");
 } else {
     CLI::out('OK');
 }
@@ -122,11 +116,13 @@ CLI::out('All Checks Complete!');
 // Setup vHost
 if (CLI::yn('Setup Apache vHost?')) {
 
-    // Gather vhost information
+    // Gather host information
     $listen_addr = CLI::in('Listen IP address', '*');
     $listen_port = CLI::in('Listen port', '80');
     $hostname = '';
-    while (!$hostname) $hostname = trim(CLI::in('Hostname'), '/');
+    while (!$hostname) {
+        $hostname = trim(CLI::in('Hostname'), '/');
+    }
     $install_path = CLI::in('Install path', getcwd());
 
     // Load and update template
@@ -142,8 +138,8 @@ if (CLI::yn('Setup Apache vHost?')) {
     CLI::out('Config generated!');
 
     // Confirm paths
-    $available_path = CLI::in('vHost available path');
-    $enabled_path = CLI::in('vHost enabled path');
+    $available_path = CLI::in('vHost available path', '/etc/apache2/sites-available');
+    $enabled_path = CLI::in('vHost enabled path', '/etc/apache2/sites-enabled');
     $available_vhost = "$available_path/$hostname.conf";
     $enabled_vhost = "$enabled_path/$hostname.conf";
 
@@ -160,14 +156,14 @@ if (CLI::yn('Setup Apache vHost?')) {
     }
 
     // Write vHost config
-    CLI::out("Writing vHost as \"$available_vhost\"...", false);
+    CLI::out("Writing vHost as $available_vhost...", false);
     if (!is_dir($available_path) && !mkdir($available_path)) {
         CLI::out('FAILED');
         CLI::err("Failed to create directory: $available_path");
     }
     if (!file_put_contents($available_vhost, $template)) {
         CLI::out('FAILED');
-        CLI::err("Error writing vHost to \"$available_vhost\"");
+        CLI::err("Error writing vHost to $available_vhost");
     } else {
         CLI::out('OK');
     }
@@ -202,7 +198,10 @@ if (CLI::yn('Setup database?')) {
     $command = "mysql --user=\"$install_user\" --password=\"$install_pass\" ";
 
     // Generate database credentials
-    $database = CLI::in('Database name');
+    $database = '';
+    while (!$database) {
+        $database = CLI::in('Database name');
+    }
     $host = CLI::in('Database host', 'localhost');
     $username = CLI::in('Database username', $database);
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -213,31 +212,29 @@ if (CLI::yn('Setup database?')) {
     // Create database
     CLI::out('Creating database...');
     $err = exec("$command'CREATE DATABASE `$database`' 2>&1 >/dev/null");
-    if ($err) CLI::err($err);
+    if ($err) {
+        CLI::err($err);
+    }
 
-    // Create user
-    CLI::out('Creating user...');
-    $err = exec("$command\"CREATE USER '$username'@'$host' IDENTIFIED BY '$password'\" 2>&1 >/dev/null");
-    if ($err) CLI::err($err);
-
-    // Grant user access
+    // Creating user
     CLI::out('Granting user access...');
-    $err = exec("$command\"GRANT ALL ON $database.* TO '$username'@'$host'\"  2>&1 >/dev/null");
-    if ($err) CLI::err($err);
+    $err = exec(
+        "$command\"GRANT ALL ON $database.* TO '$username'@'$host' IDENTIFIED BY '$password'\"  2>&1 >/dev/null"
+    );
+    if ($err) {
+        CLI::err($err);
+    }
 
     // Create tables
     CLI::out('Creating tables...');
-    $tables_script = getcwd() . '/sql/create_tables.sql';
-    $err = exec(
-        "mysql " .
-        "--user=\"$username\" " .
-        "--password=\"$password\" " .
-        "--database=\"$database\" " .
-        "< \"$tables_script\"");
-    if ($err) CLI::err($err);
+    $tables_script = realpath('sql/create_tables.sql');
+    $err = exec("mysql --user=\"$username\" --password=\"$password\" --database=\"$database\" < \"$tables_script\"");
+    if ($err) {
+        CLI::err($err);
+    }
 
     // Write config
-    $config['db_dsn'] = "mysql:host=$host;dbname=$database";
+    $config['db_dsn'] = "mysql:host=$host;dbname=$database;charset=utf8mb4";
     $config['db_user'] = $username;
     $config['db_pass'] = $password;
     if (
@@ -245,7 +242,9 @@ if (CLI::yn('Setup database?')) {
         $json = json_decode(file_get_contents('config/dynamicsuite.json'), true)
     ) $config = array_replace($json, $config);
     $err = file_put_contents('config/dynamicsuite.json', json_encode($config, JSON_PRETTY_PRINT));
-    if (!$err) CLI::err('Error writing to config file');
+    if (!$err) {
+        CLI::err('Error writing to config file');
+    }
 
     CLI::out('Database setup complete!');
 

@@ -19,53 +19,38 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\API;
-use DynamicSuite\Base\ProtectedObject;
+namespace DynamicSuite\Util;
 
 /**
- * Class APIRequest.
+ * Class Format.
  *
- * @package DynamicSuite\API
- * @property string $package_id
- * @property string $api_id
- * @property mixed $data
+ * @package DynamicSuite\Util
  */
-class APIRequest extends ProtectedObject
+final class Format
 {
 
     /**
-     * Requested package ID.
-     *
-     * @var string
-     */
-    public string $package_id;
-
-    /**
-     * Requested API ID.
-     *
-     * @var string
-     */
-    public string $api_id;
-
-    /**
-     * Any data sent along with the request.
-     *
-     * @var mixed
-     */
-    public $data;
-
-    /**
-     * APIRequest constructor.
+     * Format a server file path.
      *
      * @param string $package_id
-     * @param string $api_id
-     * @param null $data
+     * @param string $path
+     * @return string
      */
-    public function __construct(string $package_id, string $api_id, $data = null)
+    public static function formatServerPath(string $package_id, string $path): string
     {
-        $this->package_id = $package_id;
-        $this->api_id = $api_id;
-        $this->data = $data;
+        return $path[0] === '/' ? DS_ROOT_DIR . $path : DS_ROOT_DIR . "/packages/$package_id/$path";
+    }
+
+    /**
+     * Format a client resource path.
+     *
+     * @param string $package_id
+     * @param string $path
+     * @return string
+     */
+    public static function formatClientPath(string $package_id, string $path): string
+    {
+        return $path[0] === '/' ? $path : "/dynamicsuite/packages/$package_id/$path";
     }
 
 }

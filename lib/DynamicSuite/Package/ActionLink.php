@@ -20,29 +20,30 @@
 /** @noinspection PhpUnused */
 
 namespace DynamicSuite\Package;
+use DynamicSuite\Util\Format;
 use Exception;
 
 /**
  * Class ActionLink.
  *
- * @package DynamicSuite\NavGroup
- * @property string $group_id
+ * @package DynamicSuite\Package
+ * @property string $link_id
  * @property string $package_id
- * @property string|null $name
- * @property string $icon
- * @property bool $public
+ * @property string|null $type
+ * @property string|null $value
+ * @property string|null $group
  * @property string[] $permissions
- * @property View[] $views
+ * @property string|null $ref
  */
-final class NavGroup
+final class ActionLink
 {
 
     /**
-     * Group ID.
+     * Link ID.
      *
      * @var string
      */
-    protected string $group_id;
+    protected string $link_id;
 
     /**
      * Associated package ID.
@@ -52,25 +53,29 @@ final class NavGroup
     protected string $package_id;
 
     /**
-     * Nav group name.
+     * Action link type.
+     *
+     * Static or Dynamic.
      *
      * @var string|null
      */
-    protected ?string $name = null;
+    protected ?string $type = null;
 
     /**
-     * Nav group FontAwesome class.
+     * Action link value.
      *
-     * @var string
+     * URL path or script path.
+     *
+     * @var string|null
      */
-    protected string $icon = 'fas fa-cogs';
+    protected ?string $value = null;
 
     /**
-     * Nav group public state (rendering permissions).
+     * Action link grouping (if any).
      *
-     * @var bool
+     * @var string|null
      */
-    protected bool $public = false;
+    protected ?string $group = null;
 
     /**
      * Permissions for the action link to render.
@@ -80,27 +85,27 @@ final class NavGroup
     protected array $permissions = [];
 
     /**
-     * Views array for navigation building.
+     * Link reference for static links.
      *
-     * @var View[]
+     * @var string|null
      */
-    public array $views = [];
+    protected ?string $ref = null;
 
     /**
-     * NavGroup constructor.
+     * ActionLink constructor.
      *
-     * @param string $group_id
+     * @param string $link_id
      * @param string $package_id
      * @param array $structure
      * @return void
      * @throws Exception
      */
-    public function __construct(string $group_id, string $package_id, array $structure)
+    public function __construct(string $link_id, string $package_id, array $structure)
     {
-        $this->group_id = $group_id;
+        $this->link_id = $link_id;
         $this->package_id = $package_id;
         $error = function(string $key, string $message): string {
-            return "[Structure] Package \"$this->package_id\" nav group \"$this->group_id\" key \"$key\": $message";
+            return "[Structure] Package \"$this->package_id\" action link \"$this->link_id\" key \"$key\": $message";
         };
         foreach ($structure as $prop => $value) {
             if ($prop === 'permissions') {
@@ -120,8 +125,11 @@ final class NavGroup
                 $this->$prop = $value;
             }
         }
-        if ($this->name === null) {
-            throw new Exception($error('name', 'missing'));
+        if ($this->type !== 'static' && $this->type !== 'dynamic') {
+            throw new Exception($error('type', 'must be "static" or "dynamic"'));
+        }
+        if ($this->type === 'dynamic') {
+            $this->value = Format::formatServerPath($this->package_id, $this->value);
         }
     }
 

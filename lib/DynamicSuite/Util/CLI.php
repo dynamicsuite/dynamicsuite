@@ -59,7 +59,9 @@ final class CLI
         $prompt = $old ? "$prompt (Enter for `$old`): " : "$prompt: ";
         self::out($prompt, false);
         $input = trim(fgets(STDIN));
-        if ($old !== null && $input === '') $input = $old;
+        if ($old !== null && $input === '') {
+            $input = $old;
+        }
         return $input;
     }
 
@@ -100,7 +102,9 @@ final class CLI
     public static function err(string $text, $fatal = true): void
     {
         fputs(STDERR, $text . PHP_EOL);
-        if ($fatal) exit;
+        if ($fatal) {
+            exit;
+        }
     }
 
     /**
@@ -136,8 +140,12 @@ final class CLI
                 $row = (array) $row;
                 $table .= '|';
                 foreach ($map as $key => $length) {
-                    if ($row[$key] === null) $row[$key] = '';
-                    if (is_bool($row[$key])) $row[$key] = $row[$key] ? 'Y' : 'N';
+                    if ($row[$key] === null) {
+                        $row[$key] = '';
+                    }
+                    if (is_bool($row[$key])) {
+                        $row[$key] = $row[$key] ? 'Y' : 'N';
+                    }
                     $table .= ' ' . str_pad($row[$key], $length, ' ') . ' |';
                 }
                 $table .= PHP_EOL;
@@ -161,11 +169,13 @@ final class CLI
      * @param string $key
      * @return string
      */
-    public static function splitDSN(string $dsn, string $key): string
+    public static function splitDsn(string $dsn, string $key): string
     {
         $value = substr($dsn, strpos($dsn, "$key=") + (mb_strlen($key) + 1));
         $pos = strpos($value, ';');
-        if ($pos !== false) $value = substr($value, 0, $pos);
+        if ($pos !== false) {
+            $value = substr($value, 0, $pos);
+        }
         return $value;
     }
 
@@ -190,7 +200,9 @@ final class CLI
         } elseif (is_array($keys)) {
             $exists = false;
             foreach($keys as $value) {
-                if (!$exists) $exists = array_key_exists($value, $options);
+                if (!$exists) {
+                    $exists = array_key_exists($value, $options);
+                }
             }
             return $exists;
         } else {

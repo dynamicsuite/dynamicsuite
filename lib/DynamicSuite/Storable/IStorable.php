@@ -19,36 +19,43 @@
 
 /** @noinspection PhpUnused */
 
-namespace DynamicSuite\Base;
+namespace DynamicSuite\Storable;
 
 /**
- * Class ProtectedObject.
+ * Interface IStorable.
  *
- * @package DynamicSuite\Base
+ * @package DynamicSuite\Storable
  */
-abstract class ProtectedObject
+interface IStorable
 {
 
     /**
-     * Parameter getter magic method.
+     * Create a storable object in the database.
      *
-     * @param string $property
-     * @return mixed
+     * @return Storable
      */
-    public function __get(string $property)
-    {
-        return $this->$property;
-    }
+    public function create(): Storable;
 
     /**
-     * Isset override magic method.
+     * Read a storable object from the database by ID.
      *
-     * @param string $property
-     * @return bool
+     * @param int|null $id
+     * @return Storable|bool
      */
-    public function __isset(string $property)
-    {
-        return isset($this->$property);
-    }
+    public static function readById(?int $id = null);
+
+    /**
+     * Update a stored object in the database.
+     *
+     * @return Storable
+     */
+    public function update(): Storable;
+
+    /**
+     * Delete a stored object from the database.
+     *
+     * @return Storable
+     */
+    public function delete(): Storable;
 
 }
