@@ -49,7 +49,8 @@ class DynamicSuite
             message: 'A malformed response was returned',
             data: null
         }))
-        .catch(() => {
+        .catch((e) => {
+            console.log(e);
             callback({
                 status: 'SERVER_ERROR',
                 message: 'A malformed response was returned',
