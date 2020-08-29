@@ -41,6 +41,7 @@ function printUsage(): void
 // Set the caching state
 function setState(bool $state): void
 {
+    global $argv;
     $script = file_get_contents(realpath(__DIR__ . '/create_environment.php'));
     $state = $state ? 'true' : 'false';
     $replace = DS_CACHING
@@ -49,7 +50,11 @@ function setState(bool $state): void
     $script = str_replace($replace, "define('DS_CACHING', $state);", $script);
     file_put_contents(realpath(__DIR__ . '/create_environment.php'), $script);
     CLI::out('Caching state changed');
-    if (CLI::yn('Reset cache now (restart apache)?')) {
+    if (isset($argv[1]) && $argv[1] === '-f') {
+        if ($err = exec('apachectl restart')) {
+            CLI::err($err);
+        }
+    } elseif (CLI::yn('Reset cache now (restart apache)?')) {
         if ($err = exec('apachectl restart')) {
             CLI::err($err);
         }
