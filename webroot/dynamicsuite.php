@@ -40,6 +40,9 @@ if (DS_VIEW) {
 
     // Dynamic Suite does not work with IE, so check for it
     (function() {
+        if (!isset($_SERVER['HTTP_USER_AGENT'])) {
+            return;
+        }
         $ua = htmlentities($_SERVER['HTTP_USER_AGENT'], ENT_QUOTES, 'UTF-8');
         if (preg_match('~MSIE|Internet Explorer~i', $ua) || strpos($ua, 'Trident/7.0; rv:11.0') !== false) {
             die('Sorry, Internet Explorer is not supported.');
