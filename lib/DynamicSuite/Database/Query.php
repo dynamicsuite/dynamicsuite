@@ -351,7 +351,7 @@ final class Query
      */
     public function on(string $column_1, string $operand, string $column_2): Query
     {
-        $this->joins[key($this->joins)]['on'] = [
+        $this->joins[array_key_last($this->joins)]['on'] = [
             'column_1' => $column_1,
             'operand' => $operand,
             'column_2' => $column_2
