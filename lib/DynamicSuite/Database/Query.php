@@ -425,6 +425,9 @@ final class Query
             $value = 'NULL';
             $literal = true;
         }
+        if (!count($where)) {
+            $prefix = '';
+        }
         if (is_string($term)) {
             if (!is_string($operand)) {
                 throw new Exception('Query where operand must be a string');
