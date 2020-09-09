@@ -89,7 +89,7 @@ final class Config extends GlobalConfig
      *
      * @var string
      */
-    protected string $language = 'en_US';
+    protected string $language = 'en-US';
 
     /**
      * The default view the user is redirected to.
