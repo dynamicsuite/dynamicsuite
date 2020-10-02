@@ -183,7 +183,7 @@ final class Package
      * @return bool
      * @noinspection PhpIllegalStringOffsetInspection
      */
-    private function loadResourceGroup(string $group, $structure): bool
+    private function loadResourceGroup(string $group, array $structure): bool
     {
         if (!isset($structure[$group])) {
             return false;
