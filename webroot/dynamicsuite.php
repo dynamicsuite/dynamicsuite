@@ -117,7 +117,10 @@ if (DS_VIEW) {
     }
 
     // About view
-    elseif (Request::urlIs('/dynamicsuite/about')) {
+    elseif (
+        Request::urlIs('/dynamicsuite/about') ||
+        (Request::$url_string === '' && DynamicSuite::$cfg->default_view === '/dynamicsuite/about')
+    ) {
         DynamicSuite::$view->about();
     }
 
