@@ -29,6 +29,16 @@ ini_set('display_errors', 0);
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
 
+// Exception logger
+function ds_log_exception($exception) {
+    error_log($exception->getMessage());
+    error_log('  @ ' . $exception->getFile() . ':' . $exception->getLine());
+    $trace = $exception->getTrace();
+    for ($i = 0, $count = count($trace); $i < $count; $i++) {
+        error_log("  #$i {$trace[$i]['function']} ~ {$trace[$i]['file']}:{$trace[$i]['line']}");
+    }
+}
+
 // Core autoloader
 spl_autoload_register(function (string $class) {
     if (!class_exists($class)) {
