@@ -127,8 +127,8 @@ class DynamicSuite
      * @returns Object
      */
     static getPageData() {
-        if (typeof DS_PAGE_DATA !== 'undefined') {
-            return DS_PAGE_DATA;
+        if (typeof window.ds_page_data !== 'undefined') {
+            return window.ds_page_data;
         } else {
             return false;
         }
@@ -140,7 +140,7 @@ class DynamicSuite
      * @return void
      */
     static clearPageData() {
-        DS_PAGE_DATA = false;
+        window.ds_page_data = false;
     }
 
 }
