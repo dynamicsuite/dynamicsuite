@@ -515,7 +515,7 @@ final class View
      */
     public static function setPageData(array $data): void
     {
-        echo "<script>window.ds_page_data={json_encode($data)}</script>";
+        echo '<script>window.ds_page_data=' . json_encode($data) . '</script>';
     }
 
 }
