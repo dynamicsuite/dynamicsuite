@@ -115,12 +115,12 @@ final class DynamicSuite
         }
         foreach ($api->post as $key) {
             if (!array_key_exists($key, $request->data)) {
-                trigger_error("$prefix missing required post key: $key", E_USER_WARNING);
+                error_log("$prefix missing required post key: $key");
                 return $response;
             }
         }
         if (!$api->public && (!Session::checkPermissions($api->permissions))) {
-            trigger_error("$prefix authentication required", E_USER_WARNING);
+            error_log("$prefix authentication required for user \"" . Session::$user_name . '"');
             return $response;
         }
         if (!defined('DS_PKG_DIR')) {

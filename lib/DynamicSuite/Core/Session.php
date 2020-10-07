@@ -153,17 +153,35 @@ final class Session
         if (empty($permissions)) {
             return true;
         }
-        if (is_string($permissions) && !in_array($permissions, self::$permissions)) {
-            return false;
+        if (is_string($permissions)) {
+            if (strpos($permissions, '|') !== false) {
+                $check_array = explode('|', $permissions);
+                $check = false;
+                foreach ($check_array as $or) {
+                    if (self::checkPermissions($or)) {
+                        $check = true;
+                    }
+                }
+                return $check;
+            }
+            return in_array($permissions, self::$permissions);
         } elseif (is_array($permissions)) {
             foreach ($permissions as $permission) {
                 if (!is_string($permission)) {
                     trigger_error('Permission values must be strings when permissions are an array', E_USER_WARNING);
                     return false;
                 }
-                if (!in_array($permission, self::$permissions)){
-                    return false;
+                if (strpos($permission, '|') !== false) {
+                    $check_array = explode('|', $permission);
+                    $check = false;
+                    foreach ($check_array as $or) {
+                        if (self::checkPermissions($or)) {
+                            $check = true;
+                        }
+                    }
+                    return $check;
                 }
+                return in_array($permission, self::$permissions);
             }
         } else {
             trigger_error('Invalid permission check type', E_USER_WARNING);
