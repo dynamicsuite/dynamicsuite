@@ -153,8 +153,8 @@ final class Session
         if (empty($permissions)) {
             return true;
         }
-        if (is_string($permissions) && !in_array($permissions, self::$permissions)) {
-            return false;
+        if (is_string($permissions)) {
+            return in_array($permissions, self::$permissions);
         } elseif (is_array($permissions)) {
             foreach ($permissions as $permission) {
                 if (!is_string($permission)) {
