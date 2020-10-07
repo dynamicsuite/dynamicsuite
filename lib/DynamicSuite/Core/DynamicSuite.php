@@ -28,6 +28,7 @@ use DynamicSuite\Package\Packages;
 use Error;
 use Exception;
 use PDOException;
+use function DynamicSuite\ds_log_exception;
 
 /**
  * Class Instance.
@@ -165,19 +166,14 @@ final class DynamicSuite
                     error_log(
                         "[API DEBUG] API $request->package_id:$request->api_id called with the following POST data:"
                     );
-                    error_log(print_r($_POST, 1));
+                    error_log('  ' . json_encode($_POST));
                 }
                 putenv("DS_API_ENTRY=$api->entry");
                 unset($local, $api, $request);
                 return (require_once getenv('DS_API_ENTRY'));
             })();
         } catch (Error | Exception | PDOException $exception) {
-            error_log($exception->getMessage());
-            error_log('  @ ' . $exception->getFile() . ':' . $exception->getLine());
-            $trace = $exception->getTrace();
-            for ($i = 0, $count = count($trace); $i < $count; $i++) {
-                error_log("  #$i {$trace[$i]['function']} ~ {$trace[$i]['file']}:{$trace[$i]['line']}");
-            }
+            ds_log_exception($exception);
             return new Response('SERVER_ERROR', 'A server error has occurred');
         }
         if ($return instanceof Response) {

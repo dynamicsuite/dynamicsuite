@@ -110,19 +110,17 @@ if (DS_VIEW) {
                 }
             } catch (Error | Exception | PDOException $exception) {
                 ob_clean();
-                error_log($exception->getMessage());
-                error_log('  @ ' . $exception->getFile() . ':' . $exception->getLine());
-                $trace = $exception->getTrace();
-                for ($i = 0, $count = count($trace); $i < $count; $i++) {
-                    error_log("  #$i {$trace[$i]['function']} ~ {$trace[$i]['file']}:{$trace[$i]['line']}");
-                }
+                ds_log_exception($exception);
                 DynamicSuite::$view->error500();
             }
         }
     }
 
     // About view
-    elseif (Request::urlIs('/dynamicsuite/about')) {
+    elseif (
+        Request::urlIs('/dynamicsuite/about') ||
+        (Request::$url_string === '' && DynamicSuite::$cfg->default_view === '/dynamicsuite/about')
+    ) {
         DynamicSuite::$view->about();
     }
 

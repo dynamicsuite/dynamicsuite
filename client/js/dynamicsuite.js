@@ -31,9 +31,10 @@ class DynamicSuite
      * @param api_id
      * @param data
      * @param callback
+     * @returns void
      */
     static call(package_id, api_id, data, callback) {
-        fetch('/dynamicsuite/api/' + package_id + '/' + api_id, {
+        fetch(`/dynamicsuite/api/${package_id}/${api_id}`, {
             method: 'POST',
             body: JSON.stringify(data ? data : [])
         })
@@ -64,7 +65,7 @@ class DynamicSuite
      *
      * If the view does not show the navigation, this function will return false.
      *
-     * @return boolean
+     * @returns boolean
      */
     static initView() {
         this.nav = document.getElementById('ds-nav-container');
@@ -86,7 +87,10 @@ class DynamicSuite
                     chevron = this.groups[i].lastElementChild.classList;
                 this.clearNav();
                 this.groups[i].classList.add('ds-nav-selected');
-                sublinks.replace(hidden ? 'ds-hide' : 'ds-show', hidden ? 'ds-show' : 'ds-hide');
+                sublinks.replace(
+                    hidden ? 'ds-hide' : 'ds-show',
+                    hidden ? 'ds-show' : 'ds-hide'
+                );
                 chevron.replace(
                     hidden ? 'fa-chevron-right' : 'fa-chevron-down',
                     hidden ? 'fa-chevron-down' : 'fa-chevron-right'
@@ -101,7 +105,7 @@ class DynamicSuite
     /**
      * Clear the navigation and reset all collapsable groups.
      *
-     * @return void
+     * @returns void
      */
     static clearNav() {
         for (let i = 0, c = this.groups.length; i < c; i++) {
@@ -115,7 +119,7 @@ class DynamicSuite
     /**
      * If the current window size is the mobile or desktop version.
      *
-     * @return boolean
+     * @returns boolean
      */
     static isMobile() {
         return window.innerWidth < 1280;
@@ -127,8 +131,8 @@ class DynamicSuite
      * @returns Object
      */
     static getPageData() {
-        if (typeof DS_PAGE_DATA !== 'undefined') {
-            return DS_PAGE_DATA;
+        if (typeof window.ds_page_data !== 'undefined') {
+            return window.ds_page_data;
         } else {
             return false;
         }
@@ -137,10 +141,10 @@ class DynamicSuite
     /**
      * Clear the page data on the view.
      *
-     * @return void
+     * @returns void
      */
     static clearPageData() {
-        DS_PAGE_DATA = false;
+        window.ds_page_data = false;
     }
 
 }

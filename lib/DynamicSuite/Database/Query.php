@@ -645,7 +645,13 @@ final class Query
                 if ($this->group_by) {
                     $group_by = ' GROUP BY ';
                     foreach ($this->group_by as $column) {
-                        $group_by .= "$column, ";
+                        if ($column instanceof Query) {
+                            $column->build();
+                            $group_by .= "({$column->query}), ";
+                            $this->args = array_merge($this->args, $column->args);
+                        } elseif (is_string($column)) {
+                            $group_by .= "$column, ";
+                        }
                     }
                     $group_by = rtrim($group_by, ', ');
                     $this->query .= $group_by;
