@@ -490,6 +490,17 @@ final class Query
     }
 
     /**
+     * Clear the order by clause.
+     *
+     * @return Query
+     */
+    public function clearOrderBy(): Query
+    {
+        $this->order_by = [];
+        return $this;
+    }
+
+    /**
      * Order by clause.
      *
      * @param string|Query $column
