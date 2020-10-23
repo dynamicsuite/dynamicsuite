@@ -253,6 +253,28 @@ class User extends Storable implements IStorable
     }
 
     /**
+     * Attempt to read a user by username.
+     *
+     * Returns the User if found, or FALSE if not found.
+     *
+     * @param string|null $username
+     * @return bool|User
+     * @throws Exception|PDOException
+     */
+    public static function readByUsername(?string $username = null)
+    {
+        if ($username === null) {
+            return false;
+        }
+        $user = (new Query())
+            ->select()
+            ->from('ds_users')
+            ->where('username', '=', $username)
+            ->execute(true);
+        return $user ? new User($user) : false;
+    }
+
+    /**
      * Update the user in the database.
      *
      * @return User
