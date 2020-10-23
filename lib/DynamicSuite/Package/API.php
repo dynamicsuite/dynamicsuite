@@ -124,7 +124,13 @@ final class API
                             throw new Exception($error($prop, 'must be a array of strings (paths)'));
                         }
                         if ($prop === 'autoload' || $prop === 'init') {
-                            $value[$k] = Format::formatServerPath($this->package_id, $value);
+                            if (is_array($value)) {
+                                foreach ($value as $path) {
+                                    $value[$k] = Format::formatServerPath($this->package_id, $path);
+                                }
+                            } else {
+                                $value[$k] = Format::formatServerPath($this->package_id, $value);
+                            }
                         }
                     }
                 } else {
