@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS `ds_users` (
     `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `username` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
     `password` char(96) NOT NULL DEFAULT '',
+    `root` tinyint(1) unsigned DEFAULT NULL,
     `inactive` tinyint(1) unsigned DEFAULT NULL,
     `inactive_on` datetime DEFAULT NULL,
     `login_attempts` tinyint(1) unsigned DEFAULT 0,

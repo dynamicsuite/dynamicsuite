@@ -18,6 +18,44 @@
  */
 
 namespace DynamicSuite;
+use DynamicSuite\Core\Config;
+use DynamicSuite\Util\CLI;
 
 set_time_limit(0);
 ini_set('memory_limit', -1);
+
+/**
+ * Change directory
+ */
+chdir(__DIR__ . '/..');
+
+/**
+ * Override for DS classes
+ */
+define('DS_CACHING', false);
+define('DS_ROOT_DIR', getcwd());
+
+require_once DS_ROOT_DIR  . '/lib/DynamicSuite/Util/CLI.php';
+require_once DS_ROOT_DIR  . '/lib/DynamicSuite/Core/GlobalConfig.php';
+require_once DS_ROOT_DIR  . '/lib/DynamicSuite/Core/Config.php';
+
+/**
+ * Load config
+ */
+$cfg = new Config('dynamicsuite');
+$db_host = CLI::splitDSN($cfg->db_dsn, 'host');
+$db_name = CLI::splitDSN($cfg->db_dsn, 'dbname');
+
+CLI::out('Updating tables...');
+$db_err = exec(
+    "mysql " .
+    "--user=\"$cfg->db_user\" " .
+    "--password=\"$cfg->db_pass\" " .
+    "--host=\"$db_host\" " .
+    "--database=\"$db_name\" " .
+    "< \"sql/update.sql\""
+);
+if ($db_err) {
+    CLI::err('Error updating tables!', false);
+    CLI::err($db_err);
+}

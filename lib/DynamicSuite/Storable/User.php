@@ -32,6 +32,7 @@ use PDOException;
  * @property int|null $user_id
  * @property string|null $username
  * @property string|null $password
+ * @property bool $root
  * @property bool $inactive
  * @property string|null $inactive_on
  * @property int $login_attempts
@@ -77,6 +78,13 @@ class User extends Storable implements IStorable
      * @var string|null
      */
     public ?string $password = null;
+
+    /**
+     * Root user status.
+     *
+     * @var bool
+     */
+    public bool $root = false;
 
     /**
      * Inactive state.
@@ -144,6 +152,9 @@ class User extends Storable implements IStorable
     {
         if (array_key_exists('inactive', $user)) {
             $user['inactive'] = (bool) $user['inactive'];
+        }
+        if (array_key_exists('root', $user)) {
+            $user['root'] = (bool) $user['root'];
         }
         parent::__construct($user);
     }
@@ -216,6 +227,7 @@ class User extends Storable implements IStorable
             ->insert([
                 'username' => $this->username,
                 'password' => $this->password,
+                'root' => $this->root ? 1 : null,
                 'inactive' => $this->inactive ? 1 : null,
                 'inactive_on' => $this->inactive_on,
                 'login_attempts' => $this->login_attempts,
@@ -288,6 +300,7 @@ class User extends Storable implements IStorable
             ->set([
                 'username' => $this->username,
                 'password' => $this->password,
+                'root' => $this->root ? 1 : null,
                 'inactive' => $this->inactive ? 1 : null,
                 'inactive_on' => $this->inactive_on,
                 'login_attempts' => $this->login_attempts,
