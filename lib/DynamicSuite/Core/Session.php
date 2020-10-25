@@ -85,17 +85,24 @@ final class Session
                     return;
                 }
                 self::$id = session_id();
-                self::$permissions = (new Query())
-                    ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
-                    ->from('ds_groups_permissions')
-                    ->join('ds_permissions')
-                    ->on('ds_groups_permissions.permission_id', '=', 'ds_permissions.permission_id')
-                    ->where('group_id', 'IN', (new Query())
-                        ->select(['group_id'])
-                        ->from('ds_users_groups')
-                        ->where('user_id', '=', $_SESSION['user_id']))
-                    ->groupBy('ds_groups_permissions.permission_id')
-                    ->execute(false, PDO::FETCH_COLUMN);
+                if ($user->root) {
+                    self::$permissions = (new Query())
+                        ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
+                        ->from('ds_permissions')
+                        ->execute(false, PDO::FETCH_COLUMN);
+                } else {
+                    self::$permissions = (new Query())
+                        ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
+                        ->from('ds_groups_permissions')
+                        ->join('ds_permissions')
+                        ->on('ds_groups_permissions.permission_id', '=', 'ds_permissions.permission_id')
+                        ->where('group_id', 'IN', (new Query())
+                            ->select(['group_id'])
+                            ->from('ds_users_groups')
+                            ->where('user_id', '=', $_SESSION['user_id']))
+                        ->groupBy('ds_groups_permissions.permission_id')
+                        ->execute(false, PDO::FETCH_COLUMN);
+                }
                 self::$user_id = $user->user_id;
             } catch (PDOException | Exception $exception) {
                 error_log($exception->getMessage(), E_USER_WARNING);
