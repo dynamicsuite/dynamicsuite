@@ -104,6 +104,7 @@ final class Session
                         ->execute(false, PDO::FETCH_COLUMN);
                 }
                 self::$user_id = $user->user_id;
+                self::$user_name = $user->username;
             } catch (PDOException | Exception $exception) {
                 error_log($exception->getMessage(), E_USER_WARNING);
                 return;
