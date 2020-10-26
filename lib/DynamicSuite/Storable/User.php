@@ -40,7 +40,7 @@ use PDOException;
  * @property string|null $login_last_success
  * @property string|null $login_last_ip
  * @property string|null $created_by
- * @property string|null $created_on
+ * @property int|null $created_on
  */
 class User extends Storable implements IStorable
 {
@@ -136,11 +136,11 @@ class User extends Storable implements IStorable
     public ?string $created_by = null;
 
     /**
-     * The timestamp when the user was created.
+     * The UNIX timestamp when the user was created.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $created_on = null;
+    public ?int $created_on = null;
 
     /**
      * User constructor.
@@ -194,7 +194,7 @@ class User extends Storable implements IStorable
     {
         $inactive ??= false;
         $this->inactive = $inactive;
-        $this->inactive_on = $inactive ? date('Y-m-d H:i:s') : null;
+        $this->inactive_on = $inactive ? time() : null;
     }
 
     /**
@@ -221,7 +221,7 @@ class User extends Storable implements IStorable
     public function create(): User
     {
         $this->created_by = $this->created_by ?? Session::$user_name;
-        $this->created_on = date('Y-m-d H:i:s');
+        $this->created_on = time();
         $this->validate(self::COLUMN_LIMITS);
         $this->user_id = (new Query())
             ->insert([
@@ -375,14 +375,14 @@ class User extends Storable implements IStorable
         if (!$this->user_id) {
             throw new Exception('Tried to login a user that has no user ID. Was the user lookup successful?');
         }
-        $this->login_last_attempt = date('Y-m-d H:i:s');
+        $this->login_last_attempt = time();
         $this->login_last_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
         if (!$this->verifyPassword($password)) {
             $this->addLoginAttempt();
             $success = false;
         } else {
             $this->login_attempts = 0;
-            $this->login_last_success = date('Y-m-d H:i:s');
+            $this->login_last_success = time();
             $success = true;
         }
         $this->update();

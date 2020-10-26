@@ -35,7 +35,7 @@ use PDOException;
  * @property string|null $domain
  * @property string|null $description
  * @property string|null $created_by
- * @property string|null $created_on
+ * @property int|null $created_on
  */
 class Permission extends Storable implements IStorable
 {
@@ -96,11 +96,11 @@ class Permission extends Storable implements IStorable
     public ?string $created_by = null;
 
     /**
-     * The timestamp when the permission was created.
+     * The UNIX timestamp when the permission was created.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $created_on = null;
+    public ?int $created_on = null;
 
     /**
      * Permission constructor.
@@ -132,7 +132,7 @@ class Permission extends Storable implements IStorable
     public function create(): Permission
     {
         $this->created_by = $this->created_by ?? Session::$user_name;
-        $this->created_on = date('Y-m-d H:i:s');
+        $this->created_on = time();
         $this->validate(self::COLUMN_LIMITS);
         $this->permission_id = (new Query())
             ->insert([
@@ -228,12 +228,12 @@ class Permission extends Storable implements IStorable
      *
      * This method returns a regular array for use with client components.
      *
-     * @param string $domain
+     * @param string|null $domain
      * @param int|null $group_id
      * @return array[]
      * @throws PDOException|Exception
      */
-    public static function readForComponent(string $domain, ?int $group_id = null): array
+    public static function readForComponent(?string $domain = null, ?int $group_id = null): array
     {
         $groups = [
             'assigned' => [],

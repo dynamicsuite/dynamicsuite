@@ -36,7 +36,7 @@ use PDOException;
  * @property string|null $type
  * @property string|null $default
  * @property string|null $created_by
- * @property string|null $created_on
+ * @property int|null $created_on
  */
 class Property extends Storable implements IStorable
 {
@@ -107,11 +107,11 @@ class Property extends Storable implements IStorable
     public ?string $created_by = null;
 
     /**
-     * The timestamp when the property was created.
+     * The UNIX timestamp when the property was created.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $created_on = null;
+    public ?int $created_on = null;
 
     /**
      * Property constructor.
@@ -133,7 +133,7 @@ class Property extends Storable implements IStorable
     public function create(): Property
     {
         $this->created_by = $this->created_by ?? Session::$user_name;
-        $this->created_on = date('Y-m-d H:i:s');
+        $this->created_on = time();
         $this->validate(self::COLUMN_LIMITS);
         $this->property_id = (new Query())
             ->insert([
