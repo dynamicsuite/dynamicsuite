@@ -246,14 +246,14 @@ class Permission extends Storable implements IStorable
                 ->from('ds_groups_permissions')
                 ->join('ds_permissions')
                 ->on('ds_permissions.permission_id', '=', 'ds_groups_permissions.permission_id')
-                ->where('ds_permissions.domain', '=', $domain)
+                ->where('ds_permissions.domain', $domain ? '=' : 'IS', $domain)
                 ->where('ds_groups_permissions.group_id', '=', $group_id)
                 ->execute();
         }
         $unassigned = (new Query())
             ->select(['permission_id', 'description'])
             ->from('ds_permissions')
-            ->where('domain', '=', $domain)
+            ->where('domain', $domain ? '=' : 'IS', $domain)
             ->execute();
         foreach ($unassigned as $value) {
             $groups['unassigned'][$value['permission_id']] = $value['description'];

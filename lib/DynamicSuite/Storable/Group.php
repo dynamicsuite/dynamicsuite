@@ -239,14 +239,14 @@ class Group extends Storable implements IStorable
                 ->from('ds_users_groups')
                 ->join('ds_groups')
                 ->on('ds_groups.group_id', '=', 'ds_users_groups.group_id')
-                ->where('ds_groups.domain', '=', $domain)
+                ->where('ds_groups.domain', $domain ? '=' : 'IS', $domain)
                 ->where('ds_users_groups.user_id', '=', $user_id)
                 ->execute();
         }
         $unassigned = (new Query())
             ->select(['group_id', 'name'])
             ->from('ds_groups')
-            ->where('domain', '=', $domain)
+            ->where('domain', $domain ? '=' : 'IS', $domain)
             ->execute();
         foreach ($unassigned as $value) {
             $groups['unassigned'][$value['group_id']] = $value['name'];
