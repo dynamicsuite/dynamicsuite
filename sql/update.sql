@@ -5,7 +5,7 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
 DROP FUNCTION IF EXISTS ds_check_column_type;
-DROP PROCEDURE IF EXISTS ds_update;
+DROP PROCEDURE IF EXISTS ds_update_8;
 DELIMITER $$
 
 CREATE FUNCTION
@@ -20,7 +20,7 @@ CREATE FUNCTION
     ) $$
 
 CREATE PROCEDURE
-    ds_update()
+    ds_update_8()
 BEGIN
 
     /* Events */
@@ -204,10 +204,11 @@ BEGIN
 
 END $$
 
-CALL ds_update() $$
+/* Update to DS 8 */
+CALL ds_update_8() $$
 
 DROP FUNCTION IF EXISTS ds_check_column_type $$
-DROP PROCEDURE IF EXISTS ds_update $$
+DROP PROCEDURE IF EXISTS ds_update_8 $$
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
