@@ -40,7 +40,7 @@ CLI::out('    PHP Ver: ' . phpversion());
 CLI::out('   Root Dir: ' . DS_ROOT_DIR);
 CLI::out('-- Instance');
 CLI::out(' DS Version: ' . DS_VERSION);
-CLI::out('       Time: ' . date('Y-m-d H:i:s'));
+CLI::out('       Time: ' . time());
 CLI::out('       APCU: ' . (DS_CACHING ? 'YES' : 'NO'));
 CLI::out('-- Database');
 CLI::out('        DSN: ' . DynamicSuite::$cfg->db_dsn);

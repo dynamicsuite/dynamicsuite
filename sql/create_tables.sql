@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `ds_events` (
     `affected` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
     `message` varchar(2048) DEFAULT NULL,
     `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-    `created_on` timestamp NOT NULL DEFAULT current_timestamp(),
+    `created_on` int(10) NULL DEFAULT NULL,
     PRIMARY KEY (`event_id`),
     KEY `package_id` (`package_id`),
     KEY `type` (`type`),
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `ds_groups` (
     `description` varchar(64) DEFAULT NULL,
     `domain` varchar(64) DEFAULT NULL,
     `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-    `created_on` datetime DEFAULT current_timestamp(),
+    `created_on` int(10) NULL DEFAULT NULL,
     PRIMARY KEY (`group_id`),
     UNIQUE KEY `name_domain` (`name`,`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `ds_permissions` (
     `domain` varchar(64) DEFAULT NULL,
     `description` varchar(255) DEFAULT NULL,
     `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-    `created_on` datetime DEFAULT current_timestamp(),
+    `created_on` int(10) NULL DEFAULT NULL,
     PRIMARY KEY (`permission_id`),
     UNIQUE KEY `package_id_name` (`package_id`,`name`),
     KEY `domain` (`domain`)
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `ds_properties` (
     `type` enum('int','float','bool','string') NOT NULL,
     `default` varchar(2048) DEFAULT NULL,
     `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-    `created_on` datetime DEFAULT current_timestamp(),
+    `created_on` int(10) NULL DEFAULT NULL,
     PRIMARY KEY (`property_id`),
     UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -80,15 +80,17 @@ CREATE TABLE IF NOT EXISTS `ds_users` (
     `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `username` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
     `password` char(96) NOT NULL DEFAULT '',
+    `password_expired` tinyint(1) unsigned DEFAULT NULL,
     `root` tinyint(1) unsigned DEFAULT NULL,
     `inactive` tinyint(1) unsigned DEFAULT NULL,
-    `inactive_on` datetime DEFAULT NULL,
+    `inactive_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
+    `inactive_on` int(10) NULL DEFAULT NULL,
     `login_attempts` tinyint(1) unsigned DEFAULT 0,
-    `login_last_attempt` datetime DEFAULT NULL,
-    `login_last_success` datetime DEFAULT NULL,
+    `login_last_attempt` int(10) NULL DEFAULT NULL,
+    `login_last_success` int(10) NULL DEFAULT NULL,
     `login_last_ip` varchar(39) DEFAULT NULL,
     `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
-    `created_on` datetime DEFAULT current_timestamp(),
+    `created_on` int(10) NULL DEFAULT NULL,
     PRIMARY KEY (`user_id`),
     UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
