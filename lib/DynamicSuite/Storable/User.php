@@ -32,12 +32,14 @@ use PDOException;
  * @property int|null $user_id
  * @property string|null $username
  * @property string|null $password
+ * @property bool $password_expired
  * @property bool $root
  * @property bool $inactive
- * @property string|null $inactive_on
+ * @property string|null $inactive_by
+ * @property int|null $inactive_on
  * @property int $login_attempts
- * @property string|null $login_last_attempt
- * @property string|null $login_last_success
+ * @property int|null $login_last_attempt
+ * @property int|null $login_last_success
  * @property string|null $login_last_ip
  * @property string|null $created_by
  * @property int|null $created_on
@@ -53,6 +55,7 @@ class User extends Storable implements IStorable
     public const COLUMN_LIMITS = [
         'username' => 254,
         'password' => 96,
+        'inactive_by' => 254,
         'login_attempts' => 255,
         'login_last_ip' => 39,
         'created_by' => 254
@@ -80,6 +83,13 @@ class User extends Storable implements IStorable
     public ?string $password = null;
 
     /**
+     * If the password is expired.
+     *
+     * @var bool
+     */
+    public bool $password_expired = false;
+
+    /**
      * Root user status.
      *
      * @var bool
@@ -94,11 +104,18 @@ class User extends Storable implements IStorable
     public bool $inactive = false;
 
     /**
-     * Timestamp when the user was made inactive.
+     * The entity that set the user to inactive.
      *
      * @var string|null
      */
-    public ?string $inactive_on = null;
+    public ?string $inactive_by = null;
+
+    /**
+     * UNIX timestamp when the user was made inactive.
+     *
+     * @var int|null
+     */
+    public ?int $inactive_on = null;
 
     /**
      * The number of login attempts the user has tried to login.
@@ -108,18 +125,18 @@ class User extends Storable implements IStorable
     public int $login_attempts = 0;
 
     /**
-     * The time of the last login attempt.
+     * The UNIX timestamp of the last login attempt.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $login_last_attempt = null;
+    public ?int $login_last_attempt = null;
 
     /**
-     * The time of the last login success.
+     * The UNIX timestamp of the last login success.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $login_last_success = null;
+    public ?int $login_last_success = null;
 
     /**
      * The IP address of the user on the last successful login.
@@ -150,11 +167,10 @@ class User extends Storable implements IStorable
      */
     public function __construct(array $user = [])
     {
-        if (array_key_exists('inactive', $user)) {
-            $user['inactive'] = (bool) $user['inactive'];
-        }
-        if (array_key_exists('root', $user)) {
-            $user['root'] = (bool) $user['root'];
+        foreach (['password_expired', 'root', 'inactive'] as $key) {
+            if (array_key_exists($key, $user)) {
+                $user[$key] = (bool) $user[$key];
+            }
         }
         parent::__construct($user);
     }
@@ -194,6 +210,7 @@ class User extends Storable implements IStorable
     {
         $inactive ??= false;
         $this->inactive = $inactive;
+        $this->inactive_by = $this->inactive_by ?? Session::$user_name;
         $this->inactive_on = $inactive ? time() : null;
     }
 
@@ -227,8 +244,10 @@ class User extends Storable implements IStorable
             ->insert([
                 'username' => $this->username,
                 'password' => $this->password,
+                'password_expired' => $this->password_expired ? 1 : null,
                 'root' => $this->root ? 1 : null,
                 'inactive' => $this->inactive ? 1 : null,
+                'inactive_by' => $this->inactive_by,
                 'inactive_on' => $this->inactive_on,
                 'login_attempts' => $this->login_attempts,
                 'login_last_attempt' => $this->login_last_attempt,
@@ -300,8 +319,10 @@ class User extends Storable implements IStorable
             ->set([
                 'username' => $this->username,
                 'password' => $this->password,
+                'password_expired' => $this->password_expired ? 1 : null,
                 'root' => $this->root ? 1 : null,
                 'inactive' => $this->inactive ? 1 : null,
+                'inactive_by' => $this->inactive_by,
                 'inactive_on' => $this->inactive_on,
                 'login_attempts' => $this->login_attempts,
                 'login_last_attempt' => $this->login_last_attempt,
