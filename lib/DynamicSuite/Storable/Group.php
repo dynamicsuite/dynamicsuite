@@ -34,7 +34,7 @@ use PDOException;
  * @property string|null $description
  * @property string|null $domain
  * @property string|null $created_by
- * @property string|null $created_on
+ * @property int|null $created_on
  */
 class Group extends Storable implements IStorable
 {
@@ -87,11 +87,11 @@ class Group extends Storable implements IStorable
     public ?string $created_by = null;
 
     /**
-     * The timestamp when the group was created.
+     * The UNIX timestamp when the group was created.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $created_on = null;
+    public ?int $created_on = null;
 
     /**
      * Group constructor.
@@ -113,7 +113,7 @@ class Group extends Storable implements IStorable
     public function create(): Group
     {
         $this->created_by = $this->created_by ?? Session::$user_name;
-        $this->created_on = date('Y-m-d H:i:s');
+        $this->created_on = time();
         $this->validate(self::COLUMN_LIMITS);
         $this->group_id = (new Query())
             ->insert([
@@ -221,12 +221,12 @@ class Group extends Storable implements IStorable
      *
      * This method returns a regular array for use with client components.
      *
-     * @param string $domain
+     * @param string|null $domain
      * @param int|null $user_id
      * @return array[]
      * @throws PDOException|Exception
      */
-    public static function readForComponent(string $domain, ?int $user_id = null): array
+    public static function readForComponent(?string $domain = null, ?int $user_id = null): array
     {
         $groups = [
             'assigned' => [],
@@ -239,14 +239,14 @@ class Group extends Storable implements IStorable
                 ->from('ds_users_groups')
                 ->join('ds_groups')
                 ->on('ds_groups.group_id', '=', 'ds_users_groups.group_id')
-                ->where('ds_groups.domain', '=', $domain)
+                ->where('ds_groups.domain', $domain ? '=' : 'IS', $domain)
                 ->where('ds_users_groups.user_id', '=', $user_id)
                 ->execute();
         }
         $unassigned = (new Query())
             ->select(['group_id', 'name'])
             ->from('ds_groups')
-            ->where('domain', '=', $domain)
+            ->where('domain', $domain ? '=' : 'IS', $domain)
             ->execute();
         foreach ($unassigned as $value) {
             $groups['unassigned'][$value['group_id']] = $value['name'];

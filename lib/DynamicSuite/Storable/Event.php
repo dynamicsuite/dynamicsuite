@@ -38,7 +38,7 @@ use PDOException;
  * @property string|null $affected
  * @property string $message
  * @property string|null $created_by
- * @property string|null $created_on
+ * @property int|null $created_on
  *
  */
 class Event extends Storable implements IStorable
@@ -123,11 +123,11 @@ class Event extends Storable implements IStorable
     public ?string $created_by = null;
 
     /**
-     * The timestamp when the event was created.
+     * The UNIX timestamp when the event was created.
      *
-     * @var string|null
+     * @var int|null
      */
-    public ?string $created_on = null;
+    public ?int $created_on = null;
 
     /**
      * Event constructor.
@@ -150,7 +150,7 @@ class Event extends Storable implements IStorable
         $this->ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
         $this->session = session_id() ? session_id() : null;
         $this->created_by = $this->created_by ?? Session::$user_name;
-        $this->created_on = date('Y-m-d H:i:s');
+        $this->created_on = time();
         $this->validate(self::COLUMN_LIMITS);
         $this->event_id = (new Query())
             ->insert([
