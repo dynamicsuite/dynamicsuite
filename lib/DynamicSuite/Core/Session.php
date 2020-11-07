@@ -136,7 +136,9 @@ final class Session
         self::$user_id = null;
         self::$root = false;
         $_SESSION = null;
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
     }
 
     /**
