@@ -185,7 +185,7 @@ final class Database
         $stmt->execute();
         if (strcasecmp('SELECT COUNT', substr($query, 0, 12)) === 0) {
             return $stmt->fetch(PDO::FETCH_NUM)[0];
-        } elseif (strcasecmp('SELECT', substr($query, 0, 6)) === 0) {
+        } elseif (strcasecmp('SELECT', substr($query, 0, 6)) === 0 || strcasecmp('WITH', substr($query, 0, 4))  === 0) {
             return $fetch_single ? $stmt->fetch($fetch_mode) : $stmt->fetchAll($fetch_mode);
         } elseif (strcasecmp('INSERT', substr($query, 0, 6)) === 0) {
             return $this->conn->lastInsertId();
