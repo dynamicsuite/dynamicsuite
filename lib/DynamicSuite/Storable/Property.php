@@ -181,7 +181,7 @@ class Property extends Storable implements IStorable
     public function update(): Property
     {
         $this->validate(self::COLUMN_LIMITS);
-        $this->property_id = (new Query())
+        (new Query())
             ->update('ds_properties')
             ->set([
                 'name' => $this->name,
