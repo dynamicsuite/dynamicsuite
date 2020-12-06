@@ -46,6 +46,16 @@ $cfg = new Config('dynamicsuite');
 $db_host = CLI::splitDSN($cfg->db_dsn, 'host');
 $db_name = CLI::splitDSN($cfg->db_dsn, 'dbname');
 
+CLI::out('Creating tables...');
+$db_err = exec(
+    "mysql " .
+    "--user=\"$cfg->db_user\" " .
+    "--password=\"$cfg->db_pass\" " .
+    "--host=\"$db_host\" " .
+    "--database=\"$db_name\" " .
+    "< \"sql/create_tables.sql\""
+);
+
 CLI::out('Updating tables...');
 $db_err = exec(
     "mysql " .
