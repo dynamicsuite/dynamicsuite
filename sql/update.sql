@@ -101,8 +101,11 @@ BEGIN
     CALL ds_convert_time_column_to_int('ds_users', 'login_last_success', 'datetime');
     CALL ds_convert_time_column_to_int('ds_users', 'created_on', 'datetime');
 
+    /* Add missing user columns */
     ALTER TABLE ds_users
-        ADD COLUMN IF NOT EXISTS password_expired TINYINT(1) unsigned DEFAULT NULL AFTER password;
+        ADD COLUMN IF NOT EXISTS password_expired TINYINT(1) unsigned DEFAULT NULL AFTER password,
+        ADD COLUMN IF NOT EXISTS root TINYINT(1) unsigned DEFAULT NULL AFTER password_expired,
+        ADD COLUMN IF NOT EXISTS inactive_by VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL AFTER inactive;
 
 END $$
 
