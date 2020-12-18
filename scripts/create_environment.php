@@ -22,7 +22,7 @@
 namespace DynamicSuite;
 
 define('DS_START', microtime(true));
-define('DS_VERSION', '8.0.1');
+define('DS_VERSION', '8.1.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 define('DS_CACHING', false);
 ini_set('display_errors', 0);
