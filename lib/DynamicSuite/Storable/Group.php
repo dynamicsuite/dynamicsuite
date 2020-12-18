@@ -134,10 +134,11 @@ class Group extends Storable implements IStorable
      * Returns the Group if found, or FALSE if not found.
      *
      * @param int|null $id
+     * @param string|null $domain
      * @return bool|Group
      * @throws Exception|PDOException
      */
-    public static function readById(?int $id = null)
+    public static function readById(?int $id = null, ?string $domain = null)
     {
         if ($id === null) {
             return false;
@@ -146,6 +147,7 @@ class Group extends Storable implements IStorable
             ->select()
             ->from('ds_groups')
             ->where('group_id', '=', $id)
+            ->where('domain', $domain ? '=' : 'IS', $domain)
             ->execute(true);
         return $group ? new Group($group) : false;
     }
