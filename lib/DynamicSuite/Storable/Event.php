@@ -56,6 +56,7 @@ class Event extends Storable implements IStorable
         'ip' => 39,
         'session' => 64,
         'affected' => 254,
+        'message' => 2048,
         'created_by' => 254
     ];
 
