@@ -756,7 +756,7 @@ final class Query
                 }
                 if ($expression['literal']) {
                     $string .= "{$expression['column']} {$expression['operand']} {$expression['value']}";
-                } elseif ($expression['operand'] === 'IN') {
+                } elseif ($expression['operand'] === 'IN' || $expression['operand'] === '= ALL') {
                     $string .= "{$expression['column']} {$expression['operand']} (";
                     if (is_array($expression['value'])) {
                         foreach ($expression['value'] as $in) {
