@@ -432,11 +432,14 @@ final class Query
             if (!is_string($operand)) {
                 throw new Exception('Query where operand must be a string');
             }
-            if (!is_scalar($value) && $value !== null && $operand !== 'IN') {
+            if (!is_scalar($value) && $value !== null && $operand !== 'IN' && $operand !== 'ALL') {
                 throw new Exception('Query where value must be scalar or null');
             }
             if ($operand === 'IN' && !is_array($value) && !$value instanceof Query) {
                 throw new Exception('Query where value must be an array or sub-query when using IN');
+            }
+            if ($operand === 'ALL' && !$value instanceof Query) {
+                throw new Exception('Query where value must be a sub-query when using ALL');
             }
             $where[] = [
                 'column' => $term,
@@ -543,7 +546,7 @@ final class Query
      * @param string $alias
      * @return Query
      */
-    public function as(string $alias)
+    public function as(string $alias): Query
     {
         $this->query_alias = $alias;
         return $this;
