@@ -36,7 +36,8 @@ use PDOException;
  * @property string|null $ip
  * @property string|null $session
  * @property string|null $affected
- * @property string $message
+ * @property string|null $event
+ * @property string|null $message
  * @property string|null $created_by
  * @property int|null $created_on
  *
@@ -56,6 +57,7 @@ class Event extends Storable implements IStorable
         'ip' => 39,
         'session' => 64,
         'affected' => 254,
+        'event' => 254,
         'message' => 2048,
         'created_by' => 254
     ];
@@ -110,6 +112,13 @@ class Event extends Storable implements IStorable
     public ?string $affected = null;
 
     /**
+     * The event that occurred (text form).
+     *
+     * @var string|null
+     */
+    public ?string $event = null;
+
+    /**
      * A message describing the event.
      *
      * @var string|null
@@ -161,6 +170,7 @@ class Event extends Storable implements IStorable
                 'ip' => $this->ip,
                 'session' => $this->session,
                 'affected' => $this->affected,
+                'event' => $this->event,
                 'message' => $this->message,
                 'created_by' => $this->created_by,
                 'created_on' => $this->created_on
@@ -208,6 +218,7 @@ class Event extends Storable implements IStorable
                 'type' => $this->type,
                 'domain' => $this->domain,
                 'affected' => $this->affected,
+                'event' => $this->event,
                 'message' => $this->message
             ])
             ->where('event_id', '=', $this->event_id)

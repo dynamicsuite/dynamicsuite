@@ -107,6 +107,10 @@ BEGIN
         ADD COLUMN IF NOT EXISTS root TINYINT(1) unsigned DEFAULT NULL AFTER password_expired,
         ADD COLUMN IF NOT EXISTS inactive_by VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL AFTER inactive;
 
+    /* Add missing event column */
+    ALTER TABLE ds_events
+        ADD COLUMN IF NOT EXISTS `event` VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL AFTER `affected`;
+
 END $$
 
 /* Update to DS 8 */
