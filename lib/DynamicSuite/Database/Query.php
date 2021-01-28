@@ -560,7 +560,6 @@ final class Query
      */
     public function build(): Query
     {
-        $args = $this->args;
         if (!isset($this->table)) {
             throw new Exception('Query missing table');
         }
@@ -569,7 +568,7 @@ final class Query
         } elseif (!$this->columns) {
             $this->columns = ['*'];
         }
-        if ($this->statement === 'INSERT' && !$args) {
+        if ($this->statement === 'INSERT' && !$this->args) {
             throw new Exception('Query has no data to insert');
         }
         if ($this->statement === 'UPDATE' && empty($this->columns)) {
@@ -589,7 +588,7 @@ final class Query
                 }
                 $columns = rtrim($columns, ', ');
                 $this->query .= "($columns) VALUES ";
-                $values_count = count($args);
+                $values_count = count($this->args);
                 $column_count = count($this->columns);
                 if ($values_count % $column_count !== 0) {
                     throw new Exception('Query argument count does not match row count');
@@ -606,7 +605,7 @@ final class Query
                     $duplicate = ' ON DUPLICATE KEY UPDATE ';
                     foreach ($this->duplicate_key_update as $column => $value) {
                         $duplicate .= "$column = ?, ";
-                        $args[] = $value;
+                        $this->args[] = $value;
                     }
                     $duplicate = rtrim($duplicate, ', ');
                     $this->query .= $duplicate;
@@ -624,7 +623,7 @@ final class Query
                     } elseif ($column instanceof Expression) {
                         $column->build();
                         $columns .= "$column->expression, ";
-                        $args = array_merge($args, $column->args);
+                        $this->args = array_merge($this->args, $column->args);
                     } else {
                         /** @var Query $column */
                         $column->build();
@@ -634,7 +633,7 @@ final class Query
                         } else {
                             $columns .= ', ';
                         }
-                        $args = array_merge($args, $column->args);
+                        $this->args = array_merge($this->args, $column->args);
                     }
                 }
                 $columns = rtrim($columns, ', ');
@@ -655,7 +654,7 @@ final class Query
                     $this->query .= $joins;
                 }
                 if ($this->where) {
-                    $this->query .= ' WHERE ' . $this->buildWhere($this->where, $args);
+                    $this->query .= ' WHERE ' . $this->buildWhere($this->where, $this->args);
                 }
                 if ($this->group_by) {
                     $group_by = ' GROUP BY ';
@@ -663,7 +662,7 @@ final class Query
                         if ($column instanceof Query) {
                             $column->build();
                             $group_by .= "({$column->query}), ";
-                            $args = array_merge($args, $column->args);
+                            $this->args = array_merge($this->args, $column->args);
                         } elseif (is_string($column)) {
                             $group_by .= "$column, ";
                         }
@@ -691,25 +690,24 @@ final class Query
                 $columns = '';
                 foreach ($this->columns as $column => $value) {
                     $columns .= "$column = ?, ";
-                    $args[] = $value;
+                    $this->args[] = $value;
                 }
                 $columns = rtrim($columns, ', ');
                 $this->query .= " SET $columns";
                 if ($this->where) {
-                    $this->query .= ' WHERE ' . $this->buildWhere($this->where, $args);
+                    $this->query .= ' WHERE ' . $this->buildWhere($this->where, $this->args);
                 }
                 break;
             case 'DELETE':
                 $this->query .= 'DELETE ';
                 $this->query .= "FROM $this->table";
                 if ($this->where) {
-                    $this->query .= ' WHERE ' . $this->buildWhere($this->where, $args);
+                    $this->query .= ' WHERE ' . $this->buildWhere($this->where, $this->args);
                 }
                 break;
             default:
                 throw new Exception('Query missing statement type');
         }
-        $this->args = $args;
         return $this;
     }
 
