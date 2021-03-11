@@ -164,9 +164,12 @@ final class DynamicSuite
                 $_POST = $request->data;
                 if (DS_DEBUG_MODE) {
                     error_log(
-                        "[API DEBUG] API $request->package_id:$request->api_id called with the following POST data:"
+                        "[API Executed]"
                     );
-                    error_log('  ' . json_encode($_POST));
+                    error_log("  $request->package_id:$request->api_id");
+                    foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode($_POST, JSON_PRETTY_PRINT)) as $line) {
+                        error_log('  ' . $line);
+                    }
                 }
                 putenv("DS_API_ENTRY=$api->entry");
                 unset($local, $api, $request);

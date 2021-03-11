@@ -163,9 +163,15 @@ final class Database
             $query = $query->query;
         }
         if (defined('DS_DEBUG_MODE') && DS_DEBUG_MODE) {
-            error_log('Query Executed:');
-            error_log("  Query: $query");
-            error_log('  Data:  ' . json_encode($args));
+            error_log('[Query Executed]');
+            $dump_query = $query;
+            foreach ($args as $arg) {
+                if (is_string($arg)) {
+                    $arg = '"' . $arg . '"';
+                }
+                $dump_query = preg_replace('/\?/', $arg, $dump_query, 1);
+            }
+            error_log("  $dump_query");
         }
         $stmt = $this->conn->prepare($query);
         if ($args) {
