@@ -168,6 +168,8 @@ final class Database
             foreach ($args as $arg) {
                 if (is_string($arg)) {
                     $arg = '"' . $arg . '"';
+                } elseif (is_null($arg)) {
+                    $arg = 'NULL';
                 }
                 $dump_query = preg_replace('/\?/', $arg, $dump_query, 1);
             }
