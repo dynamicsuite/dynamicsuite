@@ -4,210 +4,121 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
+/* Setup */
 DROP FUNCTION IF EXISTS ds_check_column_type;
+DROP PROCEDURE IF EXISTS ds_convert_time_column_to_int;
 DROP PROCEDURE IF EXISTS ds_update_8;
 DELIMITER $$
 
-CREATE FUNCTION
-    ds_check_column_type(`table` VARCHAR(255), `column` VARCHAR(255))
+/* Get the column type */
+CREATE FUNCTION ds_check_column_type(
+    `table` VARCHAR(255),
+    `column` VARCHAR(255)
+)
     RETURNS VARCHAR(255)
     RETURN (
         SELECT DATA_TYPE
         FROM information_schema.COLUMNS
         WHERE TABLE_NAME = `table`
-          AND table_schema = (SELECT DATABASE())
-          AND COLUMN_NAME = `column`
-    ) $$
+            AND table_schema = (SELECT DATABASE())
+            AND COLUMN_NAME = `column`
+    )
+$$
 
-CREATE PROCEDURE
-    ds_update_8()
+/* Convert a time like column to INT */
+CREATE PROCEDURE ds_convert_time_column_to_int(
+    IN table_name_in VARCHAR(255),
+    IN column_name_in VARCHAR(255),
+    IN old_type VARCHAR(255)
+)
 BEGIN
 
-    /* Events */
-    /* -------------------------------------------------------------------------------------------------------------- */
-    IF ds_check_column_type('ds_events', 'created_on') = 'timestamp' THEN
-        ALTER TABLE ds_events
-            CHANGE COLUMN created_on created_on_old TIMESTAMP NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_events', 'created_on_old') = 'timestamp' THEN
-        ALTER TABLE ds_events
-            ADD COLUMN IF NOT EXISTS created_on INT(10) UNSIGNED NULL DEFAULT NULL AFTER created_on_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_events', 'created_on') = 'int' AND
-        ds_check_column_type('ds_events', 'created_on_old') = 'timestamp'
-    THEN
-        UPDATE
-            ds_events
-        SET
-            created_on = IF(created_on_old, UNIX_TIMESTAMP(created_on_old), NULL);
-        ALTER TABLE ds_events
-            DROP COLUMN IF EXISTS created_on_old;
+    /* Get the name to use for the old column */
+    SET @column_name_old = CONCAT(old_type, '_old');
+
+    /* Move the old type column to a new temporary one */
+    SET @copy_query = CONCAT(
+        'ALTER TABLE ', table_name_in, ' CHANGE COLUMN ',
+        column_name_in, ' ', @column_name_old, ' ', old_type, ' NULL DEFAULT NULL;'
+    );
+
+    /* Create the new INT column */
+    SET @create_query = CONCAT(
+        'ALTER TABLE ', table_name_in, ' ADD COLUMN IF NOT EXISTS ',
+        column_name_in, ' INT(10) UNSIGNED NULL DEFAULT NULL AFTER ', @column_name_old, ';'
+    );
+
+    /* Update the new column with the old value as UNIX_TIMESTAMP */
+    SET @update_query = CONCAT(
+        'UPDATE ', table_name_in, ' SET ',
+        column_name_in, '=IF(', @column_name_old, ',UNIX_TIMESTAMP(', @column_name_old, '), NULL);'
+    );
+
+    /* Delete the temporary column */
+    SET @drop_query = CONCAT(
+        'ALTER TABLE ', table_name_in, ' DROP COLUMN IF EXISTS ', @column_name_old, ';'
+    );
+
+    /* Execute temporary copy */
+    IF ds_check_column_type(table_name_in, column_name_in) = old_type THEN
+        PREPARE copy_stmt FROM @copy_query;
+        EXECUTE copy_stmt;
+        DEALLOCATE PREPARE copy_stmt;
     END IF;
 
-    /* Groups */
-    /* -------------------------------------------------------------------------------------------------------------- */
-    IF ds_check_column_type('ds_groups', 'created_on') = 'datetime' THEN
-        ALTER TABLE ds_groups
-            CHANGE COLUMN created_on created_on_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_groups', 'created_on_old') = 'datetime' THEN
-        ALTER TABLE ds_groups
-            ADD COLUMN IF NOT EXISTS created_on INT(10) UNSIGNED NULL DEFAULT NULL AFTER created_on_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_groups', 'created_on') = 'int' AND
-        ds_check_column_type('ds_groups', 'created_on_old') = 'datetime'
-    THEN
-        UPDATE
-            ds_groups
-        SET
-            created_on = IF(created_on_old, UNIX_TIMESTAMP(created_on_old), NULL);
-        ALTER TABLE ds_groups
-            DROP COLUMN IF EXISTS created_on_old;
+    /* Setup new column */
+    IF ds_check_column_type(table_name_in, @column_name_old) = old_type THEN
+        PREPARE create_stmt FROM @create_query;
+        EXECUTE create_stmt;
+        DEALLOCATE PREPARE create_stmt;
     END IF;
 
-    /* Permissions */
-    /* -------------------------------------------------------------------------------------------------------------- */
-    IF ds_check_column_type('ds_permissions', 'created_on') = 'datetime' THEN
-        ALTER TABLE ds_permissions
-            CHANGE COLUMN created_on created_on_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_permissions', 'created_on_old') = 'datetime' THEN
-        ALTER TABLE ds_permissions
-            ADD COLUMN IF NOT EXISTS created_on INT(10) UNSIGNED NULL DEFAULT NULL AFTER created_on_old;
-    END IF;
+    /* Copy and cleanup */
     IF
-        ds_check_column_type('ds_permissions', 'created_on') = 'int' AND
-        ds_check_column_type('ds_permissions', 'created_on_old') = 'datetime'
+        ds_check_column_type(table_name_in, column_name_in) = 'int' AND
+        ds_check_column_type(table_name_in, @column_name_old) = old_type
     THEN
-        UPDATE
-            ds_permissions
-        SET
-            created_on = IF(created_on_old, UNIX_TIMESTAMP(created_on_old), NULL);
-        ALTER TABLE ds_permissions
-            DROP COLUMN IF EXISTS created_on_old;
+        PREPARE update_stmt FROM @update_query;
+        EXECUTE update_stmt;
+        DEALLOCATE PREPARE update_stmt;
+        PREPARE drop_stmt FROM @drop_query;
+        EXECUTE drop_stmt;
+        DEALLOCATE PREPARE drop_stmt;
     END IF;
 
-    /* Properties */
-    /* -------------------------------------------------------------------------------------------------------------- */
-    IF ds_check_column_type('ds_properties', 'created_on') = 'datetime' THEN
-        ALTER TABLE ds_properties
-            CHANGE COLUMN created_on created_on_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_properties', 'created_on_old') = 'datetime' THEN
-        ALTER TABLE ds_properties
-            ADD COLUMN IF NOT EXISTS created_on INT(10) UNSIGNED NULL DEFAULT NULL AFTER created_on_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_properties', 'created_on') = 'int' AND
-        ds_check_column_type('ds_properties', 'created_on_old') = 'datetime'
-    THEN
-        UPDATE
-            ds_properties
-        SET
-            created_on = IF(created_on_old, UNIX_TIMESTAMP(created_on_old), NULL);
-        ALTER TABLE ds_properties
-            DROP COLUMN IF EXISTS created_on_old;
-    END IF;
+END $$
 
-    /* Users */
-    /* -------------------------------------------------------------------------------------------------------------- */
+/* Updates for DS 8 */
+CREATE PROCEDURE ds_update_8()
+BEGIN
+
+    CALL ds_convert_time_column_to_int('ds_events', 'created_on', 'timestamp');
+    CALL ds_convert_time_column_to_int('ds_groups', 'created_on', 'datetime');
+    CALL ds_convert_time_column_to_int('ds_permissions', 'created_on', 'datetime');
+    CALL ds_convert_time_column_to_int('ds_properties', 'created_on', 'datetime');
+    CALL ds_convert_time_column_to_int('ds_users', 'inactive_on', 'datetime');
+    CALL ds_convert_time_column_to_int('ds_users', 'login_last_attempt', 'datetime');
+    CALL ds_convert_time_column_to_int('ds_users', 'login_last_success', 'datetime');
+    CALL ds_convert_time_column_to_int('ds_users', 'created_on', 'datetime');
+
+    /* Add missing user columns */
     ALTER TABLE ds_users
-        ADD COLUMN IF NOT EXISTS password_expired TINYINT(1) DEFAULT NULL AFTER password,
-        ADD COLUMN IF NOT EXISTS root TINYINT(1) DEFAULT NULL AFTER password_expired,
-        ADD COLUMN IF NOT EXISTS inactive_by VARCHAR(254) NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER inactive;
+        ADD COLUMN IF NOT EXISTS password_expired TINYINT(1) unsigned DEFAULT NULL AFTER password,
+        ADD COLUMN IF NOT EXISTS root TINYINT(1) unsigned DEFAULT NULL AFTER password_expired,
+        ADD COLUMN IF NOT EXISTS inactive_by VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL AFTER inactive;
 
-    /* Inactive on */
-    IF ds_check_column_type('ds_users', 'inactive_on') = 'datetime' THEN
-        ALTER TABLE ds_users
-            CHANGE COLUMN inactive_on inactive_on_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_users', 'inactive_on_old') = 'datetime' THEN
-        ALTER TABLE ds_users
-            ADD COLUMN IF NOT EXISTS inactive_on INT(10) UNSIGNED NULL DEFAULT NULL AFTER inactive_on_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_users', 'inactive_on') = 'int' AND
-        ds_check_column_type('ds_users', 'inactive_on_old') = 'datetime'
-    THEN
-        UPDATE
-            ds_users
-        SET
-            inactive_on = IF(inactive_on_old, UNIX_TIMESTAMP(inactive_on_old), NULL);
-        ALTER TABLE ds_users
-            DROP COLUMN IF EXISTS inactive_on_old;
-    END IF;
-
-    /* Login last attempt */
-    IF ds_check_column_type('ds_users', 'login_last_attempt') = 'datetime' THEN
-        ALTER TABLE ds_users
-            CHANGE COLUMN login_last_attempt login_last_attempt_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_users', 'login_last_attempt_old') = 'datetime' THEN
-        ALTER TABLE ds_users
-            ADD COLUMN IF NOT EXISTS login_last_attempt INT(10) UNSIGNED NULL DEFAULT NULL AFTER login_last_attempt_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_users', 'login_last_attempt') = 'int' AND
-        ds_check_column_type('ds_users', 'login_last_attempt_old') = 'datetime'
-    THEN
-        UPDATE
-            ds_users
-        SET
-            login_last_attempt = IF(login_last_attempt_old, UNIX_TIMESTAMP(login_last_attempt_old), NULL);
-        ALTER TABLE ds_users
-            DROP COLUMN IF EXISTS login_last_attempt_old;
-    END IF;
-
-    /* Login last success */
-    IF ds_check_column_type('ds_users', 'login_last_success') = 'datetime' THEN
-        ALTER TABLE ds_users
-            CHANGE COLUMN login_last_success login_last_success_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_users', 'login_last_success_old') = 'datetime' THEN
-        ALTER TABLE ds_users
-            ADD COLUMN IF NOT EXISTS login_last_success INT(10) UNSIGNED NULL DEFAULT NULL AFTER login_last_success_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_users', 'login_last_success') = 'int' AND
-        ds_check_column_type('ds_users', 'login_last_success_old') = 'datetime'
-    THEN
-        UPDATE
-            ds_users
-        SET
-            login_last_success = IF(login_last_success_old, UNIX_TIMESTAMP(login_last_success_old), NULL);
-        ALTER TABLE ds_users
-            DROP COLUMN IF EXISTS login_last_success_old;
-    END IF;
-
-    /* Created on */
-    IF ds_check_column_type('ds_users', 'created_on') = 'datetime' THEN
-        ALTER TABLE ds_users
-            CHANGE COLUMN created_on created_on_old DATETIME NULL DEFAULT NULL;
-    END IF;
-    IF ds_check_column_type('ds_users', 'created_on_old') = 'datetime' THEN
-        ALTER TABLE ds_users
-            ADD COLUMN IF NOT EXISTS created_on INT(10) UNSIGNED NULL DEFAULT NULL AFTER created_on_old;
-    END IF;
-    IF
-        ds_check_column_type('ds_users', 'created_on') = 'int' AND
-        ds_check_column_type('ds_users', 'created_on_old') = 'datetime'
-    THEN
-        UPDATE
-            ds_users
-        SET
-            created_on = IF(created_on_old, UNIX_TIMESTAMP(created_on_old), NULL);
-        ALTER TABLE ds_users
-            DROP COLUMN IF EXISTS created_on_old;
-    END IF;
+    /* Add missing event column */
+    ALTER TABLE ds_events
+        ADD COLUMN IF NOT EXISTS `event` VARCHAR(254) CHARACTER SET utf8 DEFAULT NULL AFTER `affected`;
 
 END $$
 
 /* Update to DS 8 */
 CALL ds_update_8() $$
 
+/* Cleanup */
 DROP FUNCTION IF EXISTS ds_check_column_type $$
+DROP PROCEDURE IF EXISTS ds_convert_time_column_to_int $$
 DROP PROCEDURE IF EXISTS ds_update_8 $$
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

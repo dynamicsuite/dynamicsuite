@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `ds_events` (
     `ip` varchar(39) DEFAULT NULL,
     `session` char(64) DEFAULT NULL,
     `affected` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
+    `event` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
     `message` varchar(2048) DEFAULT NULL,
     `created_by` varchar(254) CHARACTER SET utf8 DEFAULT NULL,
     `created_on` int(10) NULL DEFAULT NULL,
