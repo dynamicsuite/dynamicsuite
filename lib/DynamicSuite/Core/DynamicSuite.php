@@ -164,7 +164,7 @@ final class DynamicSuite
                 $_POST = $request->data;
                 if (DS_DEBUG_MODE) {
                     error_log(
-                        "[API Executed]"
+                        "[API Request]"
                     );
                     error_log("  $request->package_id:$request->api_id");
                     foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode($_POST, JSON_PRETTY_PRINT)) as $line) {
