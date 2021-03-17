@@ -45,9 +45,9 @@ function setState(bool $state): void
     $script = file_get_contents(realpath(__DIR__ . '/create_environment.php'));
     $state = $state ? 'true' : 'false';
     $replace = DS_CACHING
-        ? "define('DS_CACHING', true);"
-        : "define('DS_CACHING', false);";
-    $script = str_replace($replace, "define('DS_CACHING', $state);", $script);
+        ? "if (!defined('DS_CACHING')) define('DS_CACHING', true);"
+        : "if (!defined('DS_CACHING')) define('DS_CACHING', false);";
+    $script = str_replace($replace, "if (!defined('DS_CACHING')) define('DS_CACHING', $state);", $script);
     file_put_contents(realpath(__DIR__ . '/create_environment.php'), $script);
     CLI::out('Caching state changed');
     if (isset($argv[1]) && $argv[1] === '-f') {
