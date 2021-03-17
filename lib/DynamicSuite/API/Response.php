@@ -21,6 +21,9 @@
 
 namespace DynamicSuite\API;
 
+use DynamicSuite\Core\DynamicSuite;
+use DynamicSuite\Package\API;
+
 /**
  * Class Response.
  *
@@ -65,6 +68,17 @@ class Response
         $this->status = $status;
         $this->message = $message;
         $this->data = $data;
+        if (DS_DEBUG_MODE) {
+            error_log('[API Response]');
+            error_log('  Response from: ' . getenv('DS_API_ENTRY'));
+            foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode([
+                'status' => $this->status,
+                'message' => $this->message,
+                'data' => $this->data
+            ], JSON_PRETTY_PRINT)) as $line) {
+                error_log('  ' . $line);
+            }
+        }
     }
 
 }
