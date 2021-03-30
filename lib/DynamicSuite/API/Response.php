@@ -21,6 +21,9 @@
 
 namespace DynamicSuite\API;
 
+use DynamicSuite\Core\DynamicSuite;
+use DynamicSuite\Package\API;
+
 /**
  * Class Response.
  *

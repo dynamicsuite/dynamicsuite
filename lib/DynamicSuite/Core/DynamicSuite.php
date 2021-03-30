@@ -162,16 +162,19 @@ final class DynamicSuite
                     require_once $script;
                 }
                 $_POST = $request->data;
+                putenv("DS_API_ENTRY=$api->entry");
                 if (DS_DEBUG_MODE) {
-                    error_log(
-                        "[API Executed]"
-                    );
-                    error_log("  $request->package_id:$request->api_id");
-                    foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode($_POST, JSON_PRETTY_PRINT)) as $line) {
-                        error_log('  ' . $line);
+                    error_log("[API Request]");
+                    error_log("  API: $request->package_id:$request->api_id");
+                    error_log('  Script: ' . getenv('DS_API_ENTRY'));
+                    foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode($_POST, JSON_PRETTY_PRINT)) as $i => $line) {
+                        if ($i === 0) {
+                            error_log('  Data: ' . $line);
+                        } else {
+                            error_log('  ' . $line);
+                        }
                     }
                 }
-                putenv("DS_API_ENTRY=$api->entry");
                 unset($local, $api, $request);
                 return (require_once getenv('DS_API_ENTRY'));
             })();
@@ -180,6 +183,22 @@ final class DynamicSuite
             return new Response('SERVER_ERROR', 'A server error has occurred');
         }
         if ($return instanceof Response) {
+            if (DS_DEBUG_MODE) {
+                error_log('[API Response]');
+                error_log("  API: $request->package_id:$request->api_id");
+                error_log('  Script: ' . getenv('DS_API_ENTRY'));
+                foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode([
+                    'status' => $return->status,
+                    'message' => $return->message,
+                    'data' => $return->data
+                ], JSON_PRETTY_PRINT)) as $i => $line) {
+                    if ($i === 0) {
+                        error_log('  Data: ' . $line);
+                    } else {
+                        error_log('  ' . $line);
+                    }
+                }
+            }
             return $return;
         } else {
             trigger_error("$prefix bad output");
