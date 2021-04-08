@@ -48,9 +48,7 @@ spl_autoload_register(function (string $class)
 {
     if (!class_exists($class)) {
         $file = DS_ROOT_DIR . '/lib/' . str_replace('\\', '/', $class) . '.php';
-        if (DS_CACHING && opcache_is_script_cached($file)) {
-            require_once $file;
-        } elseif (file_exists($file)) {
+        if ((DS_CACHING && opcache_is_script_cached($file)) || file_exists($file)) {
             require_once $file;
         }
     }
