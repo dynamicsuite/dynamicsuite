@@ -261,6 +261,71 @@ if (CLI::yn('Setup Apache vHost?')) {
 
 }
 
+/**
+ * Setup database.
+ */
+if (CLI::yn('Setup database?')) {
+
+    /**
+     * Install only settings.
+     */
+    $install_user = CLI::in('MYSQL username for installation operations', 'root');
+    $install_pass = CLI::in('MYSQL password for installation operations', '');
+    $command = "mysql --user=\"$install_user\" --password=\"$install_pass\" ";
+
+    /**
+     * Generate database credentials.
+     */
+    $database = '';
+    while (!$database) {
+        $database = CLI::in('Database name');
+    }
+    $host = CLI::in('Database host', 'localhost');
+    $username = CLI::in('Database username', $database);
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $password = substr(str_shuffle($chars), 0, 32);
+    $password = CLI::in('Database password', $password);
+    $command .= "--host=\"$host\" --execute=";
+
+    /**
+     * Create database.
+     */
+    CLI::out('Creating database...');
+    $err = exec("$command'CREATE DATABASE `$database`' 2>&1 >/dev/null");
+    if ($err) {
+        CLI::err($err);
+    }
+
+    /**
+     * Creating user.
+     */
+    CLI::out('Granting user access...');
+    $err = exec(
+        "$command\"GRANT ALL ON $database.* TO '$username'@'$host' IDENTIFIED BY '$password'\"  2>&1 >/dev/null"
+    );
+    if ($err) {
+        CLI::err($err);
+    }
+
+    /**
+     * Write config.
+     */
+    $config['db_dsn'] = "mysql:host=$host;dbname=$database;charset=utf8mb4";
+    $config['db_user'] = $username;
+    $config['db_pass'] = $password;
+    if (
+        file_exists('config/dynamicsuite.json') &&
+        $json = json_decode(file_get_contents('config/dynamicsuite.json'), true)
+    ) $config = array_replace($json, $config);
+    $err = file_put_contents('config/dynamicsuite.json', json_encode($config, JSON_PRETTY_PRINT));
+    if (!$err) {
+        CLI::err('Error writing to config file');
+    }
+
+    CLI::out('Database setup complete!');
+
+}
+
 CLI::out('Dynamic Suite setup complete!');
 
 if (isset($hostname)) {
