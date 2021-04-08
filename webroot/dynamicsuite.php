@@ -44,7 +44,7 @@ if (DS_VIEW) {
             return;
         }
         $ua = htmlentities($_SERVER['HTTP_USER_AGENT'], ENT_QUOTES, 'UTF-8');
-        if (preg_match('~MSIE|Internet Explorer~i', $ua) || strpos($ua, 'Trident/7.0; rv:11.0') !== false) {
+        if (preg_match('~MSIE|Internet Explorer~i', $ua) || str_contains($ua, 'Trident/7.0; rv:11.0')) {
             die('Sorry, Internet Explorer is not supported.');
         }
     })();
