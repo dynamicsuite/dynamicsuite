@@ -31,8 +31,8 @@ require_once 'create_environment.php';
 CLI::out('Running environment checks');
 
 // PHP version check
-if (!version_compare(PHP_VERSION, '7.4.3', '>=')) {
-    trigger_error('Dynamic Suite requires php >= 7.4.3', E_USER_ERROR);
+if (version_compare(PHP_VERSION, '8.0.0', '<')) {
+    trigger_error('Dynamic Suite requires php >= 8.0.0', E_USER_ERROR);
 }
 
 // Extension check
