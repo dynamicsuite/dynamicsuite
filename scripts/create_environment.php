@@ -1,36 +1,38 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpIncludeInspection
  */
 
-/** @noinspection PhpIncludeInspection */
-
 namespace DynamicSuite;
+use Exception;
 
+/**
+ * Core definitions.
+ */
 define('DS_START', microtime(true));
-define('DS_VERSION', '8.1.0');
+define('DS_VERSION', '9.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 if (!defined('DS_CACHING')) define('DS_CACHING', false);
 ini_set('display_errors', 0);
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
 
-// Exception logger
-function ds_log_exception($exception) {
+/**
+ * Exception logger.
+ *
+ * @param Exception $exception
+ * @return void
+ */
+function ds_log_exception(Exception $exception): void
+{
     error_log($exception->getMessage());
     error_log('  @ ' . $exception->getFile() . ':' . $exception->getLine());
     $trace = $exception->getTrace();
@@ -39,8 +41,11 @@ function ds_log_exception($exception) {
     }
 }
 
-// Core autoloader
-spl_autoload_register(function (string $class) {
+/**
+ * Core autoloader.
+ */
+spl_autoload_register(function (string $class)
+{
     if (!class_exists($class)) {
         $file = DS_ROOT_DIR . '/lib/' . str_replace('\\', '/', $class) . '.php';
         if (DS_CACHING && opcache_is_script_cached($file)) {
