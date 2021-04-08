@@ -1,30 +1,20 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite\Util
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpUnused PhpPureAttributeCanBeAddedInspection
  */
-
-/** @noinspection PhpUnused */
 
 namespace DynamicSuite\Util;
 
 /**
- * Class CLI.
- *
- * @package DynamicSuite\Util
+ * Command line utility.
  */
 final class CLI
 {
@@ -48,7 +38,7 @@ final class CLI
      *
      * $prompt is the string of text displayed before the input area such as "enter a value".
      *
-     * The input may display an old/previous value to enter through quickly.
+     * If $old is set to TRUE, skipping the input (enter) will use the $old value.
      *
      * @param string $prompt
      * @param string|null $old
@@ -56,8 +46,7 @@ final class CLI
      */
     public static function in(string $prompt, ?string $old = null): string
     {
-        $prompt = $old ? "$prompt (Enter for `$old`): " : "$prompt: ";
-        self::out($prompt, false);
+        self::out($old ? "$prompt (Enter for '$old'): " : "$prompt: ", false);
         $input = trim(fgets(STDIN));
         if ($old !== null && $input === '') {
             $input = $old;
@@ -68,9 +57,7 @@ final class CLI
     /**
      * Display a Yes/No prompt to STDOUT and wait for user input on STDIN.
      *
-     * The $default value is a boolean that should map to a yes/no value.
-     *
-     * If the -f flag is used, will always return true.
+     * $default can be used to define if Y (TRUE) or N (FALSE) should be used as the default.
      *
      * @param string $prompt
      * @param bool $default
@@ -93,7 +80,7 @@ final class CLI
     /**
      * Output text to the console (STDERR).
      *
-     * If $fatal is TRUE, all execution stops.
+     * If $fatal is TRUE, all execution stops after the message is output to STDERR.
      *
      * @param string $text
      * @param bool $fatal
@@ -131,7 +118,7 @@ final class CLI
                 $map[$column] = mb_strlen($column);
             }
             $break .= str_repeat('-', $map[$column] + 2) . '+';
-            $header .= ' ' . str_pad($column, $map[$column], ' ') . ' |';
+            $header .= ' ' . str_pad($column, $map[$column]) . ' |';
         }
         $break .= PHP_EOL;
         $table = $break . $header . PHP_EOL . $break;
@@ -146,7 +133,7 @@ final class CLI
                     if (is_bool($row[$key])) {
                         $row[$key] = $row[$key] ? 'Y' : 'N';
                     }
-                    $table .= ' ' . str_pad($row[$key], $length, ' ') . ' |';
+                    $table .= ' ' . str_pad($row[$key], $length) . ' |';
                 }
                 $table .= PHP_EOL;
             }
@@ -157,7 +144,7 @@ final class CLI
     }
 
     /**
-     * A method for splitting a value out of a DSN.
+     * Get a key's value from the given DSN.
      *
      * Example:
      *
@@ -169,7 +156,7 @@ final class CLI
      * @param string $key
      * @return string
      */
-    public static function splitDsn(string $dsn, string $key): string
+    public static function readDSNKey(string $dsn, string $key): string
     {
         $value = substr($dsn, strpos($dsn, "$key=") + (mb_strlen($key) + 1));
         $pos = strpos($value, ';');
@@ -177,38 +164,6 @@ final class CLI
             $value = substr($value, 0, $pos);
         }
         return $value;
-    }
-
-    /**
-     * Used to parse script option arguments.
-     *
-     * For example:
-     *
-     * If you pass --help or -h to your script, you can verify this by
-     * calling:
-     *
-     * CLI::actionIs('h', optargs('h', ['help'])); // TRUE
-     *
-     * @param string|array $keys
-     * @param array $options
-     * @return bool
-     */
-    public static function actionIs($keys, array $options): bool
-    {
-        if (is_string($keys)) {
-            return array_key_exists($keys, $options);
-        } elseif (is_array($keys)) {
-            $exists = false;
-            foreach($keys as $value) {
-                if (!$exists) {
-                    $exists = array_key_exists($value, $options);
-                }
-            }
-            return $exists;
-        } else {
-            CLI::err('Error validating script arguments', false);
-            return false;
-        }
     }
 
 }
