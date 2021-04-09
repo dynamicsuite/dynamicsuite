@@ -63,8 +63,8 @@ final class DynamicSuite
             self::$view = $cache['view'];
         } else {
             self::$cfg = new Config('dynamicsuite');
-            self::$view = new View();
-            self::$view->initTemplates();
+            //self::$view = new View();
+            //self::$view->initTemplates();
             if (DS_CACHING) {
                 $store = apcu_store($hash, [
                     'cfg' => self::$cfg,

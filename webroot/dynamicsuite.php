@@ -15,6 +15,7 @@ use DynamicSuite\Core\DynamicSuite;
 use DynamicSuite\Core\URL;
 use DynamicSuite\API\Request as APIRequest;
 use DynamicSuite\Core\Session;
+use DynamicSuite\Package\Packages;
 use Error;
 use Exception;
 use PDOException;
@@ -28,6 +29,11 @@ if (defined('STDIN')) {
     trigger_error('Web script cannot be called from CLI', E_USER_ERROR);
 }
 ob_clean();
+
+var_dump(Packages::$loaded);
+var_dump(Packages::$apis);
+
+exit;
 
 // Views
 if (DS_VIEW) {

@@ -1,27 +1,19 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite\Package
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
  */
 
-/** @noinspection PhpUnused */
-
 namespace DynamicSuite\Package;
-
+use ArgumentCountError;
 use DynamicSuite\Util\Format;
+use Error;
 use Exception;
 
 /**
@@ -34,130 +26,52 @@ use Exception;
  * @property string|null $version
  * @property string|null $description
  * @property string|null $license
- * @property array[] $global
- * @property array[] $local
- * @property NavGroup[] $nav_groups
- * @property string[] $action_groups
- * @property ActionLink[] $action_links
- * @property View[] $views
- * @property API[] $apis
+ * @property string[] $autoload
+ * @property string[] $init
+ * @property string[] $js
+ * @property string[] $css
+ * @property array $apis
  */
 final class Package
 {
 
     /**
-     * Package ID.
-     *
-     * @var string
-     */
-    protected string $package_id;
-
-    /**
-     * Friendly package name.
-     *
-     * @var string|null
-     */
-    protected ?string $name = null;
-
-    /**
-     * Package author.
-     *
-     * @var string|null
-     */
-    protected ?string $author = null;
-
-    /**
-     * Package version.
-     *
-     * @var string|null
-     */
-    protected ?string $version = null;
-
-    /**
-     * Package description.
-     *
-     * @var string|null
-     */
-    protected ?string $description = null;
-
-    /**
-     * Package license.
-     *
-     * @var string|null
-     */
-    protected ?string $license = null;
-
-    /**
-     * Global package resource paths.
-     *
-     * @var array[]
-     */
-    protected array $global = ['autoload' => [], 'init' => [], 'js' => [], 'css' => []];
-
-    /**
-     * Local package resource paths.
-     *
-     * @var array[]
-     */
-    protected array $local = ['autoload' => [], 'init' => [], 'js' => [], 'css' => []];
-
-    /**
-     * Provided navigational groups.
-     *
-     * @var NavGroup[]
-     */
-    protected array $nav_groups = [];
-
-    /**
-     * Provided action groups.
-     *
-     * @var string[]
-     */
-    protected array $action_groups = [];
-
-    /**
-     * Provided action links
-     *
-     * @var ActionLink[]
-     */
-    protected array $action_links = [];
-
-    /**
-     * Package views.
-     *
-     * @var View[]
-     */
-    protected array $views = [];
-
-    /**
-     * Package APIs.
-     *
-     * @var API[]
-     */
-    protected array $apis = [];
-
-    /**
      * Package constructor.
      *
      * @param string $package_id
-     * @param array $structure
+     * @param string|null $name
+     * @param string|null $author
+     * @param string|null $version
+     * @param string|null $description
+     * @param string|null $license
+     * @param string[] $autoload
+     * @param string[] $init
+     * @param string[] $js
+     * @param string[] $css
+     * @param array $apis
      * @return void
      */
-    public function __construct(string $package_id, array $structure)
-    {
-        $this->package_id = $package_id;
-        $this->name = $structure['name'] ?? $package_id;
-        $this->author = $structure['author'] ?? 'Anonymous';
-        $this->version = $structure['version'] ?? '0.0.0';
-        $this->description = $structure['description'] ?? 'N/A';
-        $this->license = $structure['license'] ?? 'none';
-        $this->loadResourceGroup('global', $structure);
-        $this->loadResourceGroup('local', $structure);
-        $this->loadNavGroups($structure);
-        $this->loadActionGroups($structure);
-        $this->loadActionLinks($structure);
-        $this->loadViews($structure);
-        $this->loadApis($structure);
+    public function __construct(
+        protected string $package_id,
+        protected ?string $name = null,
+        protected ?string $author = 'Anonymous',
+        protected ?string $version = '0.0.0',
+        protected ?string $description = 'N/A',
+        protected ?string $license = 'none',
+        protected array $autoload = [],
+        protected array $init = [],
+        protected array $js = [],
+        protected array $css = [],
+        protected array $apis = []
+    ) {
+        $this->name ??= $this->package_id;
+        $this->loadIncludes();
+        $this->loadAPIs();
+
+        //$this->loadNavGroups($structure);
+        //$this->loadActionGroups($structure);
+        //$this->loadActionLinks($structure);
+        //$this->loadViews($structure);
     }
 
     /**
@@ -172,56 +86,53 @@ final class Package
     }
 
     /**
-     * Load a resource group.
+     * Add all of the includes provided by the package to Dynamic Suite.
      *
-     * $group must be a string, "global" or "local"
-     *
-     * $structure is the referenced structure array for the package.
-     *
-     * @param string $group
-     * @param array $structure
-     * @return bool
-     * @noinspection PhpIllegalStringOffsetInspection
+     * @return void
      */
-    private function loadResourceGroup(string $group, array $structure): bool
+    private function loadIncludes(): void
     {
-        if (!isset($structure[$group])) {
-            return false;
+        foreach (['autoload', 'init', 'js', 'css'] as $type) {
+            foreach ($this->$type as $path) {
+                if (!is_string($path)) {
+                    error_log("[$this->package_id] [structure violation]: '$type' must be an array of strings");
+                    continue;
+                }
+                $formatter = $type === 'autoload' || $type === 'init'
+                    ? 'formatServerPath'
+                    : 'formatClientPath';
+                $path = Format::$formatter($this->package_id, $path);
+                if (!in_array($path, Packages::$$type)) {
+                    array_push(Packages::$$type, $path);
+                }
+            }
         }
-        if (!is_array($structure[$group])) {
-            error_log("[Structure] Package \"$this->package_id\" resource group \"$group\" must be an array");
-            return false;
+    }
+
+    /**
+     * Add all of the apis provided by the package to Dynamic Suite.
+     *
+     * @return void
+     */
+    private function loadAPIs(): void
+    {
+        if (!$this->apis) {
+            return;
         }
-        $types = ['autoload', 'init', 'js', 'css'];
-        $error_log = function (string $group, string $key, string $message) {
-            error_log("[Structure] Package \"$this->package_id\" resource group \"$group\" key \"$key\": $message");
-        };
-        foreach ($types as $type) {
-            if (!array_key_exists($type, $structure[$group])) {
+        if (!is_array($this->apis)) {
+            error_log("[$this->package_id] [structure violation]: 'apis' must be an array");
+            return;
+        }
+        foreach ($this->apis as $api_id => $structure) {
+            try {
+                Packages::$apis[$api_id]  = new API($api_id, $this->package_id, ...$structure);
+            } catch (Exception | ArgumentCountError $exception) {
+                error_log($exception->getMessage());
                 continue;
-            }
-            if (!is_array($structure[$group][$type]) && !is_string($structure[$group][$type])) {
-                $error_log($group, $type, 'must be a string or an array of strings (file paths)');
-                continue;
-            }
-            if (is_string($structure[$group][$type])) {
-                $structure[$group][$type] = [$structure[$group][$type]];
-            }
-            foreach ($structure[$group][$type] as $path) {
-                if ($type === 'autoload' || $type === 'init') {
-                    $path = Format::formatServerPath($this->package_id, $path);
-                } else {
-                    $path = Format::formatClientPath($this->package_id, $path);
-                }
-                if (!in_array($path, $this->$group[$type])) {
-                    $this->$group[$type][] = $path;
-                }
-                if ($group === 'global' && !in_array($path, Packages::$global[$type])) {
-                    Packages::$global[$type][] = $path;
-                }
+            } catch (Error $error) {
+                error_log("[$this->package_id] [structure violation] in api '$api_id': "  . $error->getMessage());
             }
         }
-        return true;
     }
 
     /**
@@ -304,7 +215,7 @@ final class Package
         }
         foreach ($structure['action_links'] as $link_id => $link) {
             try {
-                $this->action_links[$link_id] = new ActionLink($link_id, $this->package_id, $link);
+                $this->action_links[$link_id] = new HeaderAction($link_id, $this->package_id, $link);
                 Packages::$action_links = array_merge(Packages::$action_links, $this->action_links);
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
@@ -335,34 +246,6 @@ final class Package
             try {
                 $this->views[$view_id] = new View($view_id, $this->package_id, $view);
                 Packages::$views[$view_id] = $this->views[$view_id];
-            } catch (Exception $exception) {
-                error_log($exception->getMessage());
-                continue;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Load package APIs.
-     *
-     * $structure is the referenced structure array for the package.
-     *
-     * @param array $structure
-     * @return bool
-     */
-    private function loadApis(array $structure): bool
-    {
-        if (!isset($structure['apis'])) {
-            return false;
-        }
-        if (!is_array($structure['apis'])) {
-            error_log("[Structure] Package \"$this->package_id\" key \"apis\" must be an array of APIs");
-            return false;
-        }
-        foreach ($structure['apis'] as $api_id => $api) {
-            try {
-                $this->apis[$api_id] = new API($api_id, $this->package_id, $api);
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
                 continue;

@@ -1,35 +1,26 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite\Package
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
  */
-
-/** @noinspection PhpUnused */
 
 namespace DynamicSuite\Package;
 use DynamicSuite\Util\Format;
 use Exception;
 
 /**
- * Class Api.
+ * Class API.
  *
  * @package DynamicSuite\Package
  * @property string $api_id
  * @property string $package_id
- * @property string|null $entry
+ * @property string $entry
  * @property string[] $post
  * @property string[] $permissions
  * @property bool $public
@@ -40,109 +31,44 @@ final class API
 {
 
     /**
-     * API ID string.
-     *
-     * @var string
-     */
-    protected string $api_id;
-
-    /**
-     * Package ID string
-     *
-     * @var string
-     */
-    protected string $package_id;
-
-    /**
-     * API entry point path.
-     *
-     * @var string|null
-     */
-    protected ?string $entry = null;
-
-    /**
-     * Required input POST keys.
-     *
-     * @var string[]
-     */
-    protected array $post = [];
-
-    /**
-     * Required permissions (array of shorthands).
-     *
-     * @var string[]
-     */
-    protected array $permissions = [];
-
-    /**
-     * If the API is public (no auth required).
-     *
-     * @var bool
-     */
-    protected bool $public = false;
-
-    /**
-     * API specific autoload paths.
-     *
-     * @var string[]
-     */
-    protected array $autoload = [];
-
-    /**
-     * API specific init scripts.
-     *
-     * @var string[]
-     */
-    protected array $init = [];
-
-    /**
-     * Api constructor.
+     * API constructor.
      *
      * @param string $api_id
      * @param string $package_id
-     * @param array $structure
-     * @return void
+     * @param string|null $entry
+     * @param string[] $post
+     * @param string[] $permissions
+     * @param bool $public
+     * @param string[] $autoload
+     * @param string[] $init
      * @throws Exception
      */
-    public function __construct(string $api_id, string $package_id, array $structure)
-    {
-        $this->api_id = $api_id;
-        $this->package_id = $package_id;
+    public function __construct(
+        protected string $api_id,
+        protected string $package_id,
+        protected string|null $entry = null,
+        protected array $post = [],
+        protected array $permissions = [],
+        protected bool $public = false,
+        protected array $autoload = [],
+        protected array $init = []
+    ) {
         $error = function(string $key, string $message): string {
-            return "[Structure] Package \"$this->package_id\" api \"$this->api_id\" key \"$key\": $message";
+            return "[$this->package_id] [structure violation] in api '$this->api_id' key '$key': $message";
         };
-        foreach ($structure as $prop => $value) {
-            if ($prop === 'entry') {
-                $value = Format::formatServerPath($package_id, $value);
-            }
-            if (in_array($prop, ['permissions', 'post', 'autoload', 'init'])) {
-                if ($value === null) {
-                    $value = [];
-                } elseif (is_array($value)) {
-                    foreach ($value as $k => $v) {
-                        if (!is_string($v)) {
-                            throw new Exception($error($prop, 'must be a array of strings (paths)'));
-                        }
-                        if ($prop === 'autoload' || $prop === 'init') {
-                            if (is_array($value)) {
-                                foreach ($value as $path) {
-                                    $value[$k] = Format::formatServerPath($this->package_id, $path);
-                                }
-                            } else {
-                                $value[$k] = Format::formatServerPath($this->package_id, $value);
-                            }
-                        }
-                    }
-                } else {
-                    throw new Exception($error($prop, 'must be a array of strings (paths)'));
+        if ($this->entry === null) {
+            throw new Exception($error('entry', 'Missing'));
+        }
+        $this->entry = Format::formatServerPath($package_id, $this->entry);
+        foreach (['permissions', 'post', 'autoload', 'init'] as $prop) {
+            foreach ($this->$prop as $key => $value) {
+                if (!is_string($value)) {
+                    throw new Exception($error($prop, 'Must be an array of strings'));
+                }
+                if ($prop === 'autoload' || $prop === 'init') {
+                    $this->$$prop[$key] = Format::formatServerPath($this->package_id, $value);
                 }
             }
-            if (property_exists($this, $prop)) {
-                $this->$prop = $value;
-            }
-        }
-        if ($this->entry === null) {
-            throw new Exception($error('entry', 'missing'));
         }
     }
 

@@ -139,30 +139,6 @@ CLI::out('All Checks Complete!');
 if (CLI::yn('Setup Apache vHost?')) {
 
     /**
-     * Get the daemon user for post-setup.
-     */
-    while (1) {
-        $daemon_user = CLI::in('Daemon user', 'root');
-        if (exec("getent passwd $daemon_user")) {
-            break;
-        } else {
-            CLI::err('Daemon user does not exist', false);
-        }
-    }
-
-    /**
-     * Get the daemon group for post-setup.
-     */
-    while (1) {
-        $daemon_group = CLI::in('Daemon group', 'root');
-        if (exec("getent group $daemon_group")) {
-            break;
-        } else {
-            CLI::err('Daemon group does not exist', false);
-        }
-    }
-
-    /**
      * Gather host information.
      */
     $listen_addr = CLI::in('Listen IP address', '*');
@@ -245,20 +221,6 @@ if (CLI::yn('Setup Apache vHost?')) {
         }
     }
 
-    /**
-     * Update permissions.
-     */
-    CLI::out('Updating permissions...', false);
-    if ($chown = exec("chown -R $daemon_user:$daemon_group " . getcwd())) {
-        CLI::err('FAILED', false);
-        CLI::err($chown);
-    }
-    if ($chmod = exec("chmod -R 750 " . getcwd())) {
-        CLI::err('FAILED', false);
-        CLI::err($chmod);
-    }
-    CLI::out('OK');
-
 }
 
 /**
@@ -323,6 +285,51 @@ if (CLI::yn('Setup database?')) {
     }
 
     CLI::out('Database setup complete!');
+
+}
+
+/**
+ * Update permissions.
+ */
+if (CLI::yn('Update permissions?')) {
+
+    /**
+     * Get the daemon user for post-setup.
+     */
+    while (1) {
+        $daemon_user = CLI::in('Daemon user', 'root');
+        if (exec("getent passwd $daemon_user")) {
+            break;
+        } else {
+            CLI::err('Daemon user does not exist', false);
+        }
+    }
+
+    /**
+     * Get the daemon group for post-setup.
+     */
+    while (1) {
+        $daemon_group = CLI::in('Daemon group', 'root');
+        if (exec("getent group $daemon_group")) {
+            break;
+        } else {
+            CLI::err('Daemon group does not exist', false);
+        }
+    }
+
+    /**
+     * Update permissions.
+     */
+    CLI::out('Updating permissions...', false);
+    if ($chown = exec("chown -R $daemon_user:$daemon_group " . getcwd())) {
+        CLI::err('FAILED', false);
+        CLI::err($chown);
+    }
+    if ($chmod = exec("chmod -R 750 " . getcwd())) {
+        CLI::err('FAILED', false);
+        CLI::err($chmod);
+    }
+    CLI::out('OK');
 
 }
 
