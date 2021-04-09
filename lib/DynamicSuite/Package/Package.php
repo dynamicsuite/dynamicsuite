@@ -31,6 +31,7 @@ use Exception;
  * @property string[] $js
  * @property string[] $css
  * @property array $apis
+ * @property array $views
  */
 final class Package
 {
@@ -38,17 +39,6 @@ final class Package
     /**
      * Package constructor.
      *
-     * @param string $package_id
-     * @param string|null $name
-     * @param string|null $author
-     * @param string|null $version
-     * @param string|null $description
-     * @param string|null $license
-     * @param string[] $autoload
-     * @param string[] $init
-     * @param string[] $js
-     * @param string[] $css
-     * @param array $apis
      * @return void
      */
     public function __construct(
@@ -62,16 +52,16 @@ final class Package
         protected array $init = [],
         protected array $js = [],
         protected array $css = [],
-        protected array $apis = []
+        protected array $apis = [],
+        protected array $views = []
     ) {
         $this->name ??= $this->package_id;
         $this->loadIncludes();
         $this->loadAPIs();
+        $this->loadViews();
 
         //$this->loadNavGroups($structure);
-        //$this->loadActionGroups($structure);
         //$this->loadActionLinks($structure);
-        //$this->loadViews($structure);
     }
 
     /**
@@ -110,7 +100,7 @@ final class Package
     }
 
     /**
-     * Add all of the apis provided by the package to Dynamic Suite.
+     * Add all of the APIs provided by the package to Dynamic Suite.
      *
      * @return void
      */
@@ -131,6 +121,32 @@ final class Package
                 continue;
             } catch (Error $error) {
                 error_log("[$this->package_id] [structure violation] in api '$api_id': "  . $error->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Add all of the views provided by the package to Dynamic Suite.
+     *
+     * @return void
+     */
+    private function loadViews(): void
+    {
+        if (!$this->views) {
+            return;
+        }
+        if (!is_array($this->apis)) {
+            error_log("[$this->package_id] [structure violation]: 'views' must be an array");
+            return;
+        }
+        foreach ($this->views as $view_id => $structure) {
+            try {
+                Packages::$views[$view_id]  = new View($view_id, $this->package_id, ...$structure);
+            } catch (Exception | ArgumentCountError $exception) {
+                error_log($exception->getMessage());
+                continue;
+            } catch (Error $error) {
+                error_log("[$this->package_id] [structure violation] in view '$view_id': "  . $error->getMessage());
             }
         }
     }
@@ -165,40 +181,6 @@ final class Package
     }
 
     /**
-     * Load package action groups.
-     *
-     * @param array $structure
-     * @return bool
-     */
-    private function loadActionGroups(array $structure): bool
-    {
-        if (!isset($structure['action_groups'])) {
-            return false;
-        }
-        $error = function (string $message) {
-            return "[Structure] Package \"$this->package_id\" key \"action_groups\": $message";
-        };
-        if (is_string($structure['action_groups'])) {
-            $structure['action_groups'] = [$structure['action_groups']];
-        } elseif ($structure['action_groups'] === null) {
-            $structure['action_groups'] = [];
-        } elseif (is_array($structure['action_groups'])) {
-            foreach ($structure['action_groups'] as $group) {
-                if (!is_string($group)) {
-                    error_log($error('must be a string or array of strings'));
-                    return false;
-                }
-            }
-        } else {
-            error_log($error('must be a string or array of strings'));
-            return false;
-        }
-        $this->action_groups = $structure['action_groups'];
-        Packages::$action_groups = array_merge(Packages::$action_groups, $this->action_groups);
-        return true;
-    }
-
-    /**
      * Load package action links.
      *
      * @param array $structure
@@ -217,35 +199,6 @@ final class Package
             try {
                 $this->action_links[$link_id] = new HeaderAction($link_id, $this->package_id, $link);
                 Packages::$action_links = array_merge(Packages::$action_links, $this->action_links);
-            } catch (Exception $exception) {
-                error_log($exception->getMessage());
-                continue;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Load package views.
-     *
-     * $structure is the referenced structure array for the package.
-     *
-     * @param array $structure
-     * @return bool
-     */
-    private function loadViews(array $structure): bool
-    {
-        if (!isset($structure['views'])) {
-            return false;
-        }
-        if (!is_array($structure['views'])) {
-            error_log("[Structure] Package \"$this->package_id\" key \"views\" must be an array of valid views");
-            return false;
-        }
-        foreach ($structure['views'] as $view_id => $view) {
-            try {
-                $this->views[$view_id] = new View($view_id, $this->package_id, $view);
-                Packages::$views[$view_id] = $this->views[$view_id];
             } catch (Exception $exception) {
                 error_log($exception->getMessage());
                 continue;

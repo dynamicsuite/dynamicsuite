@@ -20,7 +20,7 @@ use Exception;
  * @package DynamicSuite\Package
  * @property string $api_id
  * @property string $package_id
- * @property string $entry
+ * @property string|null $entry
  * @property string[] $post
  * @property string[] $permissions
  * @property bool $public
@@ -33,14 +33,7 @@ final class API
     /**
      * API constructor.
      *
-     * @param string $api_id
-     * @param string $package_id
-     * @param string|null $entry
-     * @param string[] $post
-     * @param string[] $permissions
-     * @param bool $public
-     * @param string[] $autoload
-     * @param string[] $init
+     * @return void
      * @throws Exception
      */
     public function __construct(
