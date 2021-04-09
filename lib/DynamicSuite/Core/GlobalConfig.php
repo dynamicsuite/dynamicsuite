@@ -1,23 +1,14 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
  */
-
-/** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
 
@@ -30,7 +21,7 @@ abstract class GlobalConfig
 {
 
     /**
-     * DSConfig constructor.
+     * GlobalConfig constructor.
      *
      * @param string $package_id
      */
@@ -40,7 +31,7 @@ abstract class GlobalConfig
         if (!file_exists($path)) {
             return;
         }
-        $hash = md5($path);
+        $hash = 'ds' . crc32($path);
         if (DS_CACHING && apcu_exists($hash)) {
             $cfg = apcu_fetch($hash);
             if ($cfg === false) {
