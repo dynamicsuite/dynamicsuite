@@ -1,23 +1,15 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite\Database
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpUnused
  */
-
-/** @noinspection PhpUnused */
 
 namespace DynamicSuite\Database;
 use Exception;
@@ -38,34 +30,6 @@ final class Database
 {
 
     /**
-     * Database connection DSN.
-     *
-     * @var string|null
-     */
-    private string $dsn;
-
-    /**
-     * Username credential for connection to the database.
-     *
-     * @var string|null
-     */
-    private string $user;
-
-    /**
-     * Password credential for connection to the database.
-     *
-     * @var string|null
-     */
-    private string $pass;
-
-    /**
-     * Database connection options.
-     *
-     * @var array
-     */
-    private array $options;
-
-    /**
      * Database connection.
      *
      * @var PDO|null
@@ -75,19 +39,14 @@ final class Database
     /**
      * Database constructor.
      *
-     * @param string $dsn
-     * @param string $user
-     * @param string $pass
-     * @param array $options
      * @return void
      */
-    public function __construct(string $dsn, string $user, string $pass, array $options = [])
-    {
-        $this->dsn = $dsn;
-        $this->user = $user;
-        $this->pass = $pass;
-        $this->options = $options;
-    }
+    public function __construct(
+        protected string $dsn,
+        protected string $user,
+        protected string $pass,
+        protected array $options = []
+    ) {}
 
     /**
      * Parameter getter magic method.
@@ -152,8 +111,12 @@ final class Database
      * @return array|int
      * @throws PDOException|Exception
      */
-    public function query($query, array $args = [], bool $fetch_single = false, int $fetch_mode = PDO::FETCH_ASSOC)
-    {
+    public function query(
+        string | Query $query,
+        array $args = [],
+        bool $fetch_single = false,
+        int $fetch_mode = PDO::FETCH_ASSOC
+    ): array | int {
         if (!$this->conn instanceof PDO && !$this->connect()) {
             throw new PDOException('Database not initialized');
         }
@@ -162,7 +125,7 @@ final class Database
             $args = $query->args;
             $query = $query->query;
         }
-        if (defined('DS_DEBUG_MODE') && DS_DEBUG_MODE) {
+        if (DS_DEBUG_MODE) {
             error_log('[Query Executed]');
             $dump_query = $query;
             foreach ($args as $arg) {
@@ -228,6 +191,7 @@ final class Database
         try {
             $this->conn->commit();
         } catch (PDOException $exception) {
+            error_log($exception->getMessage());
             $this->conn->rollBack();
         }
     }

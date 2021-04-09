@@ -1,23 +1,15 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite\Database
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpUnused
  */
-
-/** @noinspection PhpUnused */
 
 namespace DynamicSuite\Database;
 use DynamicSuite\Core\DynamicSuite;
@@ -29,6 +21,7 @@ use PDOException;
  * Class Query.
  *
  * @package DynamicSuite\Database
+ * @property Database|null $database
  * @property string $query
  * @property array $args
  * @property string|null $statement
@@ -69,21 +62,21 @@ final class Query
      *
      * @var string|null
      */
-    private ?string $statement = null;
+    public ?string $statement = null;
 
     /**
      * Ignore clause for DML INSERT.
      *
      * @var bool
      */
-    private bool $ignore = false;
+    public bool $ignore = false;
 
     /**
      * Main operating table.
      *
      * @var string|null
      */
-    private ?string $table = null;
+    public ?string $table = null;
 
     /**
      * Statement columns.
@@ -92,7 +85,7 @@ final class Query
      *
      * @var string[]
      */
-    private array $columns = [];
+    public array $columns = [];
 
     /**
      * Row to update on duplicate key inserts.
@@ -101,35 +94,35 @@ final class Query
      *
      * @var string[]
      */
-    private array $duplicate_key_update = [];
+    public array $duplicate_key_update = [];
 
     /**
      * DISTINCT clause for SELECTs.
      *
      * @var bool
      */
-    private bool $distinct = false;
+    public bool $distinct = false;
 
     /**
      * JOIN data for simple joins.
      *
      * @var array
      */
-    private array $joins = [];
+    public array $joins = [];
 
     /**
      * An array of WHERE clauses for queries.
      *
      * @var array
      */
-    private array $where = [];
+    public array $where = [];
 
     /**
      * Where depth for nested WHERE clauses.
      *
      * @var array
      */
-    private array $where_depth = [];
+    public array $where_depth = [];
 
     /**
      * Group by data for grouping results.
@@ -138,7 +131,7 @@ final class Query
      *
      * @var string[]|Query[]
      */
-    private array $group_by = [];
+    public array $group_by = [];
 
     /**
      * Order by data for ordering results.
@@ -148,21 +141,21 @@ final class Query
      *
      * @var array[]
      */
-    private array $order_by = [];
+    public array $order_by = [];
 
     /**
      * Result limit (null will return unlimited).
      *
      * @var int|null
      */
-    private ?int $limit = null;
+    public ?int $limit = null;
 
     /**
      * Result limit offset (null will use no offset).
      *
      * @var int|null
      */
-    private ?int $offset = null;
+    public ?int $offset = null;
 
     /**
      * Table alias for deeper queries.
@@ -177,6 +170,13 @@ final class Query
      * @var string|null
      */
     public ?string $query_alias = null;
+
+    /**
+     * Query constructor.
+     *
+     * @return void
+     */
+    public function __construct(?Database $database = null) {}
 
     /**
      * DML statement: INSERT.
@@ -289,7 +289,7 @@ final class Query
     {
         $this->statement = 'SELECT';
         foreach ($columns as $column) {
-            if (!is_string($column) && !$column instanceof Query && !$column instanceof Expression) {
+            if (!is_string($column) && !$column instanceof Query) {
                 throw new Exception('Query columns must be strings matching the database column names or sub-queries');
             }
         }
@@ -415,8 +415,13 @@ final class Query
      * @return Query
      * @throws Exception
      */
-    public function where($term, ?string $operand = null, $value = null, bool $literal = false, $prefix = 'AND'): Query
-    {
+    public function where(
+        string | callable $term,
+        ?string $operand = null,
+        $value = null,
+        bool $literal = false,
+        $prefix = 'AND'
+    ): Query {
         $where = &$this->where;
         foreach ($this->where_depth as $key) {
             $where = &$where[$key];
@@ -471,8 +476,12 @@ final class Query
      * @return Query
      * @throws Exception
      */
-    public function orWhere($term, ?string $operand = null, $value = null, bool $literal = false): Query
-    {
+    public function orWhere(
+        string | callable $term,
+        ?string $operand = null,
+        $value = null,
+        bool $literal = false
+    ): Query {
         return $this->where($term, $operand, $value, $literal, 'OR');
     }
 
@@ -511,7 +520,7 @@ final class Query
      * @return Query
      * @throws Exception
      */
-    public function orderBy($column, string $sort = 'ASC'): Query
+    public function orderBy(string | Query$column, string $sort = 'ASC'): Query
     {
         if (!is_string($column) && !$column instanceof Query) {
             throw new Exception('Query order by column must be a string or instance of Query for sub-queries');
@@ -620,10 +629,6 @@ final class Query
                 foreach ($this->columns as $column) {
                     if (is_string($column)) {
                         $columns .= "$column, ";
-                    } elseif ($column instanceof Expression) {
-                        $column->build();
-                        $columns .= "$column->expression, ";
-                        $this->args = array_merge($this->args, $column->args);
                     } else {
                         /** @var Query $column */
                         $column->build();
@@ -661,7 +666,7 @@ final class Query
                     foreach ($this->group_by as $column) {
                         if ($column instanceof Query) {
                             $column->build();
-                            $group_by .= "({$column->query}), ";
+                            $group_by .= "($column->query), ";
                             $this->args = array_merge($this->args, $column->args);
                         } elseif (is_string($column)) {
                             $group_by .= "$column, ";
@@ -714,7 +719,7 @@ final class Query
     /**
      * Execute the current query.
      *
-     * This is only valid for DynamicSuite queries, not 3rd party database queries.
+     * If a database handle was not set when the query was created, the core Dynamic Suite handle will be used.
      *
      * Return value is varied, see: Database::query.
      *
@@ -723,9 +728,13 @@ final class Query
      * @return array|int
      * @throws PDOException|Exception
      */
-    public function execute(bool $fetch_single = false, int $fetch_mode = PDO::FETCH_ASSOC)
+    public function execute(bool $fetch_single = false, int $fetch_mode = PDO::FETCH_ASSOC): array | int
     {
-        return DynamicSuite::$db->query($this, [], $fetch_single, $fetch_mode);
+        if ($this->database) {
+            return $this->database->query($this, [], $fetch_single, $fetch_mode);
+        } else {
+            return DynamicSuite::$db->query($this, [], $fetch_single, $fetch_mode);
+        }
     }
 
     /**
