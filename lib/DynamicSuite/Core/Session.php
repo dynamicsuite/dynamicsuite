@@ -1,30 +1,17 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpUnused
  */
 
-/** @noinspection PhpUnused */
-
 namespace DynamicSuite\Core;
-use DynamicSuite\Database\Query;
-use DynamicSuite\Storable\User;
-use Exception;
-use PDO;
-use PDOException;
 
 /**
  * Class Session.
@@ -35,42 +22,21 @@ final class Session
 {
 
     /**
-     * The session ID.
-     *
-     * @var string|null
-     */
-    public static ?string $id = null;
-
-    /**
-     * Array of the current user's permissions (Array of shorthands).
+     * Permissions assigned to the session.
      *
      * @var string[]
      */
     public static array $permissions = [];
 
     /**
-     * The current user's ID.
-     *
-     * @var int|null
-     */
-    public static ?int $user_id = null;
-
-    /**
-     * A friendly user name for display in messages and logs.
-     *
-     * @var string|null
-     */
-    public static ?string $user_name = null;
-
-    /**
-     * If the current user is a root user (bypasses permissions).
+     * Root sessions bypass all permissions.
      *
      * @var bool
      */
     public static bool $root = false;
 
     /**
-     * Initialize the user session.
+     * Initialize the session.
      *
      * @return void
      */
@@ -79,49 +45,6 @@ final class Session
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        if (isset($_SESSION['user_id'])) {
-            try {
-                if (!$user = User::readById($_SESSION['user_id'])) {
-                    return;
-                }
-                self::$id = session_id();
-                if ($user->root) {
-                    self::$permissions = (new Query())
-                        ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
-                        ->from('ds_permissions')
-                        ->execute(false, PDO::FETCH_COLUMN);
-                } else {
-                    self::$permissions = (new Query())
-                        ->select([Query::concat(['package_id', 'name'], ':', 'permission')])
-                        ->from('ds_groups_permissions')
-                        ->join('ds_permissions')
-                        ->on('ds_groups_permissions.permission_id', '=', 'ds_permissions.permission_id')
-                        ->where('group_id', 'IN', (new Query())
-                            ->select(['group_id'])
-                            ->from('ds_users_groups')
-                            ->where('user_id', '=', $_SESSION['user_id']))
-                        ->groupBy('ds_groups_permissions.permission_id')
-                        ->execute(false, PDO::FETCH_COLUMN);
-                }
-                self::$user_id = $user->user_id;
-                self::$user_name = $user->username;
-            } catch (PDOException | Exception $exception) {
-                error_log($exception->getMessage(), E_USER_WARNING);
-                return;
-            }
-        }
-    }
-
-    /**
-     * Create and generate the session (post-authorization).
-     *
-     * @param int $user_id
-     * @return void
-     */
-    public static function create(int $user_id): void
-    {
-        $_SESSION['user_id'] = $user_id;
-        self::init();
     }
 
     /**
@@ -131,9 +54,7 @@ final class Session
      */
     public static function destroy(): void
     {
-        self::$id = null;
         self::$permissions = [];
-        self::$user_id = null;
         self::$root = false;
         $_SESSION = null;
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -142,72 +63,57 @@ final class Session
     }
 
     /**
-     * Check to see if the currently authenticated user has the given permission(s).
+     * Check the given permissions against the permissions assigned to the session.
      *
-     * $permission can either be a shorthand permission string or an array of shorthand strings.
-     *
-     * @param string|string[] $permissions
+     * @param string|string[]|null $given
      * @return bool
      */
-    public static function checkPermissions($permissions): bool
+    public static function checkPermissions(string | array | null $given): bool
     {
-        if (self::$id === null) {
-            return false;
-        }
         if (self::$root) {
             return true;
         }
-        if ($permissions === null) {
+        if ($given === null) {
             return true;
         }
-        if (empty($permissions)) {
+        if (is_array($given) && empty($given)) {
             return true;
         }
-        if (is_string($permissions)) {
-            if (strpos($permissions, '|') !== false) {
-                $check_array = explode('|', $permissions);
-                $check = false;
-                foreach ($check_array as $or) {
-                    if (self::checkPermissions($or)) {
-                        $check = true;
-                    }
-                }
-                return $check;
+        if (is_string($given)) {
+            if (str_contains($given, '|')) {
+                return self::permissionOrCheck($given);
             }
-            return in_array($permissions, self::$permissions);
-        } elseif (is_array($permissions)) {
-            foreach ($permissions as $permission) {
-                if (!is_string($permission)) {
-                    trigger_error('Permission values must be strings when permissions are an array', E_USER_WARNING);
-                    return false;
-                }
-                if (strpos($permission, '|') !== false) {
-                    $check_array = explode('|', $permission);
-                    $check = false;
-                    foreach ($check_array as $or) {
-                        if (self::checkPermissions($or)) {
-                            $check = true;
-                        }
-                    }
-                    return $check;
-                }
-                return in_array($permission, self::$permissions);
+            return in_array($given, self::$permissions);
+        }
+        foreach ($given as $permission) {
+            if (!is_string($permission)) {
+                trigger_error('Permissions must be an array of strings', E_USER_WARNING);
+                return false;
             }
-        } else {
-            trigger_error('Invalid permission check type', E_USER_WARNING);
-            return false;
+            if (str_contains($permission, '|')) {
+                return self::permissionOrCheck($permission);
+            }
+            return in_array($permission, self::$permissions);
         }
         return true;
     }
 
     /**
-     * Check to see if the session is valid.
+     * Check if one of the given permissions is on the session (permissions split via bar).
      *
+     * @param string $permissions
      * @return bool
      */
-    public static function isValid(): bool
+    private static function permissionOrCheck(string $permissions): bool
     {
-        return isset(self::$id, self::$user_id);
+        $permissions = explode('|', $permissions);
+        $check = false;
+        foreach ($permissions as $permission) {
+            if (in_array($permission, self::$permissions)) {
+                $check = true;
+            }
+        }
+        return $check;
     }
 
 }

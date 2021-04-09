@@ -1,33 +1,27 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
  */
-
-/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Core\Request;
+use DynamicSuite\Core\URL;
 use DynamicSuite\API\Request as APIRequest;
 use DynamicSuite\Core\Session;
 use Error;
 use Exception;
 use PDOException;
 
+/**
+ * Start buffering and load the instance.
+ */
 ob_start();
 require_once '../scripts/create_instance.php';
 if (defined('STDIN')) {
@@ -54,9 +48,9 @@ if (DS_VIEW) {
 
     // Package view
     if (DynamicSuite::$view->setPackageView(
-        Request::$url_string === ''
+        URL::$url_string === ''
             ? DynamicSuite::$cfg->default_view
-            : Request::$url_string
+            : URL::$url_string
     )) {
         if (!is_readable(DynamicSuite::$view->structure->entry)) {
             trigger_error("Package view entry not readable: " . DynamicSuite::$view->structure->entry, E_USER_WARNING);
@@ -65,7 +59,7 @@ if (DS_VIEW) {
             try {
                 if (!DynamicSuite::$view->structure->public) {
                     if (!Session::checkPermissions(DynamicSuite::$view->structure->permissions)) {
-                        Request::redirect(DynamicSuite::$cfg->login_view . '?ref=' . Request::$url_string);
+                        URL::redirect(DynamicSuite::$cfg->login_view . '?ref=' . URL::$url_string);
                     }
                     DynamicSuite::$view->document->replace([
                         'data-ds-session="0"' => 'data-ds-session="1"'
@@ -118,8 +112,8 @@ if (DS_VIEW) {
 
     // About view
     elseif (
-        Request::urlIs('/dynamicsuite/about') ||
-        (Request::$url_string === '' && DynamicSuite::$cfg->default_view === '/dynamicsuite/about')
+        URL::urlIs('/dynamicsuite/about') ||
+        (URL::$url_string === '' && DynamicSuite::$cfg->default_view === '/dynamicsuite/about')
     ) {
         DynamicSuite::$view->about();
     }
@@ -127,7 +121,7 @@ if (DS_VIEW) {
     // 404/Unknown view
     else {
         if (DynamicSuite::$cfg->error_404_log) {
-            error_log("404 Encountered " . Request::$url_string . " from {$_SERVER['REMOTE_ADDR']}");
+            error_log("404 Encountered " . URL::$url_string . " from {$_SERVER['REMOTE_ADDR']}");
         }
         DynamicSuite::$view->error404();
     }
@@ -137,12 +131,12 @@ if (DS_VIEW) {
 // Apis
 elseif(DS_API) {
     header('Content-Type: application/json');
-    if (count(Request::$url_array) !== 4) {
-        error_log('[API] Malformed API request (' . Request::$url_string . ')');
+    if (count(URL::$url_array) !== 4) {
+        error_log('[API] Malformed API request (' . URL::$url_string . ')');
     }
     $request = new APIRequest(
-        Request::$url_array[2],
-        Request::$url_array[3],
+        URL::$url_array[2],
+        URL::$url_array[3],
         json_decode(file_get_contents('php://input'), true)
     );
     $response = DynamicSuite::callApi($request);
