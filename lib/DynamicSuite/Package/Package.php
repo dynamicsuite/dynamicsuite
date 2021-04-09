@@ -121,7 +121,7 @@ final class Package
                 continue;
             }
             try {
-                array_push(Packages::$$type, new $class($id, $this->package_id, ...$structure));
+                Packages::$$type[$id] = new $class($id, $this->package_id, ...$structure);
             } catch (Exception | ArgumentCountError $exception) {
                 error_log($exception->getMessage());
             } catch (Error $error) {
