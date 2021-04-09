@@ -8,7 +8,7 @@
  * @package DynamicSuite\Util
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
- * @noinspection PhpUnused PhpPureAttributeCanBeAddedInspection
+ * @noinspection PhpUnused
  */
 
 namespace DynamicSuite\Util;
