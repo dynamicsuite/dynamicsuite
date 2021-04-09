@@ -12,10 +12,10 @@
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
+use DynamicSuite\Core\Packages;
 use DynamicSuite\Core\URL;
 use DynamicSuite\API\Request as APIRequest;
 use DynamicSuite\Core\Session;
-use DynamicSuite\Package\Packages;
 use Error;
 use Exception;
 use PDOException;

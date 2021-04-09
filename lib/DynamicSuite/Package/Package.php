@@ -12,6 +12,7 @@
 
 namespace DynamicSuite\Package;
 use ArgumentCountError;
+use DynamicSuite\Core\Packages;
 use DynamicSuite\Util\Format;
 use Error;
 use Exception;

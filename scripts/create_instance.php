@@ -13,7 +13,7 @@
 
 namespace DynamicSuite;
 use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Package\Packages;
+use DynamicSuite\Core\Packages;
 
 /**
  * Create the environment.
