@@ -246,9 +246,9 @@ final class View
      */
     public function setPackageView(?string $url = null): bool
     {
-        $url = $url ?? Request::$url_string;
+        $url = $url ?? URL::$url_string;
         foreach (Packages::$views as $path => $view) {
-            if (Request::urlIs($path, $url)) {
+            if (URL::urlIs($path, $url)) {
                 $this->structure = $view;
                 $this->structure->autoload = array_merge(
                     Packages::$loaded[$this->structure->package_id]->local['autoload'], $this->structure->autoload
@@ -357,7 +357,7 @@ final class View
                 }
                 if ($action->type === 'static') {
                     if ($action->ref) {
-                        $value = $action->value .= '?ref=' . Request::$url_string;
+                        $value = $action->value .= '?ref=' . URL::$url_string;
                     } else {
                         $value = $action->value;
                     }

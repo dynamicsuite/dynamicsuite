@@ -1,24 +1,14 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
  */
-
-/** @noinspection PhpUnused */
-/** @noinspection PhpIncludeInspection */
 
 namespace DynamicSuite\Core;
 use DynamicSuite\API\Request;
@@ -67,7 +57,7 @@ final class DynamicSuite
      */
     public static function init(): void
     {
-        $hash = md5(__FILE__);
+        $hash = 'ds' . crc32(__FILE__);
         if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
             self::$cfg = $cache['cfg'];
             self::$view = $cache['view'];
@@ -91,7 +81,7 @@ final class DynamicSuite
             self::$cfg->db_pass,
             self::$cfg->db_options
         );
-        \DynamicSuite\Core\Request::init();
+        URL::init();
         Session::init();
         Packages::init();
         define('DS_DEBUG_MODE', self::$cfg->debug_mode);
@@ -100,7 +90,7 @@ final class DynamicSuite
     /**
      * Call an API request.
      *
-     * @param Request $request
+     * @param URL $request
      * @return Response
      */
     public static function callApi(Request $request): Response
