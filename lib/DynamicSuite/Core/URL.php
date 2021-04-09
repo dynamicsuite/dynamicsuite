@@ -31,7 +31,7 @@ final class URL
     /**
      * The URL string represented as an array indexed from 0.
      *
-     * @var array[]|null
+     * @var string[]|null
      */
     public static ?array $as_array = null;
 
