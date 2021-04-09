@@ -1,23 +1,15 @@
 <?php
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite\Core
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpUnused
  */
-
-/** @noinspection PhpUnused */
 
 namespace DynamicSuite\Core;
 use PDO;
@@ -32,7 +24,6 @@ use PDO;
  * @property string $language
  * @property string $default_view
  * @property string $nav_header_view
- * @property string $login_view
  * @property string $document_template
  * @property string $stylesheet_template
  * @property string $script_template
@@ -42,21 +33,17 @@ use PDO;
  * @property string $nav_sublink_template
  * @property string $about_template
  * @property string $error_404_template
- * @property bool $error_404_log
  * @property string $error_500_template
  * @property string $css_fontawesome
  * @property string $css_style
  * @property string $css_theme
  * @property string $js_dynamicsuite
  * @property string $nav_header_text
- * @property string $nav_login_path
- * @property string $action_links_icon
+ * @property string $action_area_icon
  * @property string $db_dsn
  * @property string $db_user
  * @property string $db_pass
  * @property array $db_options
- * @property string $memcached_host
- * @property int $memcached_port
  */
 final class Config extends GlobalConfig
 {
@@ -104,13 +91,6 @@ final class Config extends GlobalConfig
      * @var string
      */
     protected string $nav_header_view = '/dynamicsuite/about';
-
-    /**
-     * The view that unauthenticated users are redirected to.
-     *
-     * @var string
-     */
-    protected string $login_view = '/login';
 
     /**
      * Application document template.
@@ -176,13 +156,6 @@ final class Config extends GlobalConfig
     protected string $error_404_template = 'client/templates/errors/404.html';
 
     /**
-     * If 404 errors are logged to the log file.
-     *
-     * @var bool
-     */
-    protected bool $error_404_log = false;
-
-    /**
      * 500 error template.
      *
      * @var string
@@ -225,18 +198,11 @@ final class Config extends GlobalConfig
     protected string $nav_header_text = 'Dynamic Suite';
 
     /**
-     * The path used for user login/logout.
+     * The icon class to use for the action area.
      *
      * @var string
      */
-    protected string $nav_login_path = '/login';
-
-    /**
-     * The icon class to use for the user action area.
-     *
-     * @var string
-     */
-    protected string $action_links_icon = 'fa-user';
+    protected string $action_area_icon = 'fa-user';
 
     /**
      * Database data source name.
