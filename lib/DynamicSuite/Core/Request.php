@@ -124,19 +124,4 @@ final class Request
         return rtrim($needle, '/') === ($haystack ?? self::$url_string);
     }
 
-    /**
-     * Get the time since execution began.
-     *
-     * $factor is a value to multiply the result by.
-     * The default is 1, which will give the result in seconds.
-     * 1000 = ms, 1e6 = microseconds, etc.
-     *
-     * @param int $factor
-     * @return float
-     */
-    public static function executionTime(int $factor = 1): float
-    {
-        return (microtime(true) - DS_START) * $factor;
-    }
-
 }
