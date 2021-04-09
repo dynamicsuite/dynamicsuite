@@ -39,30 +39,27 @@ final class API
     public function __construct(
         protected string $api_id,
         protected string $package_id,
-        protected string|null $entry = null,
+        protected ?string $entry = null,
         protected array $post = [],
         protected array $permissions = [],
         protected bool $public = false,
         protected array $autoload = [],
         protected array $init = []
     ) {
-        $error = function(string $key, string $message): string {
-            return "[$this->package_id] [structure violation] in api '$this->api_id' key '$key': $message";
-        };
         if ($this->entry === null) {
-            throw new Exception($error('entry', 'Missing'));
+            throw new Exception("API [$package_id.$api_id] entry point missing");
         }
-        $this->entry = Format::formatServerPath($package_id, $this->entry);
         foreach (['permissions', 'post', 'autoload', 'init'] as $prop) {
-            foreach ($this->$prop as $key => $value) {
+            foreach ($$prop as $key => $value) {
                 if (!is_string($value)) {
-                    throw new Exception($error($prop, 'Must be an array of strings'));
+                    throw new Exception("API [$package_id.$api_id] $prop must be an array of strings");
                 }
                 if ($prop === 'autoload' || $prop === 'init') {
-                    $this->$$prop[$key] = Format::formatServerPath($this->package_id, $value);
+                    $this->$$prop[$key] = Format::formatServerPath($package_id, $value);
                 }
             }
         }
+        $this->entry = Format::formatServerPath($package_id, $entry);
     }
 
     /**

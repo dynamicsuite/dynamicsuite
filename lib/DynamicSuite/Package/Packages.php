@@ -137,17 +137,17 @@ final class Packages
     {
         $json_path = DS_ROOT_DIR . "/packages/$package_id/$package_id.json";
         if (!is_readable($json_path)) {
-            error_log("Package structure not readable: $package_id", E_USER_WARNING);
+            error_log("Package [$package_id] structure not readable", E_USER_WARNING);
             return;
         }
         if (!$structure = json_decode(file_get_contents($json_path), true)) {
-            error_log("Package structure invalid JSON: $package_id", E_USER_WARNING);
+            error_log("Package [$package_id] structure invalid JSON", E_USER_WARNING);
             return;
         }
         try {
             self::$loaded[$package_id] = new Package($package_id, ...$structure);
         } catch (Error $error) {
-            error_log("[$package_id] [structure violation]: "  . $error->getMessage());
+            error_log("Package [$package_id] structure invalid: "  . $error->getMessage());
         }
     }
 
