@@ -21,7 +21,7 @@ use PDOException;
 use function DynamicSuite\ds_log_exception;
 
 /**
- * Class Instance.
+ * Class DynamicSuite.
  *
  * @package DynamicSuite\Core
  */
