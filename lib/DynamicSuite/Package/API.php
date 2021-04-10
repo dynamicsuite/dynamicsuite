@@ -47,12 +47,12 @@ final class API
         protected array $init = []
     ) {
         if ($this->entry === null) {
-            throw new Exception("API [$package_id.$api_id] entry point missing");
+            throw new Exception("API [$package_id:$api_id] entry point missing");
         }
         foreach (['permissions', 'post', 'autoload', 'init'] as $prop) {
             foreach ($$prop as $key => $value) {
                 if (!is_string($value)) {
-                    throw new Exception("API [$package_id.$api_id] $prop must be an array of strings");
+                    throw new Exception("API [$package_id:$api_id] $prop must be an array of strings");
                 }
                 if ($prop === 'autoload' || $prop === 'init') {
                     $this->$$prop[$key] = Format::formatServerPath($package_id, $value);

@@ -8,6 +8,7 @@
  * @package DynamicSuite\Package
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpUndefinedFieldInspection
  */
 
 namespace DynamicSuite\Package;
@@ -64,15 +65,15 @@ final class View
             throw new Exception("[$package_id] Entry point missing");
         }
         foreach (['permissions', 'autoload', 'init', 'js', 'css'] as $prop) {
-            foreach ($$prop as $key => $value) {
+            foreach ($this->$prop as $key => $value) {
                 if (!is_string($value)) {
-                    throw new Exception("View [$package_id.$view_id] $prop must be an array of strings");
+                    throw new Exception("View [$package_id:$view_id] $prop must be an array of strings");
                 }
                 if ($prop === 'autoload' || $prop === 'init') {
-                    $this->$$prop[$key] = Format::formatServerPath($package_id, $value);
+                    $this->$prop[$key] = Format::formatServerPath($package_id, $value);
                 }
                 if ($prop === 'js' || $prop === 'css') {
-                    $this->$$prop[$key] = Format::formatClientPath($package_id, $value);
+                    $this->$prop[$key] = Format::formatClientPath($package_id, $value);
                 }
             }
         }

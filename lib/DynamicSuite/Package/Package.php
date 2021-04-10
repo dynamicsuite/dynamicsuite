@@ -118,10 +118,10 @@ final class Package
                 try {
                     Packages::$$type[$id] = new $class($id, $this->package_id, ...$structure);
                 } catch (Exception | ArgumentCountError | Error $error) {
-                    error_log("Package $type [$this->package_id.$id] "  . $error->getMessage());
+                    error_log("Package $type [$this->package_id:$id] "  . $error->getMessage());
                 }
             } else {
-                error_log("Package $type [$this->package_id.$id] must be an array");
+                error_log("Package $type [$this->package_id:$id] must be an array");
             }
         }
     }

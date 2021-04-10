@@ -41,7 +41,7 @@ final class HeaderAction
     ) {
         foreach ($permissions as $permission) {
             if (!is_string($permission)) {
-                throw new Exception("Header Action [$package_id.$action_id] permissions must be an array of strings");
+                throw new Exception("Header Action [$package_id:$action_id] permissions must be an array of strings");
             }
         }
     }

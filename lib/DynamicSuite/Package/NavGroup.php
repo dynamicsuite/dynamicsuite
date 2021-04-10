@@ -43,7 +43,7 @@ final class NavGroup
     ) {
         foreach ($permissions as $permission) {
             if (!is_string($permission)) {
-                throw new Exception("Nav group [$package_id.$nav_group_id] permissions must be an array of strings");
+                throw new Exception("Nav group [$package_id:$nav_group_id] permissions must be an array of strings");
             }
         }
         $this->name ??= $nav_group_id;
