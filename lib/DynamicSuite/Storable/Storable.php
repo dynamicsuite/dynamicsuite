@@ -17,22 +17,4 @@ namespace DynamicSuite\Storable;
  *
  * @package DynamicSuite\Storable
  */
-abstract class Storable
-{
-
-    /**
-     * Storable constructor.
-     *
-     * @param array $array
-     * @return void
-     */
-    public function __construct(array $array = [])
-    {
-        foreach ($array as $prop => $value) {
-            if (property_exists($this, $prop)) {
-                $this->$prop = $value;
-            }
-        }
-    }
-
-}
+abstract class Storable {}
