@@ -27,12 +27,6 @@ use PDO;
  * @property string $nav_header_view
  * @property string $header_action_icon
  * @property string $document_template
- * @property string $stylesheet_template
- * @property string $script_template
- * @property string $nav_template
- * @property string $nav_group_template
- * @property string $nav_single_template
- * @property string $nav_sublink_template
  * @property string $about_template
  * @property string $error_404_template
  * @property string $error_500_template

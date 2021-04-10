@@ -64,7 +64,7 @@ final class Packages
     /**
      * Loaded package views.
      *
-     * @var View[]
+     * @var Render[]
      */
     public static array $views = [];
 
@@ -96,8 +96,9 @@ final class Packages
      */
     public static function init(): void
     {
-        $hash = md5(__FILE__);
+        $hash = 'ds' . crc32(__FILE__);
         if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
+            self::$loaded = $cache['loaded'];
             self::$autoload = $cache['autoload'];
             self::$init = $cache['init'];
             self::$js = $cache['js'];
@@ -112,6 +113,7 @@ final class Packages
             }
             if (DS_CACHING) {
                 $store = apcu_store($hash, [
+                    'loaded' => self::$loaded,
                     'autoload' => self::$autoload,
                     'init' => self::$init,
                     'js' => self::$js,

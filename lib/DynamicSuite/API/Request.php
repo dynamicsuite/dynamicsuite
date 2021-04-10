@@ -17,7 +17,7 @@ namespace DynamicSuite\API;
  *
  * @package DynamicSuite\API
  * @property string $api_id
- * @property array $data
+ * @property array|null $data
  */
 class Request
 {
@@ -27,6 +27,6 @@ class Request
      *
      * @return void
      */
-    public function __construct(public string $api_id, public array $data = []) {}
+    public function __construct(public string $api_id, public ?array $data = []) {}
 
 }

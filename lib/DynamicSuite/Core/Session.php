@@ -22,6 +22,13 @@ final class Session
 {
 
     /**
+     * If the session is authenticated.
+     *
+     * @var bool
+     */
+    public static bool $authenticated = false;
+
+    /**
      * Permissions assigned to the session.
      *
      * @var string[]
@@ -70,6 +77,9 @@ final class Session
      */
     public static function checkPermissions(string | array | null $given): bool
     {
+        if (!self::$authenticated) {
+            return false;
+        }
         if (self::$root) {
             return true;
         }
