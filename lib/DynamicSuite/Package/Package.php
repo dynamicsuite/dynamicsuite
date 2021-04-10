@@ -92,9 +92,7 @@ final class Package
                     error_log("Package [$this->package_id] $prop must be an array of strings");
                     continue;
                 }
-                $formatter = $prop === 'autoload' || $prop === 'init'
-                    ? 'formatServerPath'
-                    : 'formatClientPath';
+                $formatter = $prop === 'autoload' || $prop === 'init' ? 'formatServerPath' : 'formatClientPath';
                 $path = Format::$formatter($this->package_id, $path);
                 if (!in_array($path, Packages::$$prop)) {
                     array_push(Packages::$$prop, $path);
@@ -110,22 +108,20 @@ final class Package
      * @param string $class
      * @return void
      */
-    private function loadStructure(string $type, string $class)
+    private function loadStructure(string $type, string $class): void
     {
         if (!$this->$type) {
             return;
         }
         foreach ($this->$type as $id => $structure) {
-            if (!is_array($structure)) {
-                error_log("Package [$this->package_id] $type '$id' must be an array");
-                continue;
-            }
-            try {
-                Packages::$$type[$id] = new $class($id, $this->package_id, ...$structure);
-            } catch (Exception | ArgumentCountError $exception) {
-                error_log($exception->getMessage());
-            } catch (Error $error) {
-                error_log("Package $type [$this->package_id.$id] "  . $error->getMessage());
+            if (is_array($structure)) {
+                try {
+                    Packages::$$type[$id] = new $class($id, $this->package_id, ...$structure);
+                } catch (Exception | ArgumentCountError | Error $error) {
+                    error_log("Package $type [$this->package_id.$id] "  . $error->getMessage());
+                }
+            } else {
+                error_log("Package $type [$this->package_id.$id] must be an array");
             }
         }
     }
