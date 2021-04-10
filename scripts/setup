@@ -121,6 +121,39 @@ if (exec("apachectl -M 2>/dev/null | grep 'rewrite'") === '') {
 }
 
 /**
+ * Check for Apache expires.
+ */
+CLI::out('Checking for Apache expires...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'expires'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache expires module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache headers.
+ */
+CLI::out('Checking for Apache headers...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'headers'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache headers module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache deflate.
+ */
+CLI::out('Checking for Apache deflate...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'deflate'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache deflate module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+/**
  * Check for MySQL.
  */
 CLI::out('Checking for MySQL...', false);
