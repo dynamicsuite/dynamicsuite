@@ -26,10 +26,7 @@ final class Template
      *
      * @return void
      */
-    public function __construct(public string $contents = '')
-    {
-        $this->contents = preg_replace('~>\s+<~', '><', preg_replace('/\s+/', ' ', $contents));
-    }
+    public function __construct(public string $contents = '') {}
 
     /**
      * Search and replace a string(s) in template.
