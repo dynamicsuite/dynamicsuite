@@ -22,7 +22,10 @@ use PDO;
  * @property array $packages
  * @property string $charset
  * @property string $language
+ * @property string $meta_description
+ * @property string $favicon
  * @property string $default_view
+ * @property string $authentication_view
  * @property string $nav_header_text
  * @property string $nav_header_view
  * @property string $header_action_icon
@@ -31,8 +34,8 @@ use PDO;
  * @property string $error_404_template
  * @property string $error_500_template
  * @property string $css_fontawesome
- * @property string $css_style
- * @property string $css_theme
+ * @property string $css_dynamicsuite
+ * @property string $js_vue
  * @property string $js_dynamicsuite
  * @property string $db_dsn
  * @property string $db_user
@@ -51,9 +54,12 @@ final class Config extends GlobalConfig
         string $package_id,
         protected bool $debug_mode = false,
         protected array $packages = [],
-        protected string $charset = 'utf-8',
-        protected string $language = 'en-US',
+        protected string $charset = 'UTF-8',
+        protected string $language = 'en',
+        protected string $meta_description = 'Dynamic Suite',
+        protected string $favicon = '/dynamicsuite/client/img/favicon.svg',
         protected string $default_view = '/dynamicsuite/about',
+        protected string $authentication_view = '/dynamicsuite/about',
         protected string $nav_header_text = 'Dynamic Suite',
         protected string $nav_header_view = '/dynamicsuite/about',
         protected string $header_action_icon = 'fa-user',
@@ -68,8 +74,8 @@ final class Config extends GlobalConfig
         protected string $error_404_template = 'client/templates/errors/404.html',
         protected string $error_500_template = 'client/templates/errors/500.html',
         protected string $css_fontawesome = '/dynamicsuite/client/css/fontawesome.min.css',
-        protected string $css_style = '/dynamicsuite/client/css/ds-style.min.css',
-        protected string $css_theme = '/dynamicsuite/client/css/ds-theme.min.css',
+        protected string $css_dynamicsuite = '/dynamicsuite/client/css/dynamicsuite.min.css',
+        protected string $js_vue = '/dynamicsuite/client/js/vue.min.js',
         protected string $js_dynamicsuite = '/dynamicsuite/client/js/dynamicsuite.min.js',
         protected string $db_dsn = 'mysql:unix_socket=/tmp/mysql.sock;dbname=dynamicsuite;charset=utf8mb4',
         protected string $db_user = '',
