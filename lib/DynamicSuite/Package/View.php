@@ -26,7 +26,7 @@ use Exception;
  * @property string|null $title
  * @property bool $public
  * @property bool $navigable
- * @property bool $hide_nav
+ * @property bool $hide_ds
  * @property string|null $nav_name
  * @property string $nav_icon
  * @property string|null $nav_group
@@ -53,7 +53,7 @@ final class View
         protected ?string $title = null,
         protected bool $public = false,
         protected bool $navigable = true,
-        protected bool $hide_nav = false,
+        protected bool $hide_ds = false,
         protected ?string $nav_name = null,
         protected string $nav_icon = 'fas fa-cog',
         protected ?string $nav_group = null,
