@@ -124,7 +124,14 @@ final class Package
                     }
                     Packages::$$type[$id] = new $class($id, $this->package_id, ...$structure);
                 } catch (Exception | ArgumentCountError | Error $error) {
-                    error_log("Package $type [$this->package_id:$id] "  . $error->getMessage());
+                    $message = $error->getMessage();
+                    if (str_contains($message, '($') && str_contains($message, ', called')) {
+                        $message = substr($message, strpos($message, '($'));
+                        $message = substr($message, 0, strpos($message, ', called'));
+                        $message = str_replace('($', '', $message);
+                        $message = str_replace(')', '', $message);
+                    }
+                    error_log("Package $type [$this->package_id:$id] "  . $message);
                 }
             } else {
                 error_log("Package $type [$this->package_id:$id] must be an array");

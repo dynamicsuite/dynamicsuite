@@ -63,13 +63,16 @@ final class View
         protected array $js = [],
         protected array $css = []
     ) {
+        if (!isset($view_id[0]) || $view_id[0] !== '/') {
+            throw new Exception("view ID must start with a forward slash");
+        }
         if ($entry === null) {
-            throw new Exception("[$package_id] Entry point missing");
+            throw new Exception("missing entry point");
         }
         foreach (['permissions', 'autoload', 'init', 'js', 'css'] as $prop) {
             foreach ($this->$prop as $key => $value) {
                 if (!is_string($value)) {
-                    throw new Exception("View [$package_id:$view_id] $prop must be an array of strings");
+                    throw new Exception("$prop must be an array of strings");
                 }
                 if ($prop === 'autoload' || $prop === 'init') {
                     $this->$prop[$key] = Format::formatServerPath($package_id, $value);
