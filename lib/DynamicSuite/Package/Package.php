@@ -95,6 +95,9 @@ final class Package
                 $formatter = $prop === 'autoload' || $prop === 'init' ? 'formatServerPath' : 'formatClientPath';
                 $path = Format::$formatter($this->package_id, $path);
                 if (!in_array($path, Packages::$$prop)) {
+                    if ($formatter === 'formatClientPath') {
+                        $path .= '?v=' . $this->version;
+                    }
                     array_push(Packages::$$prop, $path);
                 }
             }
@@ -116,6 +119,9 @@ final class Package
         foreach ($this->$type as $id => $structure) {
             if (is_array($structure)) {
                 try {
+                    if ($type === 'views') {
+                        $structure['version'] = $this->version;
+                    }
                     Packages::$$type[$id] = new $class($id, $this->package_id, ...$structure);
                 } catch (Exception | ArgumentCountError | Error $error) {
                     error_log("Package $type [$this->package_id:$id] "  . $error->getMessage());

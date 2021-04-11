@@ -21,6 +21,7 @@ use Exception;
  * @package DynamicSuite\Package
  * @property string $view_id
  * @property string $package_id
+ * @property string|null $version
  * @property string|null $entry
  * @property string|null $title
  * @property bool $public
@@ -47,6 +48,7 @@ final class View
     public function __construct(
         protected string $view_id,
         protected string $package_id,
+        protected ?string $version = null,
         protected ?string $entry = null,
         protected ?string $title = null,
         protected bool $public = false,
@@ -73,7 +75,7 @@ final class View
                     $this->$prop[$key] = Format::formatServerPath($package_id, $value);
                 }
                 if ($prop === 'js' || $prop === 'css') {
-                    $this->$prop[$key] = Format::formatClientPath($package_id, $value);
+                    $this->$prop[$key] = Format::formatClientPath($package_id, $value) . '?v=' . $this->version;
                 }
             }
         }
