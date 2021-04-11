@@ -41,6 +41,9 @@ final class NavGroup
         protected bool $public = false,
         protected array $permissions = []
     ) {
+        if ($nav_group_id[0] === '/') {
+            throw new Exception('nav group ID cannot start with a forward slash');
+        }
         foreach ($permissions as $permission) {
             if (!is_string($permission)) {
                 throw new Exception("permissions must be an array of strings");
