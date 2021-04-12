@@ -5,13 +5,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
  * @noinspection PhpIncludeInspection
  */
 
-namespace DynamicSuite\Core;
+namespace DynamicSuite;
 use DynamicSuite\API\Request;
 use DynamicSuite\API\Response;
 use DynamicSuite\Database\Database;
@@ -22,7 +22,7 @@ use PDOException;
 /**
  * Class DynamicSuite.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  */
 final class DynamicSuite
 {
@@ -83,6 +83,29 @@ final class DynamicSuite
     }
 
     /**
+     * Register included autoload libraries.
+     *
+     * @param array $libraries
+     * @return void
+     */
+    public static function registerAutoload(array $libraries): void
+    {
+        spl_autoload_register(function(string $class) use ($libraries) {
+            if (class_exists($class)) {
+                return;
+            }
+            $file = str_replace('\\', '/', $class) . '.php';
+            foreach ($libraries as $dir) {
+                $path = "$dir/$file";
+                if ((DS_CACHING && opcache_is_script_cached($path)) || file_exists($path)) {
+                    require_once $path;
+                    break;
+                }
+            }
+        });
+    }
+
+    /**
      * Execute an API request.
      *
      * @param Request $request
@@ -105,26 +128,16 @@ final class DynamicSuite
             error_log("API [$request->api_id] authentication required");
             return new Response();
         }
-        spl_autoload_register(function (string $class) use ($api) {
-            if (class_exists($class)) {
-                return;
-            }
-            $file = str_replace('\\', '/', $class) . '.php';
-            foreach ($api->autoload as $dir) {
-                $path = "$dir/$file";
-                if ((DS_CACHING && opcache_is_script_cached($path)) || file_exists($path)) {
-                    require_once $path;
-                    break;
-                }
-            }
-        });
+        self::registerAutoload($api->autoload);
         try {
-            $return = (function () use ($api, $request) {
+            $return = (function() use ($api, $request) {
                 foreach ($api->init as $script) {
-                    require_once $script;
+                    putenv("DS_API_INIT=$script");
+                    (function() {
+                        require_once getenv('DS_API_INIT');
+                    })();
                 }
                 $_POST = $request->data;
-                putenv("DS_API_ENTRY=$api->entry");
                 if (DS_DEBUG_MODE) {
                     error_log("[API Request]");
                     error_log("  API: $request->api_id");
@@ -137,8 +150,10 @@ final class DynamicSuite
                         }
                     }
                 }
-                unset($api, $request);
-                return (require_once getenv('DS_API_ENTRY'));
+                putenv("DS_API_ENTRY=$api->entry");
+                return (function() {
+                    return require_once getenv('DS_API_ENTRY');
+                })();
             })();
         } catch (Error | Exception | PDOException $exception) {
             error_log($exception->getMessage());

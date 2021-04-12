@@ -5,18 +5,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
  * @noinspection PhpUnused
  */
 
-namespace DynamicSuite\Core;
+namespace DynamicSuite;
 
 /**
  * Class Session.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  */
 final class Session
 {

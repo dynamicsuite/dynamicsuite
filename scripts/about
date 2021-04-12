@@ -12,8 +12,6 @@
  */
 
 namespace DynamicSuite;
-use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Core\Packages;
 use DynamicSuite\Util\CLI;
 use PDO;
 

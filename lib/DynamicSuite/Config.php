@@ -5,19 +5,19 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
  * @noinspection PhpUnused
  */
 
-namespace DynamicSuite\Core;
+namespace DynamicSuite;
 use PDO;
 
 /**
  * Class Config.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  * @property bool $debug_mode
  * @property array $packages
  * @property string $charset
@@ -32,7 +32,10 @@ use PDO;
  * @property string $document_template
  * @property string $about_template
  * @property string $error_404_template
+ * @property string $error_404_title
+ * @property bool $error_404_logging
  * @property string $error_500_template
+ * @property string $error_500_title
  * @property string $css_fontawesome
  * @property string $css_dynamicsuite
  * @property string $js_vue
@@ -71,8 +74,11 @@ final class Config extends GlobalConfig
         protected string $nav_single_template = 'client/templates/nav_single.html',
         protected string $nav_sublink_template = 'client/templates/nav_sublink.html',
         protected string $about_template = 'client/templates/about.html',
-        protected string $error_404_template = 'client/templates/errors/404.html',
-        protected string $error_500_template = 'client/templates/errors/500.html',
+        protected string $error_404_template = 'client/templates/error_404.html',
+        protected string $error_404_title = 'Page Not Found',
+        protected bool $error_404_logging = false,
+        protected string $error_500_template = 'client/templates/error_500.html',
+        protected string $error_500_title = 'Internal Server Error',
         protected string $css_fontawesome = '/dynamicsuite/client/css/fontawesome.min.css',
         protected string $css_dynamicsuite = '/dynamicsuite/client/css/dynamicsuite.min.css',
         protected string $js_vue = '/dynamicsuite/client/js/vue.min.js',

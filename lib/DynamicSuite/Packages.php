@@ -5,23 +5,24 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
  * @noinspection PhpUnused
  */
 
-namespace DynamicSuite\Core;
+namespace DynamicSuite;
 use DynamicSuite\Package\API;
 use DynamicSuite\Package\HeaderAction;
 use DynamicSuite\Package\NavGroup;
 use DynamicSuite\Package\Package;
+use DynamicSuite\Package\View;
 use Error;
 
 /**
  * Class Packages.
  *
- * @package DynamicSuite\Core
+ * @package DynamicSuite
  */
 final class Packages
 {
@@ -64,7 +65,7 @@ final class Packages
     /**
      * Loaded package views.
      *
-     * @var Render[]
+     * @var View[]
      */
     public static array $views = [];
 

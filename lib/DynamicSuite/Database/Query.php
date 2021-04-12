@@ -12,7 +12,7 @@
  */
 
 namespace DynamicSuite\Database;
-use DynamicSuite\Core\DynamicSuite;
+use DynamicSuite\DynamicSuite;
 use Exception;
 use PDO;
 use PDOException;

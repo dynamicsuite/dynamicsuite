@@ -8,12 +8,11 @@
  * @package DynamicSuite
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
+ * @noinspection PhpIncludeInspection
  */
 
 namespace DynamicSuite;
 use DynamicSuite\API\Request;
-use DynamicSuite\Core\DynamicSuite;
-use DynamicSuite\Core\URL;
 
 /**
  * Start buffering and load the instance.
@@ -26,7 +25,7 @@ if (defined('STDIN')) {
 ob_clean();
 
 /**
- * Execute view or API.
+ * Execute the view.
  */
 if (DS_VIEW) {
 
@@ -43,12 +42,111 @@ if (DS_VIEW) {
         }
     })();
 
-    var_dump('in view');
+    /**
+     * Initialize the renderer.
+     */
+    Render::init();
 
-} elseif(DS_API) {
+    /**
+     * Load the view.
+     */
+    if (isset(Packages::$views[URL::$as_string])) {
+        $view = &Packages::$views[URL::$as_string];
+        if (!is_readable($view->entry)) {
+            error_log("View [$view->package_id:$view->view_id] entry not readable $view->entry");
+            Render::error500();
+        }
+        if (!$view->public && !Session::checkPermissions($view->permissions)) {
+            URL::redirect(DynamicSuite::$cfg->authentication_view . '?ref=' . URL::$as_string);
+        }
+        DynamicSuite::registerAutoload($view->autoload);
+        Render::$document_template->replace([
+            '{{meta_description}}' => Render::$meta_description,
+            '{{title}}' => $view->title
+        ]);
+        if (!Render::$window_data['header_title']) {
+            Render::$window_data['header_title'] = $view->title;
+        }
+        if (!Render::$window_data['nav_tree']) {
+            Render::$window_data['nav_tree'] = Render::generateNavTree();
+        }
+        Render::$window_data['hide_ds'] = $view->hide_ds;
+        ob_start();
+        (function() use ($view) {
+            foreach ($view->init as $script) {
+                putenv("DS_VIEW_INIT=$script");
+                (function() {
+                    require_once getenv('DS_VIEW_INIT');
+                })();
+            }
+            putenv("DS_VIEW_ENTRY=$view->entry");
+            (function() {
+                require_once getenv('DS_VIEW_ENTRY');
+            })();
+        })();
+        Render::$document_template->replace([
+            '{{body}}' => ob_get_clean()
+        ]);
+
+        /**
+         * Set variable CSS.
+         */
+        $css_variable = [];
+        foreach ($view->css as $path) {
+            if (!in_array($path, $css_variable)) {
+                $css_variable[] = $path;
+            }
+        }
+        $css_template = '';
+        foreach ($css_variable as $path) {
+            $css_template .= "<link rel=\"stylesheet\" href=\"$path\">";
+        }
+
+        /**
+         * Set variable JS.
+         */
+        $js_variable = [];
+        foreach ($view->js as $path) {
+            if (!in_array($path, $js_variable)) {
+                $js_variable[] = $path;
+            }
+        }
+        $js_template = '';
+        foreach ($js_variable as $path) {
+            $js_template .= "<script src=\"$path\"></script>";
+        }
+
+        /**
+         * Set window data.
+         */
+        $window_data = '<script>window.ds_window_data=' . json_encode(Render::$window_data) . '</script>';
+
+        /**
+         * Update and render the template.
+         */
+        Render::$document_template->replace([
+            '<!--{{window_data}}-->' => $window_data,
+            '<!--{{css_variable}}-->' => $css_template,
+            '<!--{{js_variable}}-->' => $js_template
+        ]);
+        echo Render::$document_template->contents;
+
+    } else {
+        Render::error404();
+        if (DynamicSuite::$cfg->error_404_logging) {
+            error_log('404: ' . URL::$as_string);
+        }
+    }
+
+}
+
+/**
+ * Execute the API request.
+ */
+elseif(DS_API) {
     header('Content-Type: application/json');
     if (count(URL::$as_array) !== 3) {
-        error_log('[API] Malformed API request (' . URL::$as_string . ')');
+        error_log('Malformed API request (' . URL::$as_string . ')');
     }
     $request = new Request(
         URL::$as_array[2],
@@ -61,6 +159,11 @@ if (DS_VIEW) {
         'message' => $response->message,
         'data' => $response->data
     ]));
-} else {
+}
+
+/**
+ * Unknown request type.
+ */
+else {
     die('An unknown request was encountered');
 }
