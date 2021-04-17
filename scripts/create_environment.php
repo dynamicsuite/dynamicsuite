@@ -19,16 +19,11 @@ namespace DynamicSuite;
 define('DS_VERSION', '9.0.0');
 define('DS_ROOT_DIR', realpath(__DIR__ . '/..'));
 if (!defined('DS_CACHING')) define('DS_CACHING', false);
-ini_set('display_errors', 0);
 
 /**
  * Core autoloader.
  */
 spl_autoload_register(function (string $class) {
-    if (!class_exists($class)) {
-        $file = DS_ROOT_DIR . '/lib/' . str_replace('\\', '/', $class) . '.php';
-        if ((DS_CACHING && opcache_is_script_cached($file)) || file_exists($file)) {
-            require_once $file;
-        }
-    }
+    $file = DS_ROOT_DIR . '/lib/' . strtr($class, '\\', '/') . '.php';
+    @require_once $file;
 });
