@@ -1,0 +1,59 @@
+/*
+ * This file is part of the Dynamic Suite framework.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ */
+
+@import "dynamicsuite"
+
+/* Dynamic Suite about page */
+#ds-about
+  display: flex
+  flex-grow: 1
+  flex-direction: column
+  justify-content: center
+  align-items: center
+  background: $color-container
+  text-align: center
+  padding: 0 1rem
+
+  /* Dynamic Suite logo */
+  img
+    width: 4rem
+    height: 4rem
+
+  /* Copyright header */
+  h2
+    margin-top: 0
+
+  /* Libraries*/
+  ul
+    margin-top: 0
+
+  /* Links */
+  a
+    text-decoration: none
+    color: $color-primary
+
+    &:hover
+      text-decoration: underline
+
+  /* Third party libraries */
+  footer
+    display: flex
+    flex-direction: column
+    margin-bottom: 1.5rem
+
+    a
+      font-size: 1.25rem
+      margin-bottom: 0.5rem
+
+  /* GitHub external link */
+  .fab.fa-github
+    font-size: 1.25rem
+    color: $color-text

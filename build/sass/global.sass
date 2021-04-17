@@ -1,0 +1,30 @@
+/*
+ * This file is part of the Dynamic Suite framework.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ */
+
+@import "dynamicsuite"
+
+/* Resets */
+html, body
+  margin: 0 !important
+  padding: 0 !important
+
+/* Dynamic Suite container*/
+#dynamicsuite
+  display: flex
+  flex-direction: column
+  background: $color-background
+  min-height: 100vh
+  font-family: Arial, Helvetica, sans-serif
+
+  /* Package content */
+  #ds-content
+    display: flex
+    flex: 1
