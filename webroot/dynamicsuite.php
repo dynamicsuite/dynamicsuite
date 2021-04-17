@@ -50,7 +50,9 @@ if (DS_VIEW) {
     /**
      * Load the view.
      */
-    if (isset(Packages::$views[URL::$as_string])) {
+    if (str_starts_with(URL::$as_string, '/dynamicsuite/about')) {
+        Render::about();
+    } elseif (isset(Packages::$views[URL::$as_string])) {
         $view = &Packages::$views[URL::$as_string];
         if (!is_readable($view->entry)) {
             error_log("View [$view->package_id:$view->view_id] entry not readable $view->entry");
@@ -64,13 +66,14 @@ if (DS_VIEW) {
             '{{meta_description}}' => Render::$meta_description,
             '{{title}}' => $view->title
         ]);
-        if (!Render::$window_data['header_title']) {
-            Render::$window_data['header_title'] = $view->title;
+        if (!Render::$window_data['overlay_title']) {
+            Render::$window_data['overlay_title'] = $view->title;
         }
-        if (!Render::$window_data['nav_tree']) {
-            Render::$window_data['nav_tree'] = Render::generateNavTree();
+        if (!Render::$window_data['overlay_nav_tree']) {
+            Render::$window_data['overlay_nav_tree'] = Render::generateNavTree();
         }
-        Render::$window_data['hide_ds'] = $view->hide_ds;
+        Render::$window_data['hide_overlay'] = $view->hide_overlay;
+        Render::$window_data['has_session'] = !$view->public;
         ob_start();
         (function() use ($view) {
             foreach ($view->init as $script) {
@@ -89,31 +92,18 @@ if (DS_VIEW) {
         ]);
 
         /**
-         * Set variable CSS.
+         * Set variable resources.
          */
-        $css_variable = [];
-        foreach ($view->css as $path) {
-            if (!in_array($path, $css_variable)) {
-                $css_variable[] = $path;
+        $css_variable = $js_variable = '';
+        foreach (['css', 'js'] as $type) {
+            $template = $type . '_variable';
+            foreach ($view->$type as $path) {
+                if ($type === 'css') {
+                    $$template .= '<link rel="stylesheet" href="' . $path . '">';
+                } else {
+                    $$template .= '<script src="' . $path . '"></script>';
+                }
             }
-        }
-        $css_template = '';
-        foreach ($css_variable as $path) {
-            $css_template .= "<link rel=\"stylesheet\" href=\"$path\">";
-        }
-
-        /**
-         * Set variable JS.
-         */
-        $js_variable = [];
-        foreach ($view->js as $path) {
-            if (!in_array($path, $js_variable)) {
-                $js_variable[] = $path;
-            }
-        }
-        $js_template = '';
-        foreach ($js_variable as $path) {
-            $js_template .= "<script src=\"$path\"></script>";
         }
 
         /**
@@ -126,16 +116,14 @@ if (DS_VIEW) {
          */
         Render::$document_template->replace([
             '<!--{{window_data}}-->' => $window_data,
-            '<!--{{css_variable}}-->' => $css_template,
-            '<!--{{js_variable}}-->' => $js_template
+            '<!--{{css_variable}}-->' => $css_variable,
+            '<!--{{js_variable}}-->' => $js_variable
         ]);
         echo Render::$document_template->contents;
+        exit;
 
     } else {
         Render::error404();
-        if (DynamicSuite::$cfg->error_404_logging) {
-            error_log('404: ' . URL::$as_string);
-        }
     }
 
 }
