@@ -91,14 +91,9 @@ final class DynamicSuite
     public static function registerAutoload(array $libraries): void
     {
         spl_autoload_register(function(string $class) use ($libraries) {
-            if (class_exists($class)) {
-                return;
-            }
-            $file = str_replace('\\', '/', $class) . '.php';
+            $file = strtr($class, '\\', '/') . '.php';
             foreach ($libraries as $dir) {
-                $path = "$dir/$file";
-                if ((DS_CACHING && opcache_is_script_cached($path)) || file_exists($path)) {
-                    require_once $path;
+                if (@require_once "$dir/$file") {
                     break;
                 }
             }

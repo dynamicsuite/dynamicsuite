@@ -14,7 +14,7 @@ namespace DynamicSuite\Package;
 use Exception;
 
 /**
- * Class HeaderAction.
+ * Class OverlayAction.
  *
  * @package DynamicSuite\Package
  * @property string $action_id
@@ -23,7 +23,7 @@ use Exception;
  * @property bool $public
  * @property string[] $permissions
  */
-final class HeaderAction
+final class OverlayAction
 {
 
     /**

@@ -43,6 +43,9 @@ final class URL
     public static function init(): void
     {
         $url = $_SERVER['REQUEST_URI'] ?? '/';
+        if ($url === '/') {
+            $url = DynamicSuite::$cfg->default_view;
+        }
         $pos = strpos($url, '?');
         if ($pos !== false) {
             $url = substr($url, 0, $pos);

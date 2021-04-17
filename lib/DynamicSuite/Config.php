@@ -31,6 +31,7 @@ use PDO;
  * @property string $header_action_icon
  * @property string $document_template
  * @property string $about_template
+ * @property string $about_title
  * @property string $error_404_template
  * @property string $error_404_title
  * @property bool $error_404_logging
@@ -74,6 +75,7 @@ final class Config extends GlobalConfig
         protected string $nav_single_template = 'client/templates/nav_single.html',
         protected string $nav_sublink_template = 'client/templates/nav_sublink.html',
         protected string $about_template = 'client/templates/about.html',
+        protected string $about_title = 'About Dynamic Suite',
         protected string $error_404_template = 'client/templates/error_404.html',
         protected string $error_404_title = 'Page Not Found',
         protected bool $error_404_logging = false,

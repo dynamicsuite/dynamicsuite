@@ -34,7 +34,7 @@ use Exception;
  * @property array $apis
  * @property array $views
  * @property array $nav_groups
- * @property array $header_actions
+ * @property array $overlay_actions
  */
 final class Package
 {
@@ -58,13 +58,13 @@ final class Package
         protected array $apis = [],
         protected array $views = [],
         protected array $nav_groups = [],
-        protected array $header_actions = []
+        protected array $overlay_actions = []
     ) {
         $this->loadIncludes();
         $this->loadStructure('apis', API::class);
         $this->loadStructure('views', View::class);
         $this->loadStructure('nav_groups', NavGroup::class);
-        $this->loadStructure('header_actions', HeaderAction::class);
+        $this->loadStructure('overlay_actions', OverlayAction::class);
         $this->name ??= $this->package_id;
     }
 

@@ -13,7 +13,7 @@
 
 namespace DynamicSuite;
 use DynamicSuite\Package\API;
-use DynamicSuite\Package\HeaderAction;
+use DynamicSuite\Package\OverlayAction;
 use DynamicSuite\Package\NavGroup;
 use DynamicSuite\Package\Package;
 use DynamicSuite\Package\View;
@@ -86,7 +86,7 @@ final class Packages
     /**
      * Loaded header actions.
      *
-     * @var HeaderAction[]
+     * @var OverlayAction[]
      */
     public static array $header_actions = [];
 
