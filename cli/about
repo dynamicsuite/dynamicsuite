@@ -18,7 +18,7 @@ use PDO;
 /**
  * Create environment.
  */
-require_once __DIR__ . '../include/create_instance.php';
+require_once __DIR__ . '/../include/create_instance.php';
 
 /**
  * Connect to the database.
@@ -34,7 +34,7 @@ CLI::out('    PHP Ver: ' . phpversion());
 CLI::out('   Root Dir: ' . DS_ROOT_DIR);
 CLI::out('-- Instance');
 CLI::out(' DS Version: ' . DS_VERSION);
-CLI::out('       Time: ' . time());
+CLI::out('       Time: ' . microtime(true));
 CLI::out('       APCU: ' . (DS_CACHING ? 'YES' : 'NO'));
 CLI::out('-- Database');
 CLI::out('        DSN: ' . DynamicSuite::$cfg->db_dsn);

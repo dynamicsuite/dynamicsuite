@@ -16,9 +16,13 @@ html, body
   margin: 0 !important
   padding: 0 !important
 
+/* Vue cloaking */
+[v-cloak]
+  display: none
+
 /* Dynamic Suite container*/
 #dynamicsuite
-  display: flex
+  display: none
   flex-direction: column
   background: $color-background
   min-height: 100vh
@@ -26,5 +30,5 @@ html, body
 
   /* Package content */
   #ds-content
-    display: flex
+    display: none
     flex: 1

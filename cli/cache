@@ -19,7 +19,7 @@ use DynamicSuite\Util\CLI;
  *
  * @noinspection PhpIncludeInspection
  */
-require_once realpath(__DIR__ . '../include/create_environment.php');
+require_once realpath(__DIR__ . '/../include/create_environment.php');
 
 /**
  * Print command usage.
@@ -42,13 +42,13 @@ function printUsage(): void
  */
 function setState(bool $state): void
 {
-    $script = file_get_contents(realpath(__DIR__ . '/create_environment.php'));
+    $script = file_get_contents(realpath(__DIR__ . '/../include/create_environment.php'));
     $state = $state ? 'true' : 'false';
     $replace = DS_CACHING
         ? "if (!defined('DS_CACHING')) define('DS_CACHING', true);"
         : "if (!defined('DS_CACHING')) define('DS_CACHING', false);";
     $script = str_replace($replace, "if (!defined('DS_CACHING')) define('DS_CACHING', $state);", $script);
-    file_put_contents(realpath(__DIR__ . '/create_environment.php'), $script);
+    file_put_contents(realpath(__DIR__ . '/../include/create_environment.php'), $script);
     CLI::out($state ? 'Caching enabled' : 'Caching disabled');
     if ($err = exec('apachectl restart')) {
         CLI::err($err);

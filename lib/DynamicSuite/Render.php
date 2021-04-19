@@ -97,7 +97,7 @@ final class Render
 
             // Load templates
             foreach (['document_template', 'about_template', 'error_404_template', 'error_500_template'] as $template) {
-                $path = DS_ROOT_DIR . '/' . DynamicSuite::$cfg->$template;
+                $path = DS_ROOT_DIR . DynamicSuite::$cfg->$template;
                 if (!is_readable($path)) {
                     error_log("Template not readable: $path");
                 } else {
@@ -119,8 +119,7 @@ final class Render
 
             // Set global CSS
             $css_global = [
-                DynamicSuite::$cfg->css_fontawesome . '?v' . DS_VERSION,
-                DynamicSuite::$cfg->css_dynamicsuite . '?v' . DS_VERSION
+                DynamicSuite::$cfg->css_fontawesome . '?v' . DS_VERSION
             ];
             foreach (Packages::$css as $path) {
                 if (!in_array($path, $css_global)) {
@@ -129,7 +128,7 @@ final class Render
             }
             $css_template = '';
             foreach ($css_global as $path) {
-                $css_template .= "<link rel=\"stylesheet\" href=\"$path\">";
+                $css_template .= "<link rel=\"preload\" href=\"$path\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\">";
             }
 
             // Set global JS
@@ -152,6 +151,11 @@ final class Render
                 '{{language}}' => DynamicSuite::$cfg->language,
                 '{{charset}}' => DynamicSuite::$cfg->charset,
                 '{{favicon}}' => DynamicSuite::$cfg->favicon . '?v=' . DS_VERSION,
+                '<!--{{css_dynamicsuite}-->' =>
+                    '<style>' .
+                    file_get_contents(DS_ROOT_DIR . DynamicSuite::$cfg->css_dynamicsuite) .
+                    '</style>'
+                ,
                 '<!--{{css_global}}-->' => $css_template,
                 '<!--{{js_global}}-->' => $js_template
             ]);

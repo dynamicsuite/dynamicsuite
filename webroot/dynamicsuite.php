@@ -121,11 +121,12 @@ if (DS_VIEW) {
          * Set variable resources.
          */
         $css_variable = $js_variable = '';
+        $post_hook = "this.onload=null;this.rel='stylesheet'";
         foreach (['css', 'js'] as $type) {
             $template = $type . '_variable';
             foreach ($view->$type as $path) {
                 if ($type === 'css') {
-                    $$template .= "<link rel=\"stylesheet\" href=\"$path\">";
+                    $$template .= "<link rel=\"preload\" href=\"$path\" as=\"style\" onload=\"$post_hook\">";
                 } else {
                     $$template .= "<script src=\"$path\"></script>";
                 }
