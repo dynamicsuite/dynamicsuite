@@ -68,12 +68,12 @@ DynamicSuite.vm = new Vue({
         };
     },
     mounted() {
-        if (typeof window['ds_window_data'] !== 'object') {
+        if (typeof window['dynamicsuite'] !== 'object') {
             return;
         }
         for (const key of ['has_session', 'hide_overlay', 'overlay_nav_tree', 'overlay_title', 'overlay_actions']) {
-            if (typeof window['ds_window_data'][key] !== 'undefined') {
-                this[key] = window['ds_window_data'][key];
+            if (typeof window['dynamicsuite'][key] !== 'undefined') {
+                this[key] = window['dynamicsuite'][key];
             }
         }
     }
