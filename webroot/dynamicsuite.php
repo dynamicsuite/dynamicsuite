@@ -53,39 +53,65 @@ if (DS_VIEW) {
     if (str_starts_with(URL::$as_string, '/dynamicsuite/about')) {
         Render::about();
     } elseif (isset(Packages::$views[URL::$as_string])) {
+
+        /**
+         * Set reference to the view.
+         */
         $view = &Packages::$views[URL::$as_string];
+
+        /**
+         * Check if the entry can be served.
+         */
         if (!is_readable($view->entry)) {
             error_log("View [$view->package_id:$view->view_id] entry not readable $view->entry");
             Render::error500();
         }
+
+        /**
+         * Authentication check.
+         */
         if (!$view->public && !Session::checkPermissions($view->permissions)) {
             URL::redirect(DynamicSuite::$cfg->authentication_view . '?ref=' . URL::$as_string);
         }
+
+        /**
+         * Autoload included libraries.
+         */
         DynamicSuite::registerAutoload($view->autoload);
+
+        /**
+         * Run view specific initialization scripts.
+         */
+        foreach ($view->init as $script) {
+            putenv("DS_VIEW_INIT=$script");
+            (function() {
+                require_once getenv('DS_VIEW_INIT');
+            })();
+        }
+
+        /**
+         * Update the document.
+         */
         Render::$document_template->replace([
             '{{meta_description}}' => Render::$meta_description,
             '{{title}}' => $view->title
         ]);
-        if (!Render::$window_data['overlay_title']) {
-            Render::$window_data['overlay_title'] = $view->title;
-        }
-        if (!Render::$window_data['overlay_nav_tree']) {
-            Render::$window_data['overlay_nav_tree'] = Render::generateNavTree();
-        }
+
+        /**
+         * Update the window data.
+         */
+        Render::$window_data['overlay_title'] ??= $view->title;
+        Render::$window_data['overlay_nav_tree'] ??= Render::generateNavTree();
         Render::$window_data['hide_overlay'] = $view->hide_overlay;
         Render::$window_data['has_session'] = !$view->public;
+
+        /**
+         * Execute the view.
+         */
+        putenv("DS_VIEW_ENTRY=$view->entry");
         ob_start();
-        (function() use ($view) {
-            foreach ($view->init as $script) {
-                putenv("DS_VIEW_INIT=$script");
-                (function() {
-                    require_once getenv('DS_VIEW_INIT');
-                })();
-            }
-            putenv("DS_VIEW_ENTRY=$view->entry");
-            (function() {
-                require_once getenv('DS_VIEW_ENTRY');
-            })();
+        (function() {
+            require_once getenv('DS_VIEW_ENTRY');
         })();
         Render::$document_template->replace([
             '{{body}}' => ob_get_clean()
@@ -99,9 +125,9 @@ if (DS_VIEW) {
             $template = $type . '_variable';
             foreach ($view->$type as $path) {
                 if ($type === 'css') {
-                    $$template .= '<link rel="stylesheet" href="' . $path . '">';
+                    $$template .= "<link rel=\"stylesheet\" href=\"$path\">";
                 } else {
-                    $$template .= '<script src="' . $path . '"></script>';
+                    $$template .= "<script src=\"$path\"></script>";
                 }
             }
         }
@@ -109,7 +135,7 @@ if (DS_VIEW) {
         /**
          * Set window data.
          */
-        $window_data = '<script>window.ds_window_data=' . json_encode(Render::$window_data) . '</script>';
+        $window_data = '<script>window.dynamicsuite=' . json_encode(Render::$window_data) . '</script>';
 
         /**
          * Update and render the template.
