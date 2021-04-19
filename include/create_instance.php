@@ -24,22 +24,6 @@ require_once __DIR__ . '/create_environment.php';
 DynamicSuite::init();
 
 /**
- * Add package autoload paths to the autoload queue.
- */
-spl_autoload_register(function (string $class) {
-    if (!class_exists($class)) {
-        $file = str_replace('\\', '/', $class) . '.php';
-        foreach (Packages::$autoload as $dir) {
-            $path = "$dir/$file";
-            if ((DS_CACHING && opcache_is_script_cached($path)) || file_exists($path)) {
-                require_once $path;
-                break;
-            }
-        }
-    }
-});
-
-/**
  * Run package initialization scripts.
  */
 foreach (Packages::$init as $script) {

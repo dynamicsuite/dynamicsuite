@@ -18,7 +18,7 @@ use DynamicSuite\API\Request;
  * Start buffering and load the instance.
  */
 ob_start();
-require_once '../scripts/create_instance.php';
+require_once __DIR__ . '/../include/create_instance.php';
 if (defined('STDIN')) {
     die('Web script cannot be called from CLI');
 }

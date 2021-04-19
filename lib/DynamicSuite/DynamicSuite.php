@@ -79,6 +79,7 @@ final class DynamicSuite
         URL::init();
         Session::init();
         Packages::init();
+        self::registerAutoload(Packages::$autoload);
         define('DS_DEBUG_MODE', self::$cfg->debug_mode);
     }
 

@@ -18,7 +18,7 @@ use PDO;
 /**
  * Create environment.
  */
-require_once __DIR__ . '/create_instance.php';
+require_once __DIR__ . '../include/create_instance.php';
 
 /**
  * Connect to the database.

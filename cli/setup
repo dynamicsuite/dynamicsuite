@@ -30,7 +30,7 @@ chdir(__DIR__ . '/..');
 /**
  * Create the environment.
  */
-require_once 'create_environment.php';
+require_once '../include/create_environment.php';
 
 CLI::out('Running environment checks');
 
