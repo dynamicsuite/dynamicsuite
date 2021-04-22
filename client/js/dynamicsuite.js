@@ -71,6 +71,20 @@ DynamicSuite.vm = new Vue({
             overlay_actions: null
         };
     },
+    computed: {
+
+        /**
+         * Classes to add to the package content container.
+         *
+         * @returns {{overlay: boolean}}
+         */
+        content_classes() {
+            return {
+                'overlay': !this.hide_overlay
+            }
+        }
+
+    },
     mounted() {
         if (typeof window['dynamicsuite'] !== 'object') {
             return;

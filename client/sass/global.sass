@@ -31,4 +31,10 @@ html, body
   /* Package content */
   #ds-content
     display: none
+    flex-direction: column
     flex: 1
+    padding: 1rem
+
+    /* If the overlay is present add margin to space */
+    &.overlay
+      margin-top: $size-slim

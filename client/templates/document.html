@@ -11,7 +11,7 @@
     <div id="dynamicsuite">
         <!--suppress HtmlUnknownTag -->
         <ds-overlay v-if="!hide_overlay"></ds-overlay>
-        <div id="ds-content">{{body}}</div>
+        <div id="ds-content" :class="content_classes">{{body}}</div>
     </div>
     <!--{{css_global}}-->
     <!--{{css_variable}}-->

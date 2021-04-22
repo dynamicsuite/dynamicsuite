@@ -79,6 +79,8 @@ export default {
 #ds-overlay
   display: flex
   align-items: center
+  position: fixed
+  width: 100%
   height: $size-slim
   background: lighten($color-primary, 10%)
   color: $color-text-inverted
@@ -127,7 +129,7 @@ export default {
   #ds-nav
     display: none
     flex-direction: column
-    position: absolute
+    position: fixed
     overflow: hidden
     width: $size-wide
     height: calc(100vh - #{$size-slim})
