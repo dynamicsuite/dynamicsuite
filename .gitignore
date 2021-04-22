@@ -3,4 +3,4 @@
 config/*
 logs/*
 packages/*
-webroot/robots.txt
+public/robots.txt
