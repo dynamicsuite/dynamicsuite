@@ -16,9 +16,15 @@ use DynamicSuite\Util\CLI;
 use PDO;
 
 /**
+ * Script setup.
+ */
+set_time_limit(0);
+chdir(__DIR__ . '/..');
+
+/**
  * Create environment.
  */
-require_once __DIR__ . '/../include/create_instance.php';
+require_once 'include/create_instance.php';
 
 /**
  * Connect to the database.
