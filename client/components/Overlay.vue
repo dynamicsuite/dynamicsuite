@@ -3,10 +3,10 @@
     <div class="nav-button">
       <i class="fas fa-bars"></i>
     </div>
-    <div class="title">
+    <h1>
       {{$root.overlay_title}}
-    </div>
-    <div class="actions">
+    </h1>
+    <div class="actions-button">
       <i class="fas fa-user"></i>
     </div>
   </div>
@@ -26,7 +26,6 @@ export default {
 #ds-overlay
   display: flex
   align-items: center
-  width: 100%
   height: $size-slim
   background: lighten($color-primary, 10%)
   color: $color-text-inverted
@@ -34,20 +33,29 @@ export default {
   font-weight: bold
 
   /* Overlay standards */
-  & > .nav-button, & > .title, & > .actions
+  & > .nav-button, & > .actions-button
     display: inline-flex
     justify-content: center
     align-items: center
+    transition: background 0.2s ease
+    cursor: pointer
+    color: inherit
+    text-decoration: none
+
+    &:hover
+        background: lighten($color-primary, 20%)
 
   /* Overlay buttons */
-  & > .nav-button, & > .actions
+  & > .nav-button, & > .actions-button
     min-width: $size-slim
     min-height: $size-slim
 
   /* Overlay title */
-  & > .title
+  & > h1
+    text-align: center
+    flex-grow: 1
+    font-size: 1rem
     padding: 0 1rem
-    flex: 1 1 0
     white-space: nowrap
     overflow: hidden
     text-overflow: ellipsis
