@@ -101,6 +101,7 @@ if (DS_VIEW) {
          * Update the window data.
          */
         Render::$window_data['overlay_title'] ??= $view->title;
+        Render::$window_data['default_view'] ??= DynamicSuite::$cfg->default_view;
         Render::$window_data['overlay_nav_tree'] ??= Render::generateNavTree();
         Render::$window_data['overlay_nav_header_text'] ??= DynamicSuite::$cfg->nav_header_text;
         Render::$window_data['overlay_nav_header_view'] ??= DynamicSuite::$cfg->nav_header_view;
