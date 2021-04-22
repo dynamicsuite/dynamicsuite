@@ -65,6 +65,10 @@ final class Render
     public static array $window_data = [
         'has_session' => false,
         'hide_overlay' => true,
+        'overlay_nav_header_text' => null,
+        'overlay_nav_header_view' => null,
+        'overlay_nav_footer_text' => null,
+        'overlay_nav_footer_view' => null,
         'overlay_nav_tree' => null,
         'overlay_title' => null,
         'overlay_actions' => null,
@@ -128,7 +132,9 @@ final class Render
             }
             $css_template = '';
             foreach ($css_global as $path) {
-                $css_template .= "<link rel=\"preload\" href=\"$path\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\">";
+                $css_template .=
+                    "<link rel=\"preload\" href=\"$path\" as=\"style\"" .
+                    " onload=\"this.onload=null;this.rel='stylesheet'\">";
             }
 
             // Set global JS

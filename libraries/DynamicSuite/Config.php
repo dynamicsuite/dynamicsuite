@@ -28,6 +28,8 @@ use PDO;
  * @property string $authentication_view
  * @property string $nav_header_text
  * @property string $nav_header_view
+ * @property string|null $nav_footer_text
+ * @property string $nav_footer_view
  * @property string $header_action_icon
  * @property string $document_template
  * @property string $about_template
@@ -66,6 +68,8 @@ final class Config extends JSONConfig
         protected string $authentication_view = '/dynamicsuite/about',
         protected string $nav_header_text = 'Dynamic Suite',
         protected string $nav_header_view = '/dynamicsuite/about',
+        protected ?string $nav_footer_text = null,
+        protected string $nav_footer_view = '/dynamicsuite/about',
         protected string $header_action_icon = 'fa-user',
         protected string $document_template = '/client/templates/document.html',
         protected string $stylesheet_template = '/client/templates/stylesheet.html',

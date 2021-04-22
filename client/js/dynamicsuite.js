@@ -63,6 +63,10 @@ DynamicSuite.vm = new Vue({
             has_session: false,
             hide_overlay: true,
             overlay_nav_tree: null,
+            overlay_nav_header_text: null,
+            overlay_nav_header_view: null,
+            overlay_nav_footer_text: null,
+            overlay_nav_footer_view: null,
             overlay_title: null,
             overlay_actions: null
         };
@@ -71,7 +75,7 @@ DynamicSuite.vm = new Vue({
         if (typeof window['dynamicsuite'] !== 'object') {
             return;
         }
-        for (const key of ['has_session', 'hide_overlay', 'overlay_nav_tree', 'overlay_title', 'overlay_actions']) {
+        for (const key of Object.keys(this._data)) {
             if (typeof window['dynamicsuite'][key] !== 'undefined') {
                 this[key] = window['dynamicsuite'][key];
             }
