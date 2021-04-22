@@ -153,17 +153,6 @@ if (exec("apachectl -M 2>/dev/null | grep 'deflate'") === '') {
     CLI::out('OK');
 }
 
-/**
- * Check for MySQL.
- */
-CLI::out('Checking for MySQL...', false);
-if (exec('which mysql 2>/dev/null') === '') {
-    CLI::out('FAILED');
-    CLI::err('MySQL required for Dynamic Suite CLI');
-} else {
-    CLI::out('OK');
-}
-
 CLI::out('All Checks Complete!');
 
 /**
@@ -260,6 +249,17 @@ if (CLI::yn('Setup Apache vHost?')) {
  * Setup database.
  */
 if (CLI::yn('Setup database?')) {
+
+    /**
+     * Check for MySQL.
+     */
+    CLI::out('Checking for MySQL...', false);
+    if (exec('which mysql 2>/dev/null') === '') {
+        CLI::out('FAILED');
+        CLI::err('MySQL missing');
+    } else {
+        CLI::out('OK');
+    }
 
     /**
      * Install only settings.
