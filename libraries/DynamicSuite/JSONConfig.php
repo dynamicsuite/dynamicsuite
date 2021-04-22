@@ -13,11 +13,11 @@
 namespace DynamicSuite;
 
 /**
- * Class GlobalConfig.
+ * Class JSONConfig.
  *
  * @package DynamicSuite
  */
-abstract class GlobalConfig
+abstract class JSONConfig
 {
 
     /**

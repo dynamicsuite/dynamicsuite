@@ -46,7 +46,7 @@ use PDO;
  * @property string $db_pass
  * @property array $db_options
  */
-final class Config extends GlobalConfig
+final class Config extends JSONConfig
 {
 
     /**
