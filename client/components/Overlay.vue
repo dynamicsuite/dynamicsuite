@@ -1,6 +1,6 @@
 <template>
   <div id="ds-overlay">
-    <div id="ds-nav-button" class="interactive button">
+    <div id="ds-nav-button" class="interactive button" @click="toggleNav">
       <i class="fas fa-bars"></i>
     </div>
     <h1 id="ds-title" class="clip-text centered">
@@ -9,7 +9,7 @@
     <div id="ds-actions-button" class="interactive button">
       <i class="fas fa-user"></i>
     </div>
-    <div id="ds-nav">
+    <div id="ds-nav" :class="nav_classes">
       <header class="interactive clip-text centered" @click="goto($root.overlay_nav_header_view)">
         {{$root.overlay_nav_header_text}}
       </header>
@@ -25,6 +25,23 @@
 
 <script>
 export default {
+  data() {
+    return {
+      show_nav: false
+    };
+  },
+  computed: {
+
+    /**
+     * Classes to append to the navigation bar.
+     */
+    nav_classes() {
+      return {
+        'show': this.show_nav
+      };
+    }
+
+  },
   methods: {
 
     /**
@@ -34,8 +51,22 @@ export default {
      */
     goto(url) {
       document.location = url;
+    },
+
+    /**
+     * Toggle the navigation bar.
+     *
+     * @returns {undefined}
+     */
+    toggleNav() {
+      this.show_nav = !this.show_nav;
     }
 
+  },
+  mounted() {
+    document.getElementById('ds-content').addEventListener('click', () => {
+      this.show_nav = false;
+    });
   }
 }
 </script>
@@ -94,7 +125,7 @@ export default {
 
   /* Navigation */
   #ds-nav
-    display: flex
+    display: none
     flex-direction: column
     position: absolute
     overflow: hidden
@@ -102,6 +133,10 @@ export default {
     height: calc(100vh - #{$size-slim})
     top: $size-slim
     background: darken($color-primary, 20%)
+
+    /* Nav toggle */
+    &.show
+      display: flex
 
     /* Nav header */
     header
