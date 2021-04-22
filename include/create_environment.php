@@ -24,6 +24,6 @@ if (!defined('DS_CACHING')) define('DS_CACHING', false);
  * Core autoloader.
  */
 spl_autoload_register(function (string $class) {
-    $file = DS_ROOT_DIR . '/lib/' . strtr($class, '\\', '/') . '.php';
+    $file = DS_ROOT_DIR . '/libraries/' . strtr($class, '\\', '/') . '.php';
     @require_once $file;
 });
