@@ -231,7 +231,8 @@ final class Render
                 $tree[$view->nav_group]['views'][$view_id] = [
                     'path' => $view_id,
                     'icon' => $view->nav_icon,
-                    'name' => $view->nav_name
+                    'name' => $view->nav_name,
+                    'active' => false
                 ];
             }
 
@@ -246,12 +247,16 @@ final class Render
                 $tree[$view->nav_group] = [
                     'icon' => Packages::$nav_groups[$view->nav_group]->icon,
                     'name' => Packages::$nav_groups[$view->nav_group]->name,
-                    'views' => []
+                    'views' => [],
+                    'active' => false,
+                    'selected' => false,
+                    'is_group' => true
                 ];
                 $tree[$view->nav_group]['views'][$view_id] = [
                     'path' => $view_id,
                     'icon' => $view->nav_icon,
-                    'name' => $view->nav_name
+                    'name' => $view->nav_name,
+                    'active' => false
                 ];
             }
 
@@ -260,7 +265,10 @@ final class Render
                 $tree[$view_id] = [
                     'path' => $view_id,
                     'icon' => $view->nav_icon,
-                    'name' => $view->nav_name
+                    'name' => $view->nav_name,
+                    'active' => false,
+                    'selected' => false,
+                    'is_group' => false
                 ];
             }
 

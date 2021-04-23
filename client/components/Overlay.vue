@@ -4,7 +4,7 @@
       {{$root.overlay_nav_header_text}}
     </header>
     <div id="ds-nav-button" class="interactive button" @click="toggleNav">
-      <i class="fas fa-bars"></i>
+      <i class="fas" :class="{'fa-bars': !show_nav, 'fa-caret-square-left': show_nav}"></i>
     </div>
     <h1 id="ds-title" class="clip-text centered">
       {{$root.overlay_title}}
@@ -16,21 +16,18 @@
       <ul>
         <li v-for="(super_link, super_path) in $root.overlay_nav_tree" :key="'superlink' + super_path">
           <span
-            class="interactive"
-            :class="activeClass(super_link)"
-            @click="goto(super_path)"
+            :class="{active: super_link.active, selected: selected_group === super_path}"
+            @click="handleSuperlinkInteraction(super_path)"
           >
             <i :class="super_link.icon"></i>
             <span>{{super_link.name}}</span>
-            <i v-if="isNavGroup(super_link) && !isActive(super_link)" class="fas fa-chevron-right"></i>
-            <i v-if="isNavGroup(super_link) && isActive(super_link)" class="fas fa-chevron-down"></i>
+            <i v-if="super_link['is_group']" class="fas" :class="chevronClasses(super_path)"></i>
           </span>
-          <ul v-if="isNavGroup(super_link)">
+          <ul v-if="selected_group === super_path">
             <li
               v-for="(sub_link, sub_path) in super_link['views']"
               :key="'sublink' + sub_path"
-              class="interactive"
-              :class="activeClass(sub_link)"
+              :class="{active: sub_link.active}"
               @click="goto(sub_path)"
             >
               <i :class="sub_link.icon"></i>
@@ -51,7 +48,7 @@ export default {
   data() {
     return {
       show_nav: false,
-      view: null
+      selected_group: null
     };
   },
   computed: {
@@ -75,9 +72,6 @@ export default {
      * @returns {undefined}
      */
     goto(url) {
-      if (!url.startsWith('/')) {
-        return;
-      }
       document.location = url;
     },
 
@@ -91,57 +85,58 @@ export default {
     },
 
     /**
-     * Check if the given nav entry is a group.
+     * Classes to apply to the nav group chevron.
      *
-     * @param {object} entry - The nav entry.
-     * @returns {boolean}
+     * @returns {object}
      */
-    isNavGroup(entry) {
-      return entry.hasOwnProperty('views');
-    },
-
-    /**
-     * Check to see if the current nav entry is active.
-     *
-     * @param {object} entry - The nav entry.
-     * @returns {boolean}
-     */
-    isActive(entry) {
-      let active = false;
-      if (entry.hasOwnProperty('path') && entry.path === this.view) {
-        active = true;
-      } else if (entry.hasOwnProperty('views')) {
-        for (const key in entry.views) {
-          if (!entry.views.hasOwnProperty(key)) {
-            continue;
-          }
-          if (entry.views[key].path === this.view) {
-            active = true;
-          }
-        }
-      }
-      return active;
-    },
-
-    /**
-     * Get the active class state for the given nav entry.
-     *
-     * @param {object} entry - The nav entry.
-     * @returns {{active: boolean}}
-     */
-    activeClass(entry) {
+    chevronClasses(group) {
       return {
-        'active': this.isActive(entry)
-      };
+        'fa-chevron-right': group !== this.selected_group,
+        'fa-chevron-down': group === this.selected_group
+      }
+    },
+
+    /**
+     * Handle the interaction of the given superlink entry.
+     *
+     * @param {string} path - The entry path.
+     * @returns {undefined}
+     */
+    handleSuperlinkInteraction(path) {
+      if (path.startsWith('/')) {
+        this.goto(path);
+      } else if (this.selected_group === path) {
+        this.selected_group = null;
+      } else {
+        this.selected_group = path;
+      }
     }
 
   },
   mounted() {
+
+    // Set active nav entries
     const path = window.location.pathname.split('?')[0].split('#')[0];
-    this.view = path === '/' ? this.$root.default_view : path;
+    const view = path === '/' ? this.$root.default_view : path;
+    for (const superlink in this.$root.overlay_nav_tree) {
+      if (superlink.startsWith('/')) {
+        this.$root.overlay_nav_tree[superlink].active = superlink === view;
+      } else {
+        for (const sublink in this.$root.overlay_nav_tree[superlink]['views']) {
+          if (sublink === view) {
+            this.$root.overlay_nav_tree[superlink].active = true;
+            this.$root.overlay_nav_tree[superlink]['views'][sublink].active = true;
+            this.selected_group = superlink;
+          }
+        }
+      }
+    }
+
+    // Add click to hide nav menu
     document.getElementById('ds-content').addEventListener('click', () => {
       this.show_nav = false;
     });
+
   }
 }
 </script>
@@ -231,6 +226,8 @@ export default {
       padding: 0
       margin: 0
       list-style: none
+      color: $color-text-inverted-soft
+      cursor: pointer
 
     /* Superlinks */
     & > ul > li
@@ -245,11 +242,14 @@ export default {
         align-items: center
         height: $size-slim
 
+        &:hover
+          background: lighten($color-primary, 5%)
+
         &.active
           background: lighten($color-primary, 5%)
 
-        &:hover
-          background: lighten($color-primary, 5%)
+        &.selected
+          background: lighten($color-primary, 10%)
 
         /* Superlink icons */
         & > i:first-of-type, & > i.fas.fa-chevron-right, & > i.fas.fa-chevron-down
@@ -270,25 +270,28 @@ export default {
           margin-left: auto
 
       /* Sublinks */
-      li
-        display: flex
-        align-items: center
-        height: $size-slim-two-third
-        font-size: $size-slim-quarter
-        background: darken($color-primary, 15%)
+      ul
 
-        &.active
-          background: darken($color-primary, 8%)
-
-        &:hover
-          background: darken($color-primary, 5%)
-
-        /* Sublink primary icon */
-        & > i:first-of-type
+        /* Individual sublinks */
+        li
+          display: flex
+          align-items: center
+          height: $size-slim-two-third
           font-size: $size-slim-quarter
-          text-align: center
-          width: $size-slim-third
-          margin: 0 0.75rem 0 2rem
+          background: darken($color-primary, 15%)
+
+          &.active
+            background: darken($color-primary, 8%)
+
+          &:hover
+            background: darken($color-primary, 5%)
+
+          /* Sublink primary icon */
+          & > i:first-of-type
+            font-size: $size-slim-quarter
+            text-align: center
+            width: $size-slim-third
+            margin: 0 0.75rem 0 2rem
 
     /* Nav footer */
     footer
