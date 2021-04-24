@@ -229,6 +229,15 @@ export default {
       color: $color-text-inverted-soft
       cursor: pointer
 
+    /* Superlink list */
+    & > ul
+      overflow-y: scroll
+      overflow-x: hidden
+      overflow: -moz-scrollbars-none
+      -ms-overflow-style: none
+      &::-webkit-scrollbar
+        display: none
+
     /* Superlinks */
     & > ul > li
       display: flex
@@ -298,6 +307,7 @@ export default {
       line-height: $size-slim-half
       font-size: $size-slim-quarter
       background: darken($color-primary, 25%)
+      flex-shrink: 0
 
       &:hover
         text-decoration: underline
