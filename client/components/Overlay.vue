@@ -273,7 +273,7 @@ export default {
           font-size: calc(#{$size-slim-third} * 0.9)
 
         /* Superlink chevrons */
-        & > .fa-chevron-right, & > .fa-chevron-down
+        & > i:not(:first-of-type).fa-chevron-right, & > i:not(:first-of-type).fa-chevron-down
           font-size: $size-slim-quarter
           width: $size-slim-two-third
           margin-left: auto
