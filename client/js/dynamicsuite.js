@@ -73,12 +73,22 @@ DynamicSuite.vm = new Vue({
         };
     },
     mounted() {
+
+        // Set window data
         for (const key of Object.keys(this._data)) {
             if (window['dynamicsuite'].hasOwnProperty(key)) {
                 this[key] = window['dynamicsuite'][key];
             }
         }
+
+        // Update stylesheets
+        const css = document.querySelectorAll('link[rel="preload"][as="style"]');
+        for (let i = 0; i < css.length; i++) {
+            css[i].rel = 'stylesheet';
+        }
+
+        // Display the content
         document.getElementById('dynamicsuite').style.display = 'flex';
-        document.getElementById('ds-content').style.display = 'flex';
+
     }
 });

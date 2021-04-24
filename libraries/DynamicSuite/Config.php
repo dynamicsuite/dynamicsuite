@@ -86,7 +86,7 @@ final class Config extends JSONConfig
         protected string $error_500_template = '/client/templates/error_500.html',
         protected string $error_500_title = 'Internal Server Error',
         protected string $css_fontawesome = '/dynamicsuite/public/css/fontawesome.min.css',
-        protected string $css_dynamicsuite = '/public/css/dynamicsuite.min.css',
+        protected string $css_dynamicsuite = '/dynamicsuite/public/css/dynamicsuite.min.css',
         protected string $js_vue = '/dynamicsuite/public/js/vue.min.js',
         protected string $js_dynamicsuite = '/dynamicsuite/public/js/dynamicsuite.min.js',
         protected string $db_dsn = 'mysql:unix_socket=/tmp/mysql.sock;dbname=dynamicsuite;charset=utf8mb4',
