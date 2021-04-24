@@ -213,6 +213,9 @@ final class Render
             return $tree;
         }
 
+        // Vue key
+        $key = 0;
+
         // Iterate on loaded views
         foreach (Packages::$views as $view_id => $view) {
 
@@ -232,7 +235,8 @@ final class Render
                     'path' => $view_id,
                     'icon' => $view->nav_icon,
                     'name' => $view->nav_name,
-                    'active' => false
+                    'active' => false,
+                    'key' => 'nav_link_' . $key++
                 ];
             }
 
@@ -250,13 +254,15 @@ final class Render
                     'views' => [],
                     'active' => false,
                     'selected' => false,
-                    'is_group' => true
+                    'nav_group' => $view->nav_group,
+                    'key' => 'nav_link_' . $key++
                 ];
                 $tree[$view->nav_group]['views'][$view_id] = [
                     'path' => $view_id,
                     'icon' => $view->nav_icon,
                     'name' => $view->nav_name,
-                    'active' => false
+                    'active' => false,
+                    'key' => 'nav_link_' . $key++
                 ];
             }
 
@@ -268,7 +274,8 @@ final class Render
                     'name' => $view->nav_name,
                     'active' => false,
                     'selected' => false,
-                    'is_group' => false
+                    'nav_group' => null,
+                    'key' => 'nav_link_' . $key++
                 ];
             }
 
@@ -277,6 +284,14 @@ final class Render
                 error_log("View [$view->package_id:$view_id] belongs to an unknown nav group '$view->nav_group'");
             }
 
+        }
+
+        // Format tree
+        $tree = array_values($tree);
+        foreach ($tree as $key => $value) {
+            if (isset($value['views'])) {
+                $tree[$key]['views'] = array_values($value['views']);
+            }
         }
 
         // Return the tree

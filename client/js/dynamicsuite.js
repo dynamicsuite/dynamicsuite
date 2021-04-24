@@ -63,35 +63,18 @@ DynamicSuite.vm = new Vue({
             has_session: false,
             hide_overlay: true,
             default_view: null,
-            overlay_nav_tree: null,
+            overlay_nav_tree: [],
             overlay_nav_header_text: null,
             overlay_nav_header_view: null,
             overlay_nav_footer_text: null,
             overlay_nav_footer_view: null,
             overlay_title: null,
-            overlay_actions: null
+            overlay_actions: []
         };
     },
-    computed: {
-
-        /**
-         * Classes to add to the package content container.
-         *
-         * @returns {{overlay: boolean}}
-         */
-        content_classes() {
-            return {
-                'overlay': !this.hide_overlay
-            }
-        }
-
-    },
     mounted() {
-        if (typeof window['dynamicsuite'] !== 'object') {
-            return;
-        }
         for (const key of Object.keys(this._data)) {
-            if (typeof window['dynamicsuite'][key] !== 'undefined') {
+            if (window['dynamicsuite'].hasOwnProperty(key)) {
                 this[key] = window['dynamicsuite'][key];
             }
         }

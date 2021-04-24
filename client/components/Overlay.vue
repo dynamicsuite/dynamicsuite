@@ -1,50 +1,173 @@
+<!--
+This file is part of the Dynamic Suite framework.
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+
+@package DynamicSuite
+@author Grant Martin <commgdog@gmail.com>
+@copyright 2021 Dynamic Suite Team
+-->
+
 <template>
-  <div id="ds-overlay">
-    <header v-if="show_nav" class="interactive clip-text" @click="goto($root.overlay_nav_header_view)">
-      {{$root.overlay_nav_header_text}}
+  <div class="ds-overlay">
+
+    <!-- Nav header -->
+    <header v-if="show_nav" class="nav-header interactive" @click="goto(overlay_nav_header_view)">
+      {{overlay_nav_header_text}}
     </header>
-    <div id="ds-nav-button" class="interactive button" @click="toggleNav">
-      <i class="fas" :class="{'fa-bars': !show_nav, 'fa-caret-square-left': show_nav}"></i>
+
+    <!-- Nav button -->
+    <div class="button interactive" @click="toggleNav">
+      <i :class="nav_button_classes"></i>
     </div>
-    <h1 id="ds-title" class="clip-text centered">
-      {{$root.overlay_title}}
+
+    <!-- Overlay title -->
+    <h1 class="title">
+      {{overlay_title}}
     </h1>
-    <div id="ds-actions-button" class="interactive button">
+
+    <!-- Actions area -->
+    <div class="button interactive">
       <i class="fas fa-user"></i>
     </div>
-    <div id="ds-nav" :class="nav_classes">
-      <ul>
-        <li v-for="(super_link, super_path) in $root.overlay_nav_tree" :key="'superlink' + super_path">
-          <span
-            :class="{active: super_link.active, selected: selected_group === super_path}"
-            @click="handleSuperlinkInteraction(super_path)"
-          >
-            <i :class="super_link.icon"></i>
-            <span>{{super_link.name}}</span>
-            <i v-if="super_link['is_group']" class="fas" :class="chevronClasses(super_path)"></i>
+
+    <!-- Navigation container -->
+    <div v-if="show_nav" class="nav">
+
+      <!-- Nav links -->
+      <div class="links">
+        <div v-for="superlink in overlay_nav_tree" :key="superlink.key" class="link-group">
+          <span :class="superlinkClasses(superlink)" @click="superlinkInteraction(superlink)">
+            <i :class="superlink.icon"></i>
+            <span>{{superlink.name}}</span>
+            <i v-if="superlink.nav_group" :class="chevronClasses(superlink.nav_group)"></i>
           </span>
-          <ul v-if="selected_group === super_path">
-            <li
-              v-for="(sub_link, sub_path) in super_link['views']"
-              :key="'sublink' + sub_path"
-              :class="{active: sub_link.active}"
-              @click="goto(sub_path)"
+          <div v-if="superlink.nav_group === selected_group" class="sublinks">
+            <span
+              v-for="sublink in superlink.views"
+              :key="sublink.key"
+              :class="sublinkClasses(sublink)"
+              @click="goto(sublink.path)"
             >
-              <i :class="sub_link.icon"></i>
-              <span>{{sub_link.name}}</span>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <footer class="interactive clip-text centered" @click="goto($root.overlay_nav_footer_view)">
-        {{$root.overlay_nav_footer_text}}
+              <i :class="sublink.icon"></i>
+              <span>{{sublink.name}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav footer -->
+      <footer @click="goto(overlay_nav_footer_view)">
+        {{overlay_nav_footer_text}}
       </footer>
+
     </div>
+
   </div>
 </template>
 
 <script>
+// noinspection JSValidateTypes
 export default {
+  props: {
+
+    /**
+     * The default view for URL aliasing.
+     *
+     * @type {string | null}
+     */
+    default_view: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * The navigation tree to render.
+     *
+     * @type {{
+     *  active: boolean,
+     *  icon: string,
+     *  nav_group: string | null,
+     *  key: number,
+     *  name: string,
+     *  path: string,
+     *  selected: boolean
+     *  views: {
+     *    active: boolean,
+     *    icon: string,
+     *    key: number,
+     *    name: string,
+     *    path: string
+     *  }
+     * }}
+     */
+    overlay_nav_tree: {
+      type: Array,
+      default: () => []
+    },
+
+    /**
+     * The text to display on the nav header.
+     *
+     * @type {string | null}
+     */
+    overlay_nav_header_text: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * The view URL to redirect to on header click.
+     *
+     * @type {string | null}
+     */
+    overlay_nav_header_view: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * The text to display on the nav footer.
+     *
+     * @type {string | null}
+     */
+    overlay_nav_footer_text: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * The view URL to redirect to on footer click.
+     *
+     * @type {string | null}
+     */
+    overlay_nav_footer_view: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * The title to display on the overlay header.
+     *
+     * @type {string | null}
+     */
+    overlay_title: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * Actions to render in the overlay action area.
+     *
+     * TODO
+     */
+    overlay_actions: {
+      type:  Array,
+      default: () => []
+    }
+
+  },
   data() {
     return {
       show_nav: false,
@@ -54,11 +177,19 @@ export default {
   computed: {
 
     /**
-     * Classes to append to the navigation bar.
+     * Classes to assign to the nav button.
+     *
+     * @returns {{
+     *   'fas': boolean,
+     *   'fa-bars': boolean,
+     *   'fa-caret-square-left': boolean
+     * }}
      */
-    nav_classes() {
+    nav_button_classes() {
       return {
-        'show': this.show_nav
+        'fas': true,
+        'fa-bars': !this.show_nav,
+        'fa-caret-square-left': this.show_nav
       };
     }
 
@@ -72,7 +203,9 @@ export default {
      * @returns {undefined}
      */
     goto(url) {
-      document.location = url;
+      if (url) {
+        document.location = url;
+      }
     },
 
     /**
@@ -87,29 +220,68 @@ export default {
     /**
      * Classes to apply to the nav group chevron.
      *
-     * @returns {object}
+     * @returns {{
+     *   'fas': boolean,
+     *   'fa-chevron-right': boolean,
+     *   'fa-chevron-down': boolean
+     * }}
      */
     chevronClasses(group) {
       return {
+        'fas': true,
         'fa-chevron-right': group !== this.selected_group,
         'fa-chevron-down': group === this.selected_group
       }
     },
 
     /**
-     * Handle the interaction of the given superlink entry.
+     * The classes assigned to the given superlink.
      *
-     * @param {string} path - The entry path.
+     * @param {object} superlink - The superlink given.
+     * @returns {{
+     *   'superlink': boolean,
+     *   'active': boolean,
+     *   'selected': boolean
+     * }}
+     */
+    superlinkClasses(superlink) {
+      return {
+        'superlink': true,
+        'active': superlink.active,
+        'selected': this.selected_group === superlink.nav_group
+      };
+    },
+
+    /**
+     * Handle the interaction of the given superlink.
+     *
+     * @param {object} superlink - The superlink given.
      * @returns {undefined}
      */
-    handleSuperlinkInteraction(path) {
-      if (path.startsWith('/')) {
-        this.goto(path);
-      } else if (this.selected_group === path) {
+    superlinkInteraction(superlink) {
+      if (superlink.hasOwnProperty('path')) {
+        this.goto(superlink.path);
+      } else if (this.selected_group === superlink.nav_group) {
         this.selected_group = null;
       } else {
-        this.selected_group = path;
+        this.selected_group = superlink.nav_group;
       }
+    },
+
+    /**
+     * The classes assigned to the given sublink.
+     *
+     * @param {object} sublink - The sublink given.
+     * @returns {{
+     *   'sublink': boolean,
+     *   'active': boolean
+     * }}
+     */
+    sublinkClasses(sublink) {
+      return {
+        'sublink': true,
+        'active': sublink.active
+      };
     }
 
   },
@@ -117,16 +289,19 @@ export default {
 
     // Set active nav entries
     const path = window.location.pathname.split('?')[0].split('#')[0];
-    const view = path === '/' ? this.$root.default_view : path;
-    for (const superlink in this.$root.overlay_nav_tree) {
-      if (superlink.startsWith('/')) {
-        this.$root.overlay_nav_tree[superlink].active = superlink === view;
+    const view = path === '/' ? this.default_view : path;
+    for (const superlink in this.overlay_nav_tree) {
+      if (
+          this.overlay_nav_tree[superlink].hasOwnProperty('path') &&
+          this.overlay_nav_tree[superlink].path.startsWith('/')
+      ) {
+        this.overlay_nav_tree[superlink].active = this.overlay_nav_tree[superlink].path === view;
       } else {
-        for (const sublink in this.$root.overlay_nav_tree[superlink]['views']) {
-          if (sublink === view) {
-            this.$root.overlay_nav_tree[superlink].active = true;
-            this.$root.overlay_nav_tree[superlink]['views'][sublink].active = true;
-            this.selected_group = superlink;
+        for (const sublink in this.overlay_nav_tree[superlink].views) {
+          if (this.overlay_nav_tree[superlink].views[sublink].path === view) {
+            this.overlay_nav_tree[superlink].active = true;
+            this.overlay_nav_tree[superlink].views[sublink].active = true;
+            this.selected_group = this.overlay_nav_tree[superlink].nav_group;
           }
         }
       }
@@ -146,7 +321,7 @@ export default {
 @import "../sass/dynamicsuite"
 
 /* Overlay container */
-#ds-overlay
+.ds-overlay
   display: flex
   align-items: center
   position: fixed
@@ -155,23 +330,37 @@ export default {
   background: lighten($color-primary, 10%)
   color: $color-text-inverted
 
-  /* Overlay interactive component */
+  /* Interactive elements */
   .interactive
     cursor: pointer
     user-select: none
     transition: background 0.2s ease
-    color: inherit
-    text-decoration: none
 
-  /* Overlay text clipping container */
-  .clip-text
+  /* Nav header and title */
+  .nav-header, .title
+    width: $size-wide
+    line-height: $size-slim
     white-space: nowrap
     overflow: hidden
     text-overflow: ellipsis
+    text-align: center
+    font-size: $size-slim-third
+    font-weight: bold
+
+  /* Nav header specific */
+  .nav-header
+    background: $color-primary
+
+  /* Title bar */
+  .title
+    padding: 0 1rem
+    margin: 0
+    flex-grow: 1
 
   /* Overlay buttons */
   .button
     display: inline-flex
+    font-size: $size-slim-third
     min-width: $size-slim
     min-height: $size-slim
     justify-content: center
@@ -180,136 +369,108 @@ export default {
     &:hover
       background: lighten($color-primary, 20%)
 
-  /* Overlay centered */
-  .centered
-    text-align: center
-    padding: 0 1rem
-    margin: 0
-
-  /* Nav header */
-  header
-    display: flex
-    justify-content: center
-    flex-shrink: 0
-    width: $size-wide
-    height: $size-slim
-    background: $color-primary
-    padding: 0
-
-  /* Overlay title containers */
-  #ds-title, header
-    line-height: $size-slim
-    font-size: $size-slim-third
-    font-weight: bold
-
-  /* Overlay title */
-  #ds-title, #ds-nav > ul
-    flex-grow: 1
-
-  /* Navigation */
-  #ds-nav
-    display: none
-    flex-direction: column
+  /* Nav container */
+  .nav
     position: fixed
-    overflow: hidden
+    display: flex
+    flex-direction: column
+    top: $size-slim
     width: $size-wide
     height: calc(100vh - #{$size-slim})
-    top: $size-slim
     background: darken($color-primary, 20%)
+    color: $color-text-inverted-soft
 
-    /* Nav toggle */
-    &.show
+  /* Nav links */
+  .links
+    display: flex
+    flex-grow: 1
+    flex-direction: column
+    overflow-y: scroll
+    overflow-x: hidden
+    overflow: -moz-scrollbars-none
+    -ms-overflow-style: none
+    &::-webkit-scrollbar
+      display: none
+
+  /* Nav link group */
+  .link-group
+    display: flex
+    flex-direction: column
+    font-size: $size-slim-third
+    cursor: pointer
+
+  /* Superlink */
+  .superlink
+    display: flex
+    flex-shrink: 0
+    align-items: center
+    height: $size-slim
+
+    &:hover
+      background: lighten($color-primary, 5%)
+
+    &.active
+      background: lighten($color-primary, 5%)
+
+    &.selected
+      background: lighten($color-primary, 10%)
+
+    /* Superlink icons */
+    & > i
       display: flex
+      justify-content: center
+      align-items: center
+      height: $size-slim
 
-    /* Nav lists */
-    ul
-      padding: 0
-      margin: 0
-      list-style: none
-      color: $color-text-inverted-soft
-      cursor: pointer
+    /* Superlink primary icon */
+    & > i:first-of-type
+      width: $size-slim
+      font-size: calc(#{$size-slim-third} * 0.9)
 
-    /* Superlink list */
-    & > ul
-      overflow-y: scroll
-      overflow-x: hidden
-      overflow: -moz-scrollbars-none
-      -ms-overflow-style: none
-      &::-webkit-scrollbar
-        display: none
-
-    /* Superlinks */
-    & > ul > li
-      display: flex
-      flex-direction: column
-      font-size: $size-slim-third
-
-      /* Superlink content */
-      & > span
-        display: flex
-        flex-shrink: 0
-        align-items: center
-        height: $size-slim
-
-        &:hover
-          background: lighten($color-primary, 5%)
-
-        &.active
-          background: lighten($color-primary, 5%)
-
-        &.selected
-          background: lighten($color-primary, 10%)
-
-        /* Superlink icons */
-        & > i
-          display: flex
-          justify-content: center
-          align-items: center
-          height: $size-slim
-
-        /* Superlink primary icon */
-        & > i:first-of-type
-          width: $size-slim
-          font-size: calc(#{$size-slim-third} * 0.9)
-
-        /* Superlink chevrons */
-        & > i:not(:first-of-type).fa-chevron-right, & > i:not(:first-of-type).fa-chevron-down
-          font-size: $size-slim-quarter
-          width: $size-slim-two-third
-          margin-left: auto
-
-      /* Sublinks */
-      ul
-
-        /* Individual sublinks */
-        li
-          display: flex
-          align-items: center
-          height: $size-slim-two-third
-          font-size: $size-slim-quarter
-          background: darken($color-primary, 15%)
-
-          &.active
-            background: darken($color-primary, 8%)
-
-          &:hover
-            background: darken($color-primary, 5%)
-
-          /* Sublink primary icon */
-          & > i:first-of-type
-            font-size: $size-slim-quarter
-            text-align: center
-            width: $size-slim-third
-            margin: 0 0.75rem 0 2rem
-
-    /* Nav footer */
-    footer
-      line-height: $size-slim-half
+    /* Superlink chevrons */
+    & > i:not(:first-of-type).fa-chevron-right,
+    & > i:not(:first-of-type).fa-chevron-down
       font-size: $size-slim-quarter
-      background: darken($color-primary, 25%)
-      flex-shrink: 0
+      width: $size-slim-two-third
+      margin-left: auto
 
-      &:hover
-        text-decoration: underline
+  /* Sublink container */
+  .sublinks
+    display: flex
+    flex-direction: column
+
+  /* Sublink */
+  .sublink
+    display: flex
+    align-items: center
+    height: $size-slim-two-third
+    font-size: $size-slim-quarter
+    background: darken($color-primary, 15%)
+
+    &.active
+      background: darken($color-primary, 8%)
+
+    &:hover
+      background: darken($color-primary, 5%)
+
+    /* Sublink icon */
+    & > i
+      font-size: $size-slim-quarter
+      text-align: center
+      width: $size-slim-third
+      margin: 0 $size-slim-quarter 0 $size-slim-two-third
+
+  /* Nav footer */
+  footer
+    text-align: center
+    justify-self: flex-end
+    line-height: $size-slim-half
+    font-size: $size-slim-quarter
+    background: darken($color-primary, 25%)
+    flex-shrink: 0
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
 
 </style>

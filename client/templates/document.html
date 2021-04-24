@@ -10,8 +10,9 @@
     <!--{{window_data}}-->
     <div id="dynamicsuite">
         <!--suppress HtmlUnknownTag -->
-        <ds-overlay v-if="!hide_overlay"></ds-overlay>
-        <div id="ds-content" :class="content_classes">{{body}}</div>
+        <ds-overlay v-if="!hide_overlay" v-bind="$data"></ds-overlay>
+        <!--suppress HtmlUnknownAttribute -->
+        <div id="ds-content" :class="{overlay:!hide_overlay}">{{body}}</div>
     </div>
     <!--{{css_global}}-->
     <!--{{css_variable}}-->
