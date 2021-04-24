@@ -26,8 +26,6 @@ use PDO;
  * @property string $favicon
  * @property string $default_view
  * @property string $authentication_view
- * @property string $nav_header_text
- * @property string $nav_header_view
  * @property string|null $nav_footer_text
  * @property string $nav_footer_view
  * @property string $header_action_icon
@@ -66,8 +64,6 @@ final class Config extends JSONConfig
         protected string $favicon = '/dynamicsuite/public/img/favicon.svg',
         protected string $default_view = '/dynamicsuite/about',
         protected string $authentication_view = '/dynamicsuite/about',
-        protected string $nav_header_text = 'Dynamic Suite',
-        protected string $nav_header_view = '/dynamicsuite/about',
         protected ?string $nav_footer_text = null,
         protected string $nav_footer_view = '/dynamicsuite/about',
         protected string $header_action_icon = 'fa-user',

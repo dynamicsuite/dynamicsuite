@@ -15,12 +15,14 @@
 html, body
   margin: 0 !important
   padding: 0 !important
+  height: 100% !important
+  width: 100% !important
 
 /* Dynamic Suite container*/
 #dynamicsuite
   flex-direction: column
   background: $color-background
-  min-height: 100vh
+  min-height: 100%
   font-family: Arial, Helvetica, sans-serif
 
   /* Package content */
@@ -33,3 +35,27 @@ html, body
     /* If the overlay is present add margin to space */
     &.overlay
       margin-top: $size-slim
+
+    /* Standard DS container */
+    .ds-container
+      max-width: calc(1280px - 2rem)
+      background: whitesmoke
+      color: $color-text
+      box-shadow: 0 0 12px -3px rgba(0, 0, 0, 0.47)
+      border-radius: 3px
+      padding: 1rem
+
+      &.primary
+        border-bottom: 3px solid $color-primary
+
+      &.secondary
+        border-bottom: 3px solid $color-secondary
+
+      &.failure
+        border-bottom: 3px solid $color-failure
+
+      &.warning
+        border-bottom: 3px solid $color-warning
+
+      &.success
+        border-bottom: 3px solid $color-success

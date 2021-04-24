@@ -12,14 +12,9 @@ file that was distributed with this source code.
 <template>
   <div class="ds-overlay">
 
-    <!-- Nav header -->
-    <header v-if="show_nav" class="nav-header interactive" @click="goto(overlay_nav_header_view)">
-      {{overlay_nav_header_text}}
-    </header>
-
     <!-- Nav button -->
     <div class="button interactive" @click="toggleNav">
-      <i :class="nav_button_classes"></i>
+      <i class="fas fa-bars"></i>
     </div>
 
     <!-- Overlay title -->
@@ -108,26 +103,6 @@ export default {
     },
 
     /**
-     * The text to display on the nav header.
-     *
-     * @type {string | null}
-     */
-    overlay_nav_header_text: {
-      type: String | null,
-      default: null
-    },
-
-    /**
-     * The view URL to redirect to on header click.
-     *
-     * @type {string | null}
-     */
-    overlay_nav_header_view: {
-      type: String | null,
-      default: null
-    },
-
-    /**
      * The text to display on the nav footer.
      *
      * @type {string | null}
@@ -173,26 +148,6 @@ export default {
       show_nav: false,
       selected_group: null
     };
-  },
-  computed: {
-
-    /**
-     * Classes to assign to the nav button.
-     *
-     * @returns {{
-     *   'fas': boolean,
-     *   'fa-bars': boolean,
-     *   'fa-caret-square-left': boolean
-     * }}
-     */
-    nav_button_classes() {
-      return {
-        'fas': true,
-        'fa-bars': !this.show_nav,
-        'fa-caret-square-left': this.show_nav
-      };
-    }
-
   },
   methods: {
 
@@ -337,8 +292,8 @@ export default {
     transition: background 0.2s ease
 
   /* Nav header and title */
-  .nav-header, .title
-    width: $size-wide
+  .title
+    flex-grow: 1
     line-height: $size-slim
     white-space: nowrap
     overflow: hidden
@@ -346,16 +301,8 @@ export default {
     text-align: center
     font-size: $size-slim-third
     font-weight: bold
-
-  /* Nav header specific */
-  .nav-header
-    background: $color-primary
-
-  /* Title bar */
-  .title
     padding: 0 1rem
     margin: 0
-    flex-grow: 1
 
   /* Overlay buttons */
   .button
@@ -376,7 +323,7 @@ export default {
     flex-direction: column
     top: $size-slim
     width: $size-wide
-    height: calc(100vh - #{$size-slim})
+    height: calc(100% - #{$size-slim})
     background: darken($color-primary, 20%)
     color: $color-text-inverted-soft
 

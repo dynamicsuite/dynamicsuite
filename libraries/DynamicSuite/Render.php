@@ -66,8 +66,6 @@ final class Render
         'has_session' => false,
         'hide_overlay' => true,
         'default_view' => null,
-        'overlay_nav_header_text' => null,
-        'overlay_nav_header_view' => null,
         'overlay_nav_footer_text' => null,
         'overlay_nav_footer_view' => null,
         'overlay_nav_tree' => null,
