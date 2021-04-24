@@ -261,7 +261,7 @@ export default {
           background: lighten($color-primary, 10%)
 
         /* Superlink icons */
-        & > i:first-of-type, & > i.fas.fa-chevron-right, & > i.fas.fa-chevron-down
+        & > i
           display: flex
           justify-content: center
           align-items: center
