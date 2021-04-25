@@ -69,6 +69,9 @@ final class Render
         'overlay_nav_footer_text' => null,
         'overlay_nav_footer_view' => null,
         'overlay_nav_tree' => null,
+        'overlay_nav_alert_success' => [],
+        'overlay_nav_alert_warning' => [],
+        'overlay_nav_alert_failure' => [],
         'overlay_title' => null,
         'overlay_actions_icon' => null,
         'overlay_actions' => null,
@@ -278,14 +281,6 @@ final class Render
                 error_log("View [$view->package_id:$view_id] belongs to an unknown nav group '$view->nav_group'");
             }
 
-        }
-
-        // Format tree
-        $tree = array_values($tree);
-        foreach ($tree as $key => $value) {
-            if (isset($value['views'])) {
-                $tree[$key]['views'] = array_values($value['views']);
-            }
         }
 
         // Return the tree

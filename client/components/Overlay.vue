@@ -38,21 +38,31 @@ file that was distributed with this source code.
 
       <!-- Nav links -->
       <div class="links">
-        <div v-for="superlink in overlay_nav_tree" :key="superlink.key" class="link-group">
+        <div v-for="(superlink, super_id) in overlay_nav_tree" :key="superlink.key" class="link-group">
           <span :class="superlinkClasses(superlink)" @click="superlinkInteraction(superlink)">
             <i :class="navIconClass(superlink.icon, superlink.path)"></i>
             <span>{{superlink.name}}</span>
+            <span class="alerts">
+              <span v-if="getAlert(super_id, 'failure')" class="failure">{{getAlert(super_id, 'failure')}}</span>
+              <span v-if="getAlert(super_id, 'warning')" class="warning">{{getAlert(super_id, 'warning')}}</span>
+              <span v-if="getAlert(super_id, 'success')" class="success">{{getAlert(super_id, 'success')}}</span>
+            </span>
             <i v-if="superlink.nav_group" :class="chevronClasses(superlink.nav_group)"></i>
           </span>
           <div v-if="superlink.nav_group === selected_group" class="sublinks">
             <span
-              v-for="sublink in superlink.views"
+              v-for="(sublink, sub_id) in superlink.views"
               :key="sublink.key"
               :class="sublinkClasses(sublink)"
               @click="goto(sublink.path)"
             >
               <i :class="navIconClass(sublink.icon, sublink.path)"></i>
               <span>{{sublink.name}}</span>
+              <span class="alerts">
+                <span v-if="getAlert(sub_id, 'failure')" class="failure">{{getAlert(sub_id, 'failure')}}</span>
+                <span v-if="getAlert(sub_id, 'warning')" class="warning">{{getAlert(sub_id, 'warning')}}</span>
+                <span v-if="getAlert(sub_id, 'success')" class="success">{{getAlert(sub_id, 'success')}}</span>
+              </span>
             </span>
           </div>
         </div>
@@ -104,7 +114,7 @@ export default {
      * }}
      */
     overlay_nav_tree: {
-      type: Array,
+      type: Array | Object,
       default: () => []
     },
 
@@ -126,6 +136,36 @@ export default {
     overlay_nav_footer_view: {
       type: String | null,
       default: null
+    },
+
+    /**
+     * Success alerts for the nav.
+     *
+     * @type {object | array}
+     */
+    overlay_nav_alert_success: {
+      type: Object | Array,
+      default: () => {}
+    },
+
+    /**
+     * Warning alerts for the nav.
+     *
+     * @type {object | array}
+     */
+    overlay_nav_alert_warning: {
+      type: Object | Array,
+      default: () => {}
+    },
+
+    /**
+     * Failure alerts for the nav.
+     *
+     * @type {object | array}
+     */
+    overlay_nav_alert_failure: {
+      type: Object | Array,
+      default: () => {}
     },
 
     /**
@@ -333,6 +373,24 @@ export default {
       } else {
         return icon;
       }
+    },
+
+    /**
+     * Get the alert for the given ID.
+     *
+     * Returns FALSE if no alert is found for the given ID and type.
+     *
+     * @param {string} id - The ID of the superlink, sublink, or nav group.
+     * @param {string} type - The type of the alert (success, warning, failure).
+     * @returns {boolean|*}
+     */
+    getAlert(id, type) {
+      const key = `overlay_nav_alert_${type}`;
+      if (typeof this[key] === 'object' && this[key].hasOwnProperty(id)) {
+        return this[key][id];
+      } else {
+        return false;
+      }
     }
 
   },
@@ -458,6 +516,38 @@ export default {
       &::-webkit-scrollbar
         display: none
 
+      /* Nav alerts */
+      .alerts
+        font-size: $size-slim-quarter
+        margin-left: auto
+        white-space: nowrap
+
+        /* When not part of a group */
+        &:last-child
+          margin-right: $size-slim-eight
+
+        /* Alert content */
+        span
+          display: inline-flex
+          justify-content: center
+          align-items: center
+          padding: $size-slim-sixteenth
+          margin-right: $size-slim-sixteenth
+          min-width: $size-slim-third
+          border-radius: 15%
+
+        .success
+          color: $color-text-inverted
+          background: $color-success
+
+        .warning
+          color: $color-text
+          background: $color-warning
+
+        .failure
+          color: $color-text-inverted
+          background: $color-failure
+
     /* Nav link group */
     .link-group
       display: flex
@@ -472,6 +562,13 @@ export default {
       align-items: center
       height: $size-slim
 
+      /* Link content (text) */
+      & > span:first-of-type
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+        padding-right: $size-slim-eight
+
       &:hover
         background: lighten($color-primary, 5%)
 
@@ -485,6 +582,7 @@ export default {
       & > i
         display: flex
         justify-content: center
+        flex-shrink: 0
         align-items: center
         height: $size-slim
 
@@ -498,7 +596,6 @@ export default {
       & > i:not(:first-of-type).fa-chevron-down
         font-size: $size-slim-quarter
         width: $size-slim-two-third
-        margin-left: auto
 
     /* Sublink container */
     .sublinks
@@ -518,6 +615,13 @@ export default {
 
       &:hover
         background: darken($color-primary, 5%)
+
+      /* Link content (text) */
+      & > span:first-of-type
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+        padding-right: $size-slim-eight
 
       /* Sublink icon */
       & > i

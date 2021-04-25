@@ -66,10 +66,19 @@ DynamicSuite.vm = new Vue({
             overlay_nav_tree: [],
             overlay_nav_footer_text: null,
             overlay_nav_footer_view: null,
+            overlay_nav_alert_success: {},
+            overlay_nav_alert_warning: {},
+            overlay_nav_alert_failure: {},
             overlay_title: null,
             overlay_actions_icon: null,
             overlay_actions: []
         };
+    },
+    methods: {
+        setNavAlert(type, id, value) {
+            const key = `overlay_nav_alert_${type}`;
+            this.$set(this[key], id, value);
+        }
     },
     mounted() {
 
