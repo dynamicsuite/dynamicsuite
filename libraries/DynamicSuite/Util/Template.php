@@ -36,7 +36,7 @@ final class Template
      */
     public function replace(array $replace): Template
     {
-        $this->contents = str_replace(array_keys($replace), array_values($replace), $this->contents);
+        $this->contents = strtr($this->contents, $replace);
         return $this;
     }
 
