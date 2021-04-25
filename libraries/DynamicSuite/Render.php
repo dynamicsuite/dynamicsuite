@@ -58,11 +58,11 @@ final class Render
     public static Template $error_500_template;
 
     /**
-     * Data to be rendered as part of the window on the client.
+     * Data to send as an extra header in client requests.
      *
      * @var array
      */
-    public static array $window_data = [
+    public static array $client_data = [
         'has_session' => false,
         'hide_overlay' => true,
         'default_view' => null,

@@ -98,17 +98,17 @@ if (DS_VIEW) {
         ]);
 
         /**
-         * Update the window data.
+         * Update the client data.
          */
-        Render::$window_data['overlay_title'] ??= $view->title;
-        Render::$window_data['default_view'] ??= DynamicSuite::$cfg->default_view;
-        Render::$window_data['overlay_nav_tree'] ??= Render::generateNavTree();
-        Render::$window_data['overlay_nav_footer_text'] ??= DynamicSuite::$cfg->overlay_nav_footer_text;
-        Render::$window_data['overlay_nav_footer_view'] ??= DynamicSuite::$cfg->overlay_nav_footer_view;
-        Render::$window_data['overlay_actions_icon'] ??= DynamicSuite::$cfg->overlay_actions_icon;
-        Render::$window_data['overlay_actions'] ??= Render::generateOverlayActions();
-        Render::$window_data['hide_overlay'] = $view->hide_overlay;
-        Render::$window_data['has_session'] = !$view->public;
+        Render::$client_data['overlay_title'] ??= $view->title;
+        Render::$client_data['default_view'] ??= DynamicSuite::$cfg->default_view;
+        Render::$client_data['overlay_nav_tree'] ??= Render::generateNavTree();
+        Render::$client_data['overlay_nav_footer_text'] ??= DynamicSuite::$cfg->overlay_nav_footer_text;
+        Render::$client_data['overlay_nav_footer_view'] ??= DynamicSuite::$cfg->overlay_nav_footer_view;
+        Render::$client_data['overlay_actions_icon'] ??= DynamicSuite::$cfg->overlay_actions_icon;
+        Render::$client_data['overlay_actions'] ??= Render::generateOverlayActions();
+        Render::$client_data['hide_overlay'] = $view->hide_overlay;
+        Render::$client_data['has_session'] = !$view->public;
 
         /**
          * Execute the view.
@@ -126,12 +126,11 @@ if (DS_VIEW) {
          * Set variable resources.
          */
         $css_variable = $js_variable = '';
-        $post_hook = "this.onload=null;this.rel='stylesheet'";
         foreach (['css', 'js'] as $type) {
             $template = $type . '_variable';
             foreach ($view->$type as $path) {
                 if ($type === 'css') {
-                    $$template .= "<link rel=\"preload\" href=\"$path\" as=\"style\" onload=\"$post_hook\">";
+                    $$template .= "<link rel=\"stylesheet\" href=\"$path\">";
                 } else {
                     $$template .= "<script src=\"$path\"></script>";
                 }
@@ -139,15 +138,10 @@ if (DS_VIEW) {
         }
 
         /**
-         * Set window data.
-         */
-        $window_data = '<script>window.dynamicsuite=' . json_encode(Render::$window_data) . '</script>';
-
-        /**
          * Update and render the template.
          */
         Render::$document_template->replace([
-            '<!--{{window_data}}-->' => $window_data,
+            '"<!--{{client_data}}-->"' => json_encode(Render::$client_data, JSON_HEX_TAG),
             '<!--{{css_variable}}-->' => $css_variable,
             '<!--{{js_variable}}-->' => $js_variable
         ]);
