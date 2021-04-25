@@ -42,13 +42,6 @@ final class DynamicSuite
     public static Database $db;
 
     /**
-     * View interface.
-     *
-     * @var Render
-     */
-    public static Render $view;
-
-    /**
      * Initialize Dynamic Suite.
      *
      * @return void
