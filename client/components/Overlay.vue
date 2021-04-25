@@ -13,7 +13,7 @@ file that was distributed with this source code.
   <div class="ds-overlay">
 
     <!-- Nav button -->
-    <div class="button interactive" @click="toggleNav">
+    <div :class="nav_button_classes" @click="toggleNav">
       <i class="fas fa-bars"></i>
     </div>
 
@@ -149,6 +149,26 @@ export default {
       selected_group: null
     };
   },
+  computed: {
+
+    /**
+     * Classes to assign to the nav toggle button.
+     *
+     * @returns {{
+     *   'button': boolean,
+     *   'interactive': boolean,
+     *   'active': boolean
+     * }}
+     */
+    nav_button_classes() {
+      return {
+        'button': true,
+        'interactive': true,
+        'active': this.show_nav
+      };
+    }
+
+  },
   methods: {
 
     /**
@@ -203,7 +223,7 @@ export default {
       return {
         'superlink': true,
         'active': superlink.active,
-        'selected': this.selected_group === superlink.nav_group
+        'selected': superlink.nav_group !== null && this.selected_group === superlink.nav_group
       };
     },
 
@@ -313,7 +333,7 @@ export default {
     justify-content: center
     align-items: center
 
-    &:hover
+    &:hover, &.active
       background: lighten($color-primary, 20%)
 
   /* Nav container */

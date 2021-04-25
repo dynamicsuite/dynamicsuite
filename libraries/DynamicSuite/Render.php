@@ -133,7 +133,7 @@ final class Render
             $css_template = '';
             foreach ($css_global as $path) {
                 $css_template .=
-                    "<link rel=\"preload\" href=\"$path\" as=\"style\">";
+                    "<link rel=\"stylesheet\" href=\"$path\">";
             }
 
             // Set global JS

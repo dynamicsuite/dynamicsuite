@@ -79,12 +79,6 @@ DynamicSuite.vm = new Vue({
             }
         }
 
-        // Update stylesheets
-        const css = document.querySelectorAll('link[rel="preload"][as="style"]');
-        for (let i = 0; i < css.length; i++) {
-            css[i].rel = 'stylesheet';
-        }
-
         // Display the content
         document.getElementById('dynamicsuite').style.display = 'flex';
 

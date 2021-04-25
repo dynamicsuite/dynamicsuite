@@ -11,6 +11,10 @@
 
 @import "dynamicsuite"
 
+/* Vue cloaking */
+[v-cloak]
+  display: none
+
 /* Resets */
 html, body
   margin: 0 !important
@@ -20,6 +24,7 @@ html, body
 
 /* Dynamic Suite container*/
 #dynamicsuite
+  display: none
   flex-direction: column
   background: $color-background
   min-height: 100%
