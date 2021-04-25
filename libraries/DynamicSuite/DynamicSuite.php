@@ -60,7 +60,7 @@ final class DynamicSuite
         if (DS_CACHING && apcu_exists($hash) && $cache = apcu_fetch($hash)) {
             self::$cfg = $cache['cfg'];
         } else {
-            self::$cfg = new Config('dynamicsuite');
+            self::$cfg = new Config();
             if (DS_CACHING) {
                 $store = apcu_store($hash, [
                     'cfg' => self::$cfg

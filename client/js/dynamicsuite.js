@@ -67,6 +67,7 @@ DynamicSuite.vm = new Vue({
             overlay_nav_footer_text: null,
             overlay_nav_footer_view: null,
             overlay_title: null,
+            overlay_actions_icon: null,
             overlay_actions: []
         };
     },

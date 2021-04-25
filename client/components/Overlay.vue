@@ -24,7 +24,7 @@ file that was distributed with this source code.
 
     <!-- Actions area -->
     <div class="button interactive">
-      <i class="fas fa-user"></i>
+      <i :class="overlay_actions_icon"></i>
     </div>
 
     <!-- Navigation container -->
@@ -128,6 +128,16 @@ export default {
      * @type {string | null}
      */
     overlay_title: {
+      type: String | null,
+      default: null
+    },
+
+    /**
+     * The icon to display on the overlay header to show the actions.
+     *
+     * @type {string | null}
+     */
+    overlay_actions_icon: {
       type: String | null,
       default: null
     },

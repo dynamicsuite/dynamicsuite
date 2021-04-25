@@ -70,6 +70,7 @@ final class Render
         'overlay_nav_footer_view' => null,
         'overlay_nav_tree' => null,
         'overlay_title' => null,
+        'overlay_actions_icon' => null,
         'overlay_actions' => null,
         'misc' => null
     ];

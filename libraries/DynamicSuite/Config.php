@@ -26,9 +26,9 @@ use PDO;
  * @property string $favicon
  * @property string $default_view
  * @property string $authentication_view
- * @property string|null $nav_footer_text
- * @property string $nav_footer_view
- * @property string $header_action_icon
+ * @property string|null $overlay_nav_footer_text
+ * @property string $overlay_nav_footer_view
+ * @property string $overlay_actions_icon
  * @property string $document_template
  * @property string $about_template
  * @property string $about_title
@@ -55,7 +55,6 @@ final class Config extends JSONConfig
      * @return void
      */
     public function __construct(
-        string $package_id,
         protected bool $debug_mode = false,
         protected array $packages = [],
         protected string $charset = 'UTF-8',
@@ -64,16 +63,10 @@ final class Config extends JSONConfig
         protected string $favicon = '/dynamicsuite/public/img/favicon.svg',
         protected string $default_view = '/dynamicsuite/about',
         protected string $authentication_view = '/dynamicsuite/about',
-        protected string|null $nav_footer_text = 'Dynamic Suite',
-        protected string $nav_footer_view = '/dynamicsuite/about',
-        protected string $header_action_icon = 'fa-user',
+        protected string|null $overlay_nav_footer_text = 'Dynamic Suite',
+        protected string $overlay_nav_footer_view = '/dynamicsuite/about',
+        protected string $overlay_actions_icon = 'fas fa-user',
         protected string $document_template = '/client/templates/document.html',
-        protected string $stylesheet_template = '/client/templates/stylesheet.html',
-        protected string $script_template = '/client/templates/script.html',
-        protected string $nav_template = '/client/templates/nav.html',
-        protected string $nav_group_template = '/client/templates/nav_group.html',
-        protected string $nav_single_template = '/client/templates/nav_single.html',
-        protected string $nav_sublink_template = '/client/templates/nav_sublink.html',
         protected string $about_template = '/client/templates/about.html',
         protected string $about_title = 'About Dynamic Suite',
         protected string $error_404_template = '/client/templates/error_404.html',
@@ -95,7 +88,7 @@ final class Config extends JSONConfig
             PDO::ATTR_EMULATE_PREPARES => false
         ]
     ) {
-        parent::__construct($package_id);
+        parent::__construct('dynamicsuite');
     }
 
 }
