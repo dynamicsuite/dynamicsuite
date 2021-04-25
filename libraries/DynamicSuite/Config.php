@@ -64,7 +64,7 @@ final class Config extends JSONConfig
         protected string $favicon = '/dynamicsuite/public/img/favicon.svg',
         protected string $default_view = '/dynamicsuite/about',
         protected string $authentication_view = '/dynamicsuite/about',
-        protected ?string $nav_footer_text = null,
+        protected string|null $nav_footer_text = 'Dynamic Suite',
         protected string $nav_footer_view = '/dynamicsuite/about',
         protected string $header_action_icon = 'fa-user',
         protected string $document_template = '/client/templates/document.html',

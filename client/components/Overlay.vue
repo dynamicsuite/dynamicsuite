@@ -53,7 +53,7 @@ file that was distributed with this source code.
       </div>
 
       <!-- Nav footer -->
-      <footer @click="goto(overlay_nav_footer_view)">
+      <footer v-if="overlay_nav_footer_text" @click="goto(overlay_nav_footer_view)">
         {{overlay_nav_footer_text}}
       </footer>
 

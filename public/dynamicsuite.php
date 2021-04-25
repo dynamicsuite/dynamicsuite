@@ -103,13 +103,7 @@ if (DS_VIEW) {
         Render::$window_data['overlay_title'] ??= $view->title;
         Render::$window_data['default_view'] ??= DynamicSuite::$cfg->default_view;
         Render::$window_data['overlay_nav_tree'] ??= Render::generateNavTree();
-        Render::$window_data['overlay_nav_header_text'] ??= DynamicSuite::$cfg->nav_header_text;
-        Render::$window_data['overlay_nav_header_view'] ??= DynamicSuite::$cfg->nav_header_view;
-        if (!Render::$window_data['overlay_nav_footer_text']) {
-            Render::$window_data['overlay_nav_footer_text'] = DynamicSuite::$cfg->nav_footer_text !== null
-                ? DynamicSuite::$cfg->nav_footer_text
-                : 'Dynamic Suite ' . DS_VERSION;
-        }
+        Render::$window_data['overlay_nav_footer_text'] ??= DynamicSuite::$cfg->nav_footer_text;
         Render::$window_data['overlay_nav_footer_view'] ??= DynamicSuite::$cfg->nav_footer_view;
         Render::$window_data['hide_overlay'] = $view->hide_overlay;
         Render::$window_data['has_session'] = !$view->public;
