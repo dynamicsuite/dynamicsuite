@@ -22,9 +22,15 @@ file that was distributed with this source code.
       {{overlay_title}}
     </h1>
 
-    <!-- Actions area -->
-    <div class="button interactive">
+    <!-- Actions button -->
+    <div v-if="overlay_actions.length" :class="actions_button_classes" @click="toggleActions">
       <i :class="overlay_actions_icon"></i>
+    </div>
+
+    <!-- Actions area -->
+    <div v-if="overlay_actions.length && show_actions" class="actions">
+      <!--suppress HtmlUnknownTag, JSUnusedLocalSymbols, JSUnresolvedVariable -->
+      <component v-for="(name, key) in overlay_actions" :is="name" :key="'action' + key"></component>
     </div>
 
     <!-- Navigation container -->
@@ -145,7 +151,9 @@ export default {
     /**
      * Actions to render in the overlay action area.
      *
-     * TODO
+     * This is an array of component names of components to render.
+     *
+     * @type {string[]}
      */
     overlay_actions: {
       type:  Array,
@@ -156,6 +164,7 @@ export default {
   data() {
     return {
       show_nav: false,
+      show_actions: false,
       selected_group: null,
       pending_path: null,
       loading: false
@@ -178,6 +187,23 @@ export default {
         'interactive': true,
         'active': this.show_nav
       };
+    },
+
+    /**
+     * Classes to assign to the actions toggle button.
+     *
+     * @returns {{
+     *   'button': boolean,
+     *   'interactive': boolean,
+     *   'active': boolean
+     * }}
+     */
+    actions_button_classes() {
+      return {
+        'button': true,
+        'interactive': true,
+        'active': this.show_actions
+      };
     }
 
   },
@@ -190,9 +216,6 @@ export default {
      * @returns {undefined}
      */
     goto(url) {
-      if (this.pending_path) {
-        return;
-      }
       if (url) {
         this.pending_path = url;
         setTimeout(() => {
@@ -211,7 +234,21 @@ export default {
       if (this.pending_path) {
         return;
       }
+      this.show_actions = false;
       this.show_nav = !this.show_nav;
+    },
+
+    /**
+     * Toggle the actions area.
+     *
+     * @returns {undefined}
+     */
+    toggleActions() {
+      if (this.pending_path) {
+        return;
+      }
+      this.show_nav = false;
+      this.show_actions = !this.show_actions;
     },
 
     /**
@@ -321,12 +358,13 @@ export default {
       }
     }
 
-    // Add click to hide nav menu
+    // Add click to hide nav/actions menu
     document.getElementById('ds-content').addEventListener('click', () => {
       if (this.pending_path) {
         return;
       }
       this.show_nav = false;
+      this.show_actions = false;
     });
 
   }
@@ -346,15 +384,15 @@ export default {
   height: $size-slim
   background: lighten($color-primary, 10%)
   color: $color-text-inverted
+  user-select: none
 
   /* Interactive elements */
-  .interactive
+  & > .interactive
     cursor: pointer
-    user-select: none
     transition: background 0.2s ease
 
   /* Nav header and title */
-  .title
+  & > .title
     flex-grow: 1
     line-height: $size-slim
     white-space: nowrap
@@ -367,7 +405,7 @@ export default {
     margin: 0
 
   /* Overlay buttons */
-  .button
+  & > .button
     display: inline-flex
     font-size: $size-slim-third
     min-width: $size-slim
@@ -378,8 +416,26 @@ export default {
     &:hover, &.active
       background: lighten($color-primary, 20%)
 
+  /* Overlay actions */
+  & > .actions
+    position: fixed
+    display: flex
+    flex-direction: column
+    top: $size-slim
+    right: 0
+    min-width: $size-wide
+    background: lighten($color-primary, 20%)
+    color: $color-text-inverted
+
+    /* Generic rules */
+    & > *
+      display: flex
+      justify-content: center
+      align-items: center
+      min-height: $size-slim-two-third
+
   /* Nav container */
-  .nav
+  & > .nav
     position: fixed
     display: flex
     flex-direction: column
@@ -389,97 +445,98 @@ export default {
     background: darken($color-primary, 20%)
     color: $color-text-inverted-soft
 
-  /* Nav links */
-  .links
-    display: flex
-    flex-grow: 1
-    flex-direction: column
-    overflow-y: scroll
-    overflow-x: hidden
-    overflow: -moz-scrollbars-none
-    -ms-overflow-style: none
-    &::-webkit-scrollbar
-      display: none
-
-  /* Nav link group */
-  .link-group
-    display: flex
-    flex-direction: column
-    font-size: $size-slim-third
-    cursor: pointer
-
-  /* Superlink */
-  .superlink
-    display: flex
-    flex-shrink: 0
-    align-items: center
-    height: $size-slim
-
-    &:hover
-      background: lighten($color-primary, 5%)
-
-    &.active
-      background: lighten($color-primary, 5%)
-
-    &.selected
-      background: lighten($color-primary, 10%)
-
-    /* Superlink icons */
-    & > i
+    /* Nav links */
+    .links
       display: flex
-      justify-content: center
+      flex-grow: 1
+      flex-direction: column
+      overflow-y: scroll
+      overflow-x: hidden
+      overflow: -moz-scrollbars-none
+      -ms-overflow-style: none
+
+      &::-webkit-scrollbar
+        display: none
+
+    /* Nav link group */
+    .link-group
+      display: flex
+      flex-direction: column
+      font-size: $size-slim-third
+      cursor: pointer
+
+    /* Superlink */
+    .superlink
+      display: flex
+      flex-shrink: 0
       align-items: center
       height: $size-slim
 
-    /* Superlink primary icon */
-    & > i:first-of-type
-      width: $size-slim
-      font-size: calc(#{$size-slim-third} * 0.9)
+      &:hover
+        background: lighten($color-primary, 5%)
 
-    /* Superlink chevrons */
-    & > i:not(:first-of-type).fa-chevron-right,
-    & > i:not(:first-of-type).fa-chevron-down
+      &.active
+        background: lighten($color-primary, 5%)
+
+      &.selected
+        background: lighten($color-primary, 10%)
+
+      /* Superlink icons */
+      & > i
+        display: flex
+        justify-content: center
+        align-items: center
+        height: $size-slim
+
+      /* Superlink primary icon */
+      & > i:first-of-type
+        width: $size-slim
+        font-size: calc(#{$size-slim-third} * 0.9)
+
+      /* Superlink chevrons */
+      & > i:not(:first-of-type).fa-chevron-right,
+      & > i:not(:first-of-type).fa-chevron-down
+        font-size: $size-slim-quarter
+        width: $size-slim-two-third
+        margin-left: auto
+
+    /* Sublink container */
+    .sublinks
+      display: flex
+      flex-direction: column
+
+    /* Sublink */
+    .sublink
+      display: flex
+      align-items: center
+      height: $size-slim-two-third
       font-size: $size-slim-quarter
-      width: $size-slim-two-third
-      margin-left: auto
+      background: darken($color-primary, 15%)
 
-  /* Sublink container */
-  .sublinks
-    display: flex
-    flex-direction: column
+      &.active
+        background: darken($color-primary, 8%)
 
-  /* Sublink */
-  .sublink
-    display: flex
-    align-items: center
-    height: $size-slim-two-third
-    font-size: $size-slim-quarter
-    background: darken($color-primary, 15%)
+      &:hover
+        background: darken($color-primary, 5%)
 
-    &.active
-      background: darken($color-primary, 8%)
+      /* Sublink icon */
+      & > i
+        font-size: $size-slim-quarter
+        text-align: center
+        width: $size-slim-third
+        margin: 0 $size-slim-quarter 0 $size-slim-two-third
 
-    &:hover
-      background: darken($color-primary, 5%)
-
-    /* Sublink icon */
-    & > i
-      font-size: $size-slim-quarter
+    /* Nav footer */
+    footer
       text-align: center
-      width: $size-slim-third
-      margin: 0 $size-slim-quarter 0 $size-slim-two-third
+      justify-self: flex-end
+      line-height: $size-slim-half
+      font-size: $size-slim-quarter
+      background: darken($color-primary, 25%)
+      flex-shrink: 0
+      cursor: pointer
 
-  /* Nav footer */
-  footer
-    text-align: center
-    justify-self: flex-end
-    line-height: $size-slim-half
-    font-size: $size-slim-quarter
-    background: darken($color-primary, 25%)
-    flex-shrink: 0
-    cursor: pointer
-
-    &:hover
-      text-decoration: underline
+      &:hover
+        text-decoration: underline
 
 </style>

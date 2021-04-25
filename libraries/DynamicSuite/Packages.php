@@ -84,11 +84,11 @@ final class Packages
     public static array $nav_groups = [];
 
     /**
-     * Loaded header actions.
+     * Loaded overlay actions.
      *
      * @var OverlayAction[]
      */
-    public static array $header_actions = [];
+    public static array $overlay_actions = [];
 
     /**
      * Initialize all package structures and includes.
@@ -107,7 +107,7 @@ final class Packages
             self::$views = $cache['views'];
             self::$apis = $cache['apis'];
             self::$nav_groups = $cache['nav_groups'];
-            self::$header_actions = $cache['header_actions'];
+            self::$overlay_actions = $cache['overlay_actions'];
         } else {
             foreach (DynamicSuite::$cfg->packages as $package_id) {
                 self::load($package_id);
@@ -122,7 +122,7 @@ final class Packages
                     'views' => self::$views,
                     'apis' => self::$apis,
                     'nav_groups' => self::$nav_groups,
-                    'header_actions' => self::$header_actions
+                    'overlay_actions' => self::$overlay_actions
                 ]);
                 if (!$store) {
                     error_log('Error saving "Packages" in cache, check server config');

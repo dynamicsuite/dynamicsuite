@@ -294,6 +294,23 @@ final class Render
     }
 
     /**
+     * Generate the overlay actions to render.
+     *
+     * @return array
+     */
+    public static function generateOverlayActions(): array
+    {
+        $actions = [];
+        foreach (Packages::$overlay_actions as $action) {
+            if (!$action->public && !Session::checkPermissions($action->permissions)) {
+                continue;
+            }
+            $actions[] = $action->component;
+        }
+        return $actions;
+    }
+
+    /**
      * Render the about page.
      *
      * @return void
