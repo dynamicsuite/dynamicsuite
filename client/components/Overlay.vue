@@ -34,7 +34,7 @@ file that was distributed with this source code.
       <div class="links">
         <div v-for="superlink in overlay_nav_tree" :key="superlink.key" class="link-group">
           <span :class="superlinkClasses(superlink)" @click="superlinkInteraction(superlink)">
-            <i :class="superlink.icon"></i>
+            <i :class="navIconClass(superlink.icon, superlink.path)"></i>
             <span>{{superlink.name}}</span>
             <i v-if="superlink.nav_group" :class="chevronClasses(superlink.nav_group)"></i>
           </span>
@@ -45,7 +45,7 @@ file that was distributed with this source code.
               :class="sublinkClasses(sublink)"
               @click="goto(sublink.path)"
             >
-              <i :class="sublink.icon"></i>
+              <i :class="navIconClass(sublink.icon, sublink.path)"></i>
               <span>{{sublink.name}}</span>
             </span>
           </div>
@@ -146,7 +146,9 @@ export default {
   data() {
     return {
       show_nav: false,
-      selected_group: null
+      selected_group: null,
+      pending_path: null,
+      loading: false
     };
   },
   computed: {
@@ -178,7 +180,14 @@ export default {
      * @returns {undefined}
      */
     goto(url) {
+      if (this.pending_path) {
+        return;
+      }
       if (url) {
+        this.pending_path = url;
+        setTimeout(() => {
+          this.loading = true;
+        }, 100);
         document.location = url;
       }
     },
@@ -189,6 +198,9 @@ export default {
      * @returns {undefined}
      */
     toggleNav() {
+      if (this.pending_path) {
+        return;
+      }
       this.show_nav = !this.show_nav;
     },
 
@@ -257,6 +269,23 @@ export default {
         'sublink': true,
         'active': sublink.active
       };
+    },
+
+    /**
+     * Get the icon class for the given icon and clicked path.
+     *
+     * Used for high latency connections to display a spinner.
+     *
+     * @param {string} icon - The given icon.
+     * @param {string} path - The given path.
+     * @returns {string}
+     */
+    navIconClass(icon, path) {
+      if (this.loading && path === this.pending_path) {
+        return 'fas fa-circle-notch fa-spin';
+      } else {
+        return icon;
+      }
     }
 
   },
@@ -284,6 +313,9 @@ export default {
 
     // Add click to hide nav menu
     document.getElementById('ds-content').addEventListener('click', () => {
+      if (this.pending_path) {
+        return;
+      }
       this.show_nav = false;
     });
 
