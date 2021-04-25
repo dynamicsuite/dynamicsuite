@@ -100,42 +100,6 @@ let output_js = '';
 let output_css = '';
 
 /**
- * Any included JS.
- */
-if (options.js_include_dir) {
-    for (const file of readFilesRecursively(options.js_include_dir)) {
-        if (path.extname(file) !== '.js') {
-            continue;
-        }
-        // noinspection JSUnresolvedFunction
-        let ugly_js = js_compiler.minify(fs.readFileSync(file).toString());
-        if (typeof ugly_js.error !== 'undefined') {
-            console.log(ugly_js.error);
-            process.exit(1);
-        }
-        output_js += ugly_js.code;
-    }
-}
-
-/**
- * Any included SASS.
- */
-if (options.sass_include_dir) {
-    for (const file of readFilesRecursively(options.sass_include_dir)) {
-        if (path.extname(file) !== '.sass') {
-            continue;
-        }
-        process.chdir(path.dirname(file));
-        // noinspection JSUnresolvedFunction
-        output_css += sass_compiler.renderSync({
-            data: fs.readFileSync(file).toString(),
-            indentedSyntax: true,
-            outputStyle: 'compressed'
-        }).css.toString();
-    }
-}
-
-/**
  * Add included Vue mixins.
  */
 if (options.mixin_dir) {
@@ -150,10 +114,10 @@ if (options.mixin_dir) {
             process.exit(1);
         }
         let name = options.prefix + file.replace(options.mixin_dir, '')
-            .replace(new RegExp('\\' + path.sep, 'g'), '_')
-            .replace(/([A-Z])/g, '_$1')
-            .replace(/__/g, '_')
-            .toLowerCase();
+          .replace(new RegExp('\\' + path.sep, 'g'), '_')
+          .replace(/([A-Z])/g, '_$1')
+          .replace(/__/g, '_')
+          .toLowerCase();
         name = name.substring(0, name.length - 3)
         output_js += ugly_js.code.replace('export default', `const mixin_${name}=`);
     }
@@ -186,10 +150,10 @@ if (options.component_dir) {
          * Set up the component name.
          */
         let name = options.prefix + file.replace(options.component_dir, '')
-            .replace(new RegExp('\\' + path.sep, 'g'), '-')
-            .replace(/([A-Z])/g, '-$1')
-            .replace(/--/g, '-')
-            .toLowerCase();
+          .replace(new RegExp('\\' + path.sep, 'g'), '-')
+          .replace(/([A-Z])/g, '-$1')
+          .replace(/--/g, '-')
+          .toLowerCase();
         name = name.substring(0, name.length - 4)
 
         /**
@@ -204,8 +168,8 @@ if (options.component_dir) {
          */
         if (component.includes('<template>') && component.includes('</template>')) {
             template =  component.substring(
-                component.indexOf('<template>') + 10,
-                component.lastIndexOf('</template>')
+              component.indexOf('<template>') + 10,
+              component.lastIndexOf('</template>')
             );
             // noinspection JSUnresolvedFunction
             template = html_compiler.minify(template, {
@@ -219,12 +183,12 @@ if (options.component_dir) {
          */
         if (component.includes('<script>') && component.includes('</script>')) {
             script =  component.substring(
-                component.indexOf('<script>') + 8,
-                component.lastIndexOf('</script>')
+              component.indexOf('<script>') + 8,
+              component.lastIndexOf('</script>')
             );
             script = script
-                .trim()
-                .replace('export default {', '');
+              .trim()
+              .replace('export default {', '');
             let pos = script.lastIndexOf('}');
             script = script.substring(0, pos) + script.substring(pos  + 1)
             script = script.trim();
@@ -255,8 +219,8 @@ if (options.component_dir) {
          */
         if (component.includes('<style lang="sass">') && component.includes('</style>')) {
             style = component.substring(
-                component.indexOf('<style lang="sass">') + 19,
-                component.lastIndexOf('</style>')
+              component.indexOf('<style lang="sass">') + 19,
+              component.lastIndexOf('</style>')
             );
             // noinspection JSUnresolvedFunction
             output_css += sass_compiler.renderSync({
@@ -266,6 +230,42 @@ if (options.component_dir) {
             }).css.toString();
         }
 
+    }
+}
+
+/**
+ * Any included JS.
+ */
+if (options.js_include_dir) {
+    for (const file of readFilesRecursively(options.js_include_dir)) {
+        if (path.extname(file) !== '.js') {
+            continue;
+        }
+        // noinspection JSUnresolvedFunction
+        let ugly_js = js_compiler.minify(fs.readFileSync(file).toString());
+        if (typeof ugly_js.error !== 'undefined') {
+            console.log(ugly_js.error);
+            process.exit(1);
+        }
+        output_js += ugly_js.code;
+    }
+}
+
+/**
+ * Any included SASS.
+ */
+if (options.sass_include_dir) {
+    for (const file of readFilesRecursively(options.sass_include_dir)) {
+        if (path.extname(file) !== '.sass') {
+            continue;
+        }
+        process.chdir(path.dirname(file));
+        // noinspection JSUnresolvedFunction
+        output_css += sass_compiler.renderSync({
+            data: fs.readFileSync(file).toString(),
+            indentedSyntax: true,
+            outputStyle: 'compressed'
+        }).css.toString();
     }
 }
 
