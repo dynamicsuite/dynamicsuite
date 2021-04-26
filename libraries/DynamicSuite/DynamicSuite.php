@@ -87,7 +87,8 @@ final class DynamicSuite
         spl_autoload_register(function(string $class) use ($libraries) {
             $file = strtr($class, '\\', '/') . '.php';
             foreach ($libraries as $dir) {
-                if (@require_once "$dir/$file") {
+                if (!class_exists($class) && is_readable("$dir/$file")) {
+                    require_once "$dir/$file";
                     break;
                 }
             }

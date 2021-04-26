@@ -13,6 +13,8 @@
 
 namespace DynamicSuite;
 use DynamicSuite\API\Request;
+use Error;
+use Exception;
 
 /**
  * Start buffering and load the instance.
@@ -50,7 +52,9 @@ if (DS_VIEW) {
     /**
      * Load the view.
      */
-    if (str_starts_with(URL::$as_string, '/dynamicsuite/about')) {
+    if (Render::$server_error) {
+        Render::error500();
+    } elseif (str_starts_with(URL::$as_string, '/dynamicsuite/about')) {
         Render::about();
     } elseif (isset(Packages::$views[URL::$as_string])) {
 
@@ -82,20 +86,25 @@ if (DS_VIEW) {
         /**
          * Run view specific initialization scripts.
          */
-        foreach ($view->init as $script) {
-            putenv("DS_VIEW_INIT=$script");
-            (function() {
-                require_once getenv('DS_VIEW_INIT');
-            })();
+        try {
+            foreach ($view->init as $script) {
+                if (!is_readable($script)) {
+                    error_log("View init script not found: '$script'");
+                    Render::error500();
+                }
+                putenv("DS_VIEW_INIT=$script");
+                (function () {
+                    require_once getenv('DS_VIEW_INIT');
+                })();
+            }
+        } catch (Exception | Error $exception) {
+            error_log(
+                $exception->getMessage() . ' at ' .
+                $exception->getFile() . ':' .
+                $exception->getLine()
+            );
+            Render::error500();
         }
-
-        /**
-         * Update the document.
-         */
-        Render::$document_template->replace([
-            '{{meta_description}}' => Render::$meta_description,
-            '{{title}}' => $view->title
-        ]);
 
         /**
          * Update the client data.
@@ -115,9 +124,19 @@ if (DS_VIEW) {
          */
         putenv("DS_VIEW_ENTRY=$view->entry");
         ob_start();
-        (function() {
-            require_once getenv('DS_VIEW_ENTRY');
-        })();
+        try {
+            (function() {
+                require_once getenv('DS_VIEW_ENTRY');
+            })();
+        } catch (Exception | Error $exception) {
+            error_log(
+                $exception->getMessage() . ' at ' .
+                $exception->getFile() . ':' .
+                $exception->getLine()
+            );
+            ob_clean();
+            Render::error500();
+        }
         Render::$document_template->replace([
             '{{body}}' => ob_get_clean()
         ]);
@@ -141,6 +160,8 @@ if (DS_VIEW) {
          * Update and render the template.
          */
         Render::$document_template->replace([
+            '{{meta_description}}' => Render::$meta_description,
+            '{{title}}' => Render::$client_data['overlay_title'],
             '"<!--{{client_data}}-->"' => json_encode(Render::$client_data, JSON_HEX_TAG),
             '<!--{{css_variable}}-->' => $css_variable,
             '<!--{{js_variable}}-->' => $js_variable

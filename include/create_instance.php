@@ -12,6 +12,8 @@
  */
 
 namespace DynamicSuite;
+use Error;
+use Exception;
 
 /**
  * Create the environment.
@@ -26,6 +28,20 @@ DynamicSuite::init();
 /**
  * Run package initialization scripts.
  */
-foreach (Packages::$init as $script) {
-    require_once $script;
+try {
+    foreach (Packages::$init as $script) {
+        if (!is_readable($script)) {
+            error_log("Package init script not found: '$script'");
+            Render::$server_error = true;
+            continue;
+        }
+        require_once $script;
+    }
+} catch (Exception | Error $exception) {
+    error_log(
+        $exception->getMessage() . ' at ' .
+        $exception->getTrace()[0]['file'] . ':' .
+        $exception->getTrace()[0]['line']
+    );
+    Render::$server_error = true;
 }

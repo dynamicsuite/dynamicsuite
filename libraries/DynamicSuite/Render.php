@@ -13,6 +13,7 @@
 
 namespace DynamicSuite;
 use DynamicSuite\Util\Template;
+use Exception;
 
 /**
  * Class View.
@@ -21,6 +22,13 @@ use DynamicSuite\Util\Template;
  */
 final class Render
 {
+
+    /**
+     * If a server error is present, this will force a 500 error page render.
+     *
+     * @var bool
+     */
+    public static bool $server_error = false;
 
     /**
      * Meta description to use on the document.
@@ -75,7 +83,7 @@ final class Render
         'overlay_title' => null,
         'overlay_actions_icon' => null,
         'overlay_actions' => null,
-        'misc' => null
+        'custom' => []
     ];
 
     /**
@@ -192,6 +200,22 @@ final class Render
             }
 
         }
+    }
+
+    /**
+     * Add custom client data.
+     *
+     * @param string $key
+     * @param mixed $data
+     * @throws Exception
+     * @return void
+     */
+    public static function setClientData(string $key, mixed $data): void
+    {
+        if (array_key_exists($key, self::$client_data)) {
+            throw new Exception("Client data already set for '$key'");
+        }
+        self::$client_data[$key] = $data;
     }
 
     /**

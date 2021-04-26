@@ -25,5 +25,7 @@ if (!defined('DS_CACHING')) define('DS_CACHING', false);
  */
 spl_autoload_register(function (string $class) {
     $file = DS_ROOT_DIR . '/libraries/' . strtr($class, '\\', '/') . '.php';
-    @require_once $file;
+    if (!class_exists($class) && is_readable($file)) {
+        require_once $file;
+    }
 });
