@@ -462,10 +462,14 @@ export default {
     padding: 0 1rem
     margin: 0
 
+    &:not(:first-child)
+     text-indent: -$size-slim
+
   /* Overlay buttons */
   & > .button
     display: inline-flex
     font-size: $size-slim-third
+    background: inherit
     min-width: $size-slim
     min-height: $size-slim
     justify-content: center
