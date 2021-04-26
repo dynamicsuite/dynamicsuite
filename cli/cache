@@ -53,7 +53,7 @@ function setState(bool $state): void
         : "if (!defined('DS_CACHING')) define('DS_CACHING', false);";
     $script = str_replace($replace, "if (!defined('DS_CACHING')) define('DS_CACHING', $state);", $script);
     file_put_contents('include/create_environment.php', $script);
-    CLI::out($state ? 'Caching enabled' : 'Caching disabled');
+    CLI::out($state === 'true' ? 'Caching enabled' : 'Caching disabled');
     if ($err = exec('apachectl restart')) {
         CLI::err($err);
     }
