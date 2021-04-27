@@ -212,10 +212,10 @@ final class Render
      */
     public static function setClientData(string $key, mixed $data): void
     {
-        if (array_key_exists($key, self::$client_data)) {
+        if (array_key_exists($key, self::$client_data['custom'])) {
             throw new Exception("Client data already set for '$key'");
         }
-        self::$client_data[$key] = $data;
+        self::$client_data['custom'][$key] = $data;
     }
 
     /**

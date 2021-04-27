@@ -50,6 +50,20 @@ class DynamicSuite
         });
     }
 
+    /**
+     * Read custom window data for the given key.
+     *
+     * @param {string} key - The key to read.
+     * @returns {*}
+     */
+    static readCustomData(key) {
+        if (window['dynamicsuite'].hasOwnProperty('custom') && window['dynamicsuite'].custom.hasOwnProperty(key)) {
+            return window['dynamicsuite'].custom[key];
+        } else {
+            return false;
+        }
+    }
+
 }
 
 /**
