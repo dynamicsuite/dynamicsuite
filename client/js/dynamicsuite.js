@@ -95,16 +95,10 @@ DynamicSuite.vm = new Vue({
         }
     },
     mounted() {
-
-        // Set window data
         for (const key of Object.keys(this._data)) {
             if (window['dynamicsuite'].hasOwnProperty(key)) {
                 this[key] = window['dynamicsuite'][key];
             }
         }
-
-        // Display the content
-        document.getElementById('dynamicsuite').style.display = 'flex';
-
     }
 });

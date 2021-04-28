@@ -133,6 +133,7 @@ final class Render
             ]);
 
             // Set global CSS
+            $css_template = '';
             $css_global = [
                 DynamicSuite::$cfg->css_fontawesome . '?v' . DS_VERSION,
                 DynamicSuite::$cfg->css_dynamicsuite . '?v' . DS_VERSION
@@ -142,7 +143,6 @@ final class Render
                     $css_global[] = $path;
                 }
             }
-            $css_template = '';
             foreach ($css_global as $path) {
                 $css_template .=
                     "<link rel=\"stylesheet\" href=\"$path\">";
