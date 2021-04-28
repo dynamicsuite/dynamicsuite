@@ -64,6 +64,7 @@ if (!options.js_output || !options.css_output || !options.prefix) {
  */
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const {execSync} = require('child_process');
 const node_prefix = execSync('npm config get prefix').toString().trim();
 const html_compiler = require(path.join(node_prefix, 'node_modules/html-minifier'));
@@ -119,7 +120,7 @@ if (options.mixin_dir) {
           .replace(/__/g, '_')
           .toLowerCase();
         name = name.substring(0, name.length - 3)
-        output_js += ugly_js.code.replace('export default', `const mixin_${name}=`);
+        output_js += ugly_js.code.replace('export default', `const mixin_${name}=`) + os.EOL;
     }
 }
 
@@ -174,7 +175,8 @@ if (options.component_dir) {
             // noinspection JSUnresolvedFunction
             template = html_compiler.minify(template, {
                 removeComments: true,
-                collapseWhitespace: true
+                collapseWhitespace: true,
+                keepClosingSlash: true
             });
         }
 
@@ -211,7 +213,7 @@ if (options.component_dir) {
             console.log(minified.error);
             process.exit(1);
         } else {
-            output_js += minified.code;
+            output_js += minified.code + os.EOL;
         }
 
         /**
