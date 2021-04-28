@@ -100,5 +100,6 @@ DynamicSuite.vm = new Vue({
                 this[key] = window['dynamicsuite'][key];
             }
         }
+        document.getElementById('dynamicsuite').style.display = 'flex';
     }
 });
