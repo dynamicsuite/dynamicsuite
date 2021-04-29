@@ -443,6 +443,7 @@ export default {
   background: lighten($color-primary, 10%)
   color: $color-text-inverted
   user-select: none
+  z-index: 10
 
   /* Interactive elements */
   & > .interactive
