@@ -170,7 +170,7 @@ if (options.component_dir) {
         if (component.includes('<template>') && component.includes('</template>')) {
             template =  component.substring(
               component.indexOf('<template>') + 10,
-              component.lastIndexOf('</template>')
+              component.lastIndexOf(os.EOL + '</template>')
             );
             // noinspection JSUnresolvedFunction
             template = html_compiler.minify(template, {
