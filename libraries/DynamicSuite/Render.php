@@ -81,7 +81,6 @@ final class Render
         'overlay_nav_alert_warning' => [],
         'overlay_nav_alert_failure' => [],
         'overlay_title' => null,
-        'overlay_actions_icon' => null,
         'overlay_actions' => null,
         'custom' => []
     ];

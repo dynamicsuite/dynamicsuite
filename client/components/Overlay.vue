@@ -13,22 +13,19 @@ file that was distributed with this source code.
   <div class="ds-overlay">
 
     <!-- Nav button -->
-    <div :class="nav_button_classes" @click="toggleNav">
-      <i class="fas fa-bars"></i>
+    <div class="header-column">
+      <div :class="nav_button_classes" @click="toggleNav">
+        <i class="fas fa-bars"></i>
+      </div>
     </div>
 
     <!-- Overlay title -->
-    <h1 class="title">
+    <h1 class="title header-column">
       {{overlay_title}}
     </h1>
 
     <!-- Actions button -->
-    <div v-if="overlay_actions.length" :class="actions_button_classes" @click="toggleActions">
-      <i :class="overlay_actions_icon"></i>
-    </div>
-
-    <!-- Actions area -->
-    <div v-if="overlay_actions.length && show_actions" class="actions">
+    <div class="actions header-column">
       <!--suppress HtmlUnknownTag, JSUnusedLocalSymbols, JSUnresolvedVariable -->
       <component v-for="(name, key) in overlay_actions" :is="name" :key="'action' + key"></component>
     </div>
@@ -179,17 +176,7 @@ export default {
     },
 
     /**
-     * The icon to display on the overlay header to show the actions.
-     *
-     * @type {string | null}
-     */
-    overlay_actions_icon: {
-      type: String | null,
-      default: null
-    },
-
-    /**
-     * Actions to render in the overlay action area.
+     * Actions to render in the overlay action area (top right of header).
      *
      * This is an array of component names of components to render.
      *
@@ -204,7 +191,6 @@ export default {
   data() {
     return {
       show_nav: false,
-      show_actions: false,
       selected_group: null,
       pending_path: null,
       loading: false
@@ -226,23 +212,6 @@ export default {
         'button': true,
         'interactive': true,
         'active': this.show_nav
-      };
-    },
-
-    /**
-     * Classes to assign to the actions toggle button.
-     *
-     * @returns {{
-     *   'button': boolean,
-     *   'interactive': boolean,
-     *   'active': boolean
-     * }}
-     */
-    actions_button_classes() {
-      return {
-        'button': true,
-        'interactive': true,
-        'active': this.show_actions
       };
     }
 
@@ -276,19 +245,6 @@ export default {
       }
       this.show_actions = false;
       this.show_nav = !this.show_nav;
-    },
-
-    /**
-     * Toggle the actions area.
-     *
-     * @returns {undefined}
-     */
-    toggleActions() {
-      if (this.pending_path) {
-        return;
-      }
-      this.show_nav = false;
-      this.show_actions = !this.show_actions;
     },
 
     /**
@@ -436,6 +392,7 @@ export default {
 /* Overlay container */
 .ds-overlay
   display: flex
+  justify-content: space-between
   align-items: center
   position: fixed
   width: 100%
@@ -445,57 +402,41 @@ export default {
   user-select: none
   z-index: 10
 
-  /* Interactive elements */
-  & > .interactive
-    cursor: pointer
-    transition: background 0.2s ease
+  /* Header columns */
+  & > .header-column
+    flex: 1 0 0
+
+    /* Overlay buttons */
+    & > .button
+      display: inline-flex
+      font-size: $size-slim-third
+      background: inherit
+      min-width: $size-slim
+      min-height: $size-slim
+      justify-content: center
+      align-items: center
+
+      &:hover, &.active
+        cursor: pointer
+        transition: background 0.2s ease
+        background: lighten($color-primary, 20%)
 
   /* Nav header and title */
   & > .title
-    flex-grow: 1
-    line-height: $size-slim
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-    text-align: center
-    font-size: $size-slim-third
-    font-weight: bold
-    padding: 0 1rem
-    margin: 0
-
-    &:not(:first-child)
-     text-indent: -$size-slim
-
-  /* Overlay buttons */
-  & > .button
     display: inline-flex
-    font-size: $size-slim-third
-    background: inherit
-    min-width: $size-slim
-    min-height: $size-slim
     justify-content: center
     align-items: center
-
-    &:hover, &.active
-      background: lighten($color-primary, 20%)
+    font-size: $size-slim-third
+    padding: 0 1rem
+    white-space: nowrap
+    text-overflow: ellipsis
 
   /* Overlay actions */
   & > .actions
-    position: fixed
-    display: flex
-    flex-direction: column
-    top: $size-slim
-    right: 0
-    min-width: $size-wide
-    background: lighten($color-primary, 20%)
-    color: $color-text-inverted
-
-    /* Generic rules */
-    & > *
-      display: flex
-      justify-content: center
-      align-items: center
-      min-height: $size-slim-two-third
+    display: inline-flex
+    justify-content: flex-end
+    align-items: center
+    height: $size-slim
 
   /* Nav container */
   & > .nav
