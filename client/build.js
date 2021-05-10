@@ -20,8 +20,9 @@ function printUsage() {
     console.log('    --js_output {path}');
     console.log('    --sass_include_dir {dir}');
     console.log('    --css_output {path}');
-    console.log('    --component_dir {dir}');
+    console.log('    --state_dir {dir}');
     console.log('    --mixin_dir {dir}');
+    console.log('    --component_dir {dir}');
 }
 
 /**
@@ -33,8 +34,9 @@ const options = {
     js_output: null,
     sass_include_dir: null,
     css_output: null,
+    state_dir: null,
+    mixin_dir: null,
     component_dir: null,
-    mixin_dir: null
 };
 
 /**
@@ -101,26 +103,28 @@ let output_js = '';
 let output_css = '';
 
 /**
- * Add included Vue mixins.
+ * Add included Vue states and mixins.
  */
-if (options.mixin_dir) {
-    for (const file of readFilesRecursively(options.mixin_dir)) {
-        if (path.extname(file) !== '.js') {
-            continue;
+for (const type of ['state', 'mixin']) {
+    if (options[`${type}_dir`]) {
+        for (const file of readFilesRecursively(options[`${type}_dir`])) {
+            if (path.extname(file) !== '.js') {
+                continue;
+            }
+            // noinspection JSUnresolvedFunction
+            let ugly_js = js_compiler.minify(fs.readFileSync(file).toString());
+            if (typeof ugly_js.error !== 'undefined') {
+                console.log(ugly_js.error);
+                process.exit(1);
+            }
+            let name = options.prefix + file.replace(options[`${type}_dir`], '')
+              .replace(new RegExp('\\' + path.sep, 'g'), '_')
+              .replace(/([A-Z])/g, '_$1')
+              .replace(/__/g, '_')
+              .toLowerCase();
+            name = name.substring(0, name.length - 3)
+            output_js += ugly_js.code.replace('export default', `const ${type}_${name}=`) + os.EOL;
         }
-        // noinspection JSUnresolvedFunction
-        let ugly_js = js_compiler.minify(fs.readFileSync(file).toString());
-        if (typeof ugly_js.error !== 'undefined') {
-            console.log(ugly_js.error);
-            process.exit(1);
-        }
-        let name = options.prefix + file.replace(options.mixin_dir, '')
-          .replace(new RegExp('\\' + path.sep, 'g'), '_')
-          .replace(/([A-Z])/g, '_$1')
-          .replace(/__/g, '_')
-          .toLowerCase();
-        name = name.substring(0, name.length - 3)
-        output_js += ugly_js.code.replace('export default', `const mixin_${name}=`) + os.EOL;
     }
 }
 
