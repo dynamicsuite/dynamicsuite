@@ -29,9 +29,11 @@ final class Format
      */
     public static function formatServerPath(string $package_id, string $path): string
     {
-        return $path[0] === '/'
-            ? DS_ROOT_DIR . $path
-            : DS_ROOT_DIR . "/packages/$package_id/$path";
+        return match ($path[0]) {
+            '/' => DS_ROOT_DIR . $path,
+            '<' => $path,
+            default => DS_ROOT_DIR . "/packages/$package_id/$path"
+        };
     }
 
     /**

@@ -66,7 +66,7 @@ if (DS_VIEW) {
         /**
          * Check if the entry can be served.
          */
-        if (!is_readable($view->entry)) {
+        if (!is_readable($view->entry) && !str_starts_with($view->entry, '<')) {
             error_log("View [$view->package_id:$view->view_id] entry not readable $view->entry");
             Render::error500();
         }
@@ -121,20 +121,24 @@ if (DS_VIEW) {
         /**
          * Execute the view.
          */
-        putenv("DS_VIEW_ENTRY=$view->entry");
-        ob_start();
-        try {
-            (function() {
-                require_once getenv('DS_VIEW_ENTRY');
-            })();
-        } catch (Exception | Error $exception) {
-            error_log(
-                $exception->getMessage() . ' at ' .
-                $exception->getFile() . ':' .
-                $exception->getLine()
-            );
-            ob_clean();
-            Render::error500();
+        if (!str_starts_with($view->entry, '<')) {
+            putenv("DS_VIEW_ENTRY=$view->entry");
+            ob_start();
+            try {
+                (function() {
+                    require_once getenv('DS_VIEW_ENTRY');
+                })();
+            } catch (Exception | Error $exception) {
+                error_log(
+                    $exception->getMessage() . ' at ' .
+                    $exception->getFile() . ':' .
+                    $exception->getLine()
+                );
+                ob_clean();
+                Render::error500();
+            }
+        } else {
+            echo $view->entry;
         }
         Render::$document_template->replace([
             '{{body}}' => ob_get_clean()
