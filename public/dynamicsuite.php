@@ -114,7 +114,6 @@ if (DS_VIEW) {
         Render::$client_data['overlay_nav_tree'] ??= Render::generateNavTree();
         Render::$client_data['overlay_nav_footer_text'] ??= DynamicSuite::$cfg->overlay_nav_footer_text;
         Render::$client_data['overlay_nav_footer_view'] ??= DynamicSuite::$cfg->overlay_nav_footer_view;
-        Render::$client_data['overlay_actions_icon'] ??= DynamicSuite::$cfg->overlay_actions_icon;
         Render::$client_data['overlay_actions'] ??= Render::generateOverlayActions();
         Render::$client_data['hide_overlay'] = $view->hide_overlay;
         Render::$client_data['has_session'] = !$view->public;
@@ -166,7 +165,13 @@ if (DS_VIEW) {
             '<!--{{css_variable}}-->' => $css_variable,
             '<!--{{js_variable}}-->' => $js_variable
         ]);
-        echo Render::$document_template->contents;
+        // Clean up the template
+        $replace = [
+            '/\>[^\S ]+/s' => '>',
+            '/[^\S ]+\</s' => '<',
+            '/<!--(.|\s)*?-->/' => '',
+        ];
+        echo preg_replace(array_keys($replace), array_values($replace), Render::$document_template->contents);
         exit;
 
     } else {

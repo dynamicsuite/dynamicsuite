@@ -69,36 +69,38 @@ class DynamicSuite
 /**
  * Initialize Dynamic Suite Vue.
  */
-DynamicSuite.vm = new Vue({
-    name: 'DynamicSuite',
-    el: '#dynamicsuite',
-    data() {
-        return {
-            has_session: false,
-            hide_overlay: true,
-            default_view: null,
-            overlay_nav_tree: [],
-            overlay_nav_footer_text: null,
-            overlay_nav_footer_view: null,
-            overlay_nav_alert_success: {},
-            overlay_nav_alert_warning: {},
-            overlay_nav_alert_failure: {},
-            overlay_title: null,
-            overlay_actions: []
-        };
-    },
-    methods: {
-        setNavAlert(type, id, value) {
-            const key = `overlay_nav_alert_${type}`;
-            this.$set(this[key], id, value);
-        }
-    },
-    mounted() {
-        for (const key of Object.keys(this._data)) {
-            if (window['dynamicsuite'].hasOwnProperty(key)) {
-                this[key] = window['dynamicsuite'][key];
+window.addEventListener('load', () => {
+    DynamicSuite.vm = new Vue({
+        name: 'DynamicSuite',
+        el: '#dynamicsuite',
+        data() {
+            return {
+                has_session: false,
+                hide_overlay: true,
+                default_view: null,
+                overlay_nav_tree: [],
+                overlay_nav_footer_text: null,
+                overlay_nav_footer_view: null,
+                overlay_nav_alert_success: {},
+                overlay_nav_alert_warning: {},
+                overlay_nav_alert_failure: {},
+                overlay_title: null,
+                overlay_actions: []
+            };
+        },
+        methods: {
+            setNavAlert(type, id, value) {
+                const key = `overlay_nav_alert_${type}`;
+                this.$set(this[key], id, value);
             }
+        },
+        mounted() {
+            for (const key of Object.keys(this._data)) {
+                if (window['dynamicsuite'].hasOwnProperty(key)) {
+                    this[key] = window['dynamicsuite'][key];
+                }
+            }
+            document.getElementById('dynamicsuite').style.display = 'flex';
         }
-        document.getElementById('dynamicsuite').style.display = 'flex';
-    }
+    });
 });

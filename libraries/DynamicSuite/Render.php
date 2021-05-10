@@ -149,14 +149,14 @@ final class Render
 
             // Set global JS
             $js_global = [
-                DynamicSuite::$cfg->js_vue . '?v' . DS_VERSION
+                DynamicSuite::$cfg->js_vue . '?v' . DS_VERSION,
+                DynamicSuite::$cfg->js_dynamicsuite . '?v' . DS_VERSION
             ];
             foreach (Packages::$js as $path) {
                 if (!in_array($path, $js_global)) {
                     $js_global[] = $path;
                 }
             }
-            $js_global[] = DynamicSuite::$cfg->js_dynamicsuite . '?v' . DS_VERSION;
             $js_template = '';
             foreach ($js_global as $path) {
                 $js_template .= "<script src=\"$path\"></script>";
