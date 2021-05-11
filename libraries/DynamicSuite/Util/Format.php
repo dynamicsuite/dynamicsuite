@@ -29,11 +29,15 @@ final class Format
      */
     public static function formatServerPath(string $package_id, string $path): string
     {
-        return match ($path[0]) {
-            '/' => DS_ROOT_DIR . $path,
-            '<' => $path,
-            default => DS_ROOT_DIR . "/packages/$package_id/$path"
-        };
+        if (str_starts_with($path, 'vue://')) {
+            return $path;
+        } else {
+            return match ($path[0]) {
+                '/' => DS_ROOT_DIR . $path,
+                default => DS_ROOT_DIR . "/packages/$package_id/$path"
+            };
+        }
+
     }
 
     /**

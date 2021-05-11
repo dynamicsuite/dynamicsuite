@@ -66,7 +66,7 @@ if (DS_VIEW) {
         /**
          * Check if the entry can be served.
          */
-        if (!is_readable($view->entry) && !str_starts_with($view->entry, '<')) {
+        if (!str_starts_with($view->entry, 'vue://') && !is_readable($view->entry)) {
             error_log("View [$view->package_id:$view->view_id] entry not readable $view->entry");
             Render::error500();
         }
@@ -121,7 +121,7 @@ if (DS_VIEW) {
         /**
          * Execute the view.
          */
-        if (!str_starts_with($view->entry, '<')) {
+        if (!str_starts_with($view->entry, 'vue://')) {
             putenv("DS_VIEW_ENTRY=$view->entry");
             ob_start();
             try {
@@ -138,7 +138,8 @@ if (DS_VIEW) {
                 Render::error500();
             }
         } else {
-            echo $view->entry;
+            $component = str_replace('vue://', '', $view->entry);
+            echo "<$component></$component>";
         }
         Render::$document_template->replace([
             '{{body}}' => ob_get_clean()
