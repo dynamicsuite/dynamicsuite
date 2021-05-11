@@ -45,9 +45,10 @@ final class Format
      */
     public static function formatClientPath(string $package_id, string $path): string
     {
-        return $path[0] === '/'
-            ? $path
-            : "/dynamicsuite/packages/$package_id/$path";
+        return match ($path[0]) {
+            '/' => $path,
+            default => "/dynamicsuite/packages/$package_id/$path"
+        };
     }
 
 }
