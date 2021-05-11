@@ -116,15 +116,22 @@ window.addEventListener('load', () => {
 
         },
         mounted() {
+
+            // Update from the window data
             for (const key of Object.keys(this._data)) {
                 if (window['dynamicsuite'].hasOwnProperty(key)) {
                     this[key] = window['dynamicsuite'][key];
                 }
             }
+
+            // Display the content (hidden until all loaded)
             document.getElementById('dynamicsuite').style.display = 'flex';
+
+            // Hash linking for targets
+            if (location.hash) {
+                location.href = location.hash;
+            }
+
         }
     });
-    if (location.hash) {
-        location.href = location.hash;
-    }
 });
