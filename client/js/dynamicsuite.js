@@ -124,4 +124,7 @@ window.addEventListener('load', () => {
             document.getElementById('dynamicsuite').style.display = 'flex';
         }
     });
+    if (location.hash) {
+        location.href = location.hash;
+    }
 });
