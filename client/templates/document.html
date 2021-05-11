@@ -11,7 +11,7 @@
     <title>{{title}}</title>
     <div id="dynamicsuite">
         <!--suppress HtmlUnknownTag -->
-        <ds-overlay v-if="!hide_overlay" v-bind="$data"></ds-overlay>
+        <ds-overlay v-if="!hide_overlay" v-bind="$data" ref="ds_overlay"></ds-overlay>
         <!--suppress HtmlUnknownAttribute -->
         <div id="ds-content" :class="{overlay:!hide_overlay}">{{body}}</div>
     </div>

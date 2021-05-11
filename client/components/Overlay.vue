@@ -347,30 +347,51 @@ export default {
       } else {
         return false;
       }
+    },
+
+    /**
+     * Set the active nav path.
+     *
+     * @param {string|null} path - The path to set, if omitted, the current URL path will be used.
+     * @returns {undefined}
+     */
+    setNavActive(path = null) {
+      let internal_path;
+      if (!path) {
+        internal_path = window.location.pathname.split('?')[0].split('#')[0];
+      } else {
+        internal_path = path.split('?')[0].split('#')[0];
+      }
+      this.active_view = internal_path;
+      const view = internal_path === '/' ? this.default_view : internal_path;
+      if (path) {
+        history.pushState({}, '', path);
+      }
+      this.selected_group = null;
+      for (const superlink in this.overlay_nav_tree) {
+        if (
+            this.overlay_nav_tree[superlink].hasOwnProperty('path') &&
+            this.overlay_nav_tree[superlink].path.startsWith('/')
+        ) {
+          this.$root.overlay_nav_tree[superlink].active = this.overlay_nav_tree[superlink].path === view;
+        } else {
+          for (const sublink in this.overlay_nav_tree[superlink].views) {
+            const condition = this.overlay_nav_tree[superlink].views[sublink].path === view;
+            this.$root.overlay_nav_tree[superlink].active = condition;
+            this.$root.overlay_nav_tree[superlink].views[sublink].active = condition;
+            if (condition) {
+              this.selected_group = this.overlay_nav_tree[superlink].nav_group;
+            }
+          }
+        }
+      }
     }
 
   },
   mounted() {
 
-    // Set active nav entries
-    const path = window.location.pathname.split('?')[0].split('#')[0];
-    const view = path === '/' ? this.default_view : path;
-    for (const superlink in this.overlay_nav_tree) {
-      if (
-          this.overlay_nav_tree[superlink].hasOwnProperty('path') &&
-          this.overlay_nav_tree[superlink].path.startsWith('/')
-      ) {
-        this.overlay_nav_tree[superlink].active = this.overlay_nav_tree[superlink].path === view;
-      } else {
-        for (const sublink in this.overlay_nav_tree[superlink].views) {
-          if (this.overlay_nav_tree[superlink].views[sublink].path === view) {
-            this.overlay_nav_tree[superlink].active = true;
-            this.overlay_nav_tree[superlink].views[sublink].active = true;
-            this.selected_group = this.overlay_nav_tree[superlink].nav_group;
-          }
-        }
-      }
-    }
+    // Set the active nav entry.
+    this.setNavActive();
 
     // Add click to hide nav/actions menu
     document.getElementById('ds-content').addEventListener('click', () => {

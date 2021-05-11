@@ -75,6 +75,7 @@ window.addEventListener('load', () => {
         el: '#dynamicsuite',
         data() {
             return {
+                selected_group: null,
                 has_session: false,
                 hide_overlay: true,
                 default_view: null,
@@ -89,10 +90,30 @@ window.addEventListener('load', () => {
             };
         },
         methods: {
+
+            /**
+             * Set a nav alert.
+             *
+             * @param {string} type - The alert type (success, warning, failure).
+             * @param {string} id - The nav ID key.
+             * @param {string|number} value - The alert value.
+             * @returns {undefined}
+             */
             setNavAlert(type, id, value) {
                 const key = `overlay_nav_alert_${type}`;
                 this.$set(this[key], id, value);
+            },
+
+            /**
+             * Set the active nav path on the overlay nav to the given path.
+             *
+             * @param {string} path - The path to set.
+             * @returns {undefined}
+             */
+            setNavActive(path) {
+                this.$refs['ds_overlay'].setNavActive(path);
             }
+
         },
         mounted() {
             for (const key of Object.keys(this._data)) {
