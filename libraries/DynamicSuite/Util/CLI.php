@@ -88,7 +88,7 @@ final class CLI
      * @param bool $fatal
      * @return void
      */
-    public static function err(string $text, $fatal = true): void
+    public static function err(string $text, bool $fatal = true): void
     {
         fputs(STDERR, $text . PHP_EOL);
         if ($fatal) {
