@@ -152,7 +152,7 @@ final class DynamicSuite
         if ($return instanceof Response) {
             if (DS_DEBUG_MODE) {
                 error_log('[API Response]');
-                error_log("  API: :$request->api_id");
+                error_log("  API: $request->api_id");
                 error_log('  Script: ' . getenv('DS_API_ENTRY'));
                 foreach(preg_split('/((\r?\n)|(\r\n?))/', json_encode([
                     'status' => $return->status,
