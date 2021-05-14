@@ -176,6 +176,7 @@ if (DS_VIEW) {
             '/[^\S ]+\</s' => '<',
             '/<!--(.|\s)*?-->/' => '',
         ];
+        ob_start();
         echo preg_replace(array_keys($replace), array_values($replace), Render::$document_template->contents);
         if (!ob_get_length()) {
             error_log("Output empty, check that your view is valid HTML at: $view->entry");
