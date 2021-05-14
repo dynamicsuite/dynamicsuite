@@ -44,6 +44,13 @@ final class Query
 {
 
     /**
+     * Linked database.
+     *
+     * @var Database|null
+     */
+    public ?Database $database = null;
+
+    /**
      * Query string.
      *
      * @var string
@@ -409,7 +416,7 @@ final class Query
      *
      * @param string|callable $term
      * @param string|null $operand
-     * @param mixed $value
+     * @param null|string|bool|int|float $value
      * @param bool $literal
      * @param string $prefix
      * @return Query
@@ -418,9 +425,9 @@ final class Query
     public function where(
         string | callable $term,
         ?string $operand = null,
-        $value = null,
+        null | string | bool | int | float $value = null,
         bool $literal = false,
-        $prefix = 'AND'
+        string $prefix = 'AND'
     ): Query {
         $where = &$this->where;
         foreach ($this->where_depth as $key) {
@@ -471,7 +478,7 @@ final class Query
      *
      * @param string|callable $term
      * @param string|null $operand
-     * @param mixed $value
+     * @param null|string|bool|int|float $value
      * @param bool $literal
      * @return Query
      * @throws Exception
@@ -479,7 +486,7 @@ final class Query
     public function orWhere(
         string | callable $term,
         ?string $operand = null,
-        $value = null,
+        null | string | bool | int | float $value = null,
         bool $literal = false
     ): Query {
         return $this->where($term, $operand, $value, $literal, 'OR');
