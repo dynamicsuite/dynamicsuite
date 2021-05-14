@@ -142,7 +142,7 @@ export default {
      */
     overlay_nav_alert_success: {
       type: Object | Array,
-      default: () => {}
+      default: () => ({})
     },
 
     /**
@@ -152,7 +152,7 @@ export default {
      */
     overlay_nav_alert_warning: {
       type: Object | Array,
-      default: () => {}
+      default: () => ({})
     },
 
     /**
@@ -162,7 +162,7 @@ export default {
      */
     overlay_nav_alert_failure: {
       type: Object | Array,
-      default: () => {}
+      default: () => ({})
     },
 
     /**
