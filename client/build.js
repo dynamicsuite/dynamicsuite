@@ -70,7 +70,7 @@ const os = require('os');
 const {execSync} = require('child_process');
 const node_prefix = execSync('npm config get prefix').toString().trim();
 const html_compiler = require(path.join(node_prefix, 'node_modules/html-minifier'));
-const js_compiler = require(path.join(node_prefix, 'node_modules/uglify-es'));
+const js_compiler = require(path.join(node_prefix, 'node_modules/uglify-js'));
 const sass_compiler = require(path.join(node_prefix, 'node_modules/sass'));
 
 /**
