@@ -1,0 +1,36 @@
+/*
+ * This file is part of the Dynamic Suite framework.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ */
+
+@import "dynamicsuite"
+
+/* Dynamic Suite HTTP error pages */
+#ds-http-error
+  display: flex
+  flex-grow: 1
+  flex-direction: column
+  margin: -1rem
+  justify-content: center
+  background: $color-container
+  text-align: center
+
+  /* Error icon */
+  i
+    color: $color-failure
+    font-size: 4rem
+
+  /* Error message */
+  h2
+    margin-bottom: 0
+
+  /* Dynamic Suite version (footer) */
+  span
+    color: $color-text-soft
+    font-size: 0.9rem

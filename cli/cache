@@ -1,0 +1,73 @@
+#!/usr/bin/env php
+<?php
+/**
+ * This file is part of the Dynamic Suite framework.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ */
+
+namespace DynamicSuite;
+use DynamicSuite\Util\CLI;
+
+/**
+ * Script setup.
+ */
+set_time_limit(0);
+chdir(__DIR__ . '/..');
+
+/**
+ * Create the environment.
+ */
+require_once 'include/create_environment.php';
+
+/**
+ * Print command usage.
+ *
+ * @return void
+ */
+function printUsage(): void
+{
+    CLI::out('Usage: ./cache {0|1}');
+    CLI::out('Options:');
+    CLI::out('  0 - Disable caching');
+    CLI::out('  1 - Enable caching');
+}
+
+/**
+ * Set the caching state.
+ *
+ * @param bool $state
+ * @return void
+ */
+function setState(bool $state): void
+{
+    $script = file_get_contents('include/create_environment.php');
+    $state = $state ? 'true' : 'false';
+    $replace = DS_CACHING
+        ? "if (!defined('DS_CACHING')) define('DS_CACHING', true);"
+        : "if (!defined('DS_CACHING')) define('DS_CACHING', false);";
+    $script = str_replace($replace, "if (!defined('DS_CACHING')) define('DS_CACHING', $state);", $script);
+    file_put_contents('include/create_environment.php', $script);
+    CLI::out($state === 'true' ? 'Caching enabled' : 'Caching disabled');
+    if ($err = exec('apachectl restart')) {
+        CLI::err($err);
+    }
+}
+
+/**
+ * Caching action.
+ */
+if (!isset($argv[1])) {
+    CLI::out('Caching ' . (DS_CACHING ? 'enabled' : 'disabled'));
+} elseif (isset($argv[1]) && $argv[1] === '0') {
+    setState(false);
+} elseif (isset($argv[1]) && $argv[1] === '1') {
+    setState(true);
+} else {
+    printUsage();
+}

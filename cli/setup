@@ -1,0 +1,373 @@
+#!/usr/bin/env php
+<?php
+/**
+ * This file is part of the Dynamic Suite framework.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ */
+
+namespace DynamicSuite;
+use DynamicSuite\Util\CLI;
+
+/**
+ * Root check.
+ */
+if (posix_getuid()) {
+    die('Script must be run as root' . PHP_EOL);
+}
+
+/**
+ * Script setup.
+ */
+set_time_limit(0);
+chdir(__DIR__ . '/..');
+
+/**
+ * Create the environment.
+ */
+require_once 'include/create_environment.php';
+
+CLI::out('Running environment checks');
+
+/**
+ * PHP version check.
+ */
+if (version_compare(PHP_VERSION, '8.0.0', '<')) {
+    CLI::err('Dynamic Suite requires php >= 8.0.0');
+}
+
+/**
+ * Extension check.
+ */
+if (!extension_loaded('apcu')) {
+    CLI::err('Missing APCU extension');
+}
+if (!extension_loaded('mbstring')) {
+    CLI::err('Missing mbstring extension');
+}
+if (!extension_loaded('pdo_mysql')) {
+    CLI::err('Missing PDO extension');
+}
+
+/**
+ * Directory check.
+ */
+if (!file_exists('config') && !mkdir('config')) {
+    CLI::err('Could not create config directory');
+}
+if (!file_exists('packages') && !mkdir('packages')) {
+    CLI::err('Could not create packages directory');
+}
+if (!file_exists('logs') && !mkdir('logs')) {
+    CLI::err('Could not create logs directory');
+}
+if (!file_exists('logs/error.log') && !touch('logs/error.log')) {
+    CLI::err('Could not create error log');
+}
+if (!file_exists('logs/access.log') && !touch('logs/access.log')) {
+    CLI::err('Could not create access log');
+}
+
+/**
+ * Check for Linux.
+ */
+CLI::out('Checking for compatible OS...', false);
+$name = php_uname('s');
+if ($name !== 'Linux') {
+    CLI::out('FAILED');
+    CLI::err("Linux is required, found: $name");
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache.
+ */
+CLI::out('Checking for Apache...', false);
+if (exec('which apachectl') === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache and apachectl are required for Dynamic Suite CLI');
+    exit;
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for apache errors.
+ */
+CLI::out('Checking for Apache errors...', false);
+$check_apache_error = exec('apachectl -M 2>&1 >/dev/null');
+if ($check_apache_error) {
+    CLI::out('FAILED');
+    CLI::err($check_apache_error);
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache rewrite.
+ */
+CLI::out('Checking for Apache rewrite...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'rewrite'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache rewrite module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache expires.
+ */
+CLI::out('Checking for Apache expires...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'expires'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache expires module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache headers.
+ */
+CLI::out('Checking for Apache headers...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'headers'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache headers module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+/**
+ * Check for Apache deflate.
+ */
+CLI::out('Checking for Apache deflate...', false);
+if (exec("apachectl -M 2>/dev/null | grep 'deflate'") === '') {
+    CLI::out('FAILED');
+    CLI::err('Apache deflate module is required for Dynamic Suite');
+} else {
+    CLI::out('OK');
+}
+
+CLI::out('All Checks Complete!');
+
+/**
+ * Setup vHost.
+ */
+if (CLI::yn('Setup Apache vHost?')) {
+
+    /**
+     * Gather host information.
+     */
+    $listen_addr = CLI::in('Listen IP address', '*');
+    $listen_port = CLI::in('Listen port', '80');
+    $hostname = '';
+    while (!$hostname) {
+        $hostname = trim(CLI::in('Hostname'), '/');
+    }
+    $install_path = CLI::in('Install path', getcwd());
+
+    /**
+     * Load and update template.
+     */
+    CLI::out('Generating config...');
+    $template = file_get_contents('apache/default_vhost.conf');
+    if (!$template) {
+        CLI::err('Could not get apache vhost template');
+    }
+    $template = str_replace('{{listen_addr}}', $listen_addr, $template);
+    $template = str_replace('{{listen_port}}', $listen_port, $template);
+    $template = str_replace('{{hostname}}', $hostname, $template);
+    $template = str_replace('{{path}}', $install_path, $template);
+    CLI::out('Config generated!');
+
+    /**
+     * Confirm paths.
+     */
+    $available_path = CLI::in('vHost available path', '/etc/apache2/sites-available');
+    $enabled_path = CLI::in('vHost enabled path', '/etc/apache2/sites-enabled');
+    $available_vhost = "$available_path/$hostname.conf";
+    $enabled_vhost = "$enabled_path/$hostname.conf";
+
+    /**
+     * vHost in use.
+     */
+    if (file_exists($available_vhost) || file_exists($enabled_vhost)) {
+        if (CLI::yn('File already exists, replace?')) {
+            if (file_exists($available_vhost) && !unlink($available_vhost))
+                CLI::err('Error unlinking vhost');
+            if ((is_link($enabled_vhost) || file_exists($enabled_vhost)) && !unlink($enabled_vhost))
+                CLI::err('Error unlinking vhost');
+        } else {
+            CLI::err('vHost already in use!');
+        }
+    }
+
+    /**
+     * Write vHost config.
+     */
+    CLI::out("Writing vHost as $available_vhost...", false);
+    if (!is_dir($available_path) && !mkdir($available_path)) {
+        CLI::out('FAILED');
+        CLI::err("Failed to create directory: $available_path");
+    }
+    if (!file_put_contents($available_vhost, $template)) {
+        CLI::out('FAILED');
+        CLI::err("Error writing vHost to $available_vhost");
+    } else {
+        CLI::out('OK');
+    }
+
+    /**
+     * Enable vHost.
+     */
+    if (CLI::yn('Enable site and restart apache?')) {
+        CLI::out("Finalizing vHost for $hostname...");
+        $link_command = "ln -s \"$available_vhost\" \"$enabled_vhost\" 2>&1 >/dev/null";
+        $error_link = exec($link_command);
+        $error_restart = exec("apachectl restart 2>&1 >/dev/null");
+        if ($error_link) {
+            CLI::err("vHost link error: $error_link", false);
+            CLI::err('VHOST SETUP FAILED!');
+        } elseif ($error_restart) {
+            unlink($enabled_vhost);
+            CLI::err("Apache restart error: $error_restart", false);
+            CLI::err('vHost has been unlinked!', false);
+            CLI::err('VHOST SETUP FAILED!');
+        } else {
+            CLI::out('Apache vHost finalized!');
+        }
+    }
+
+}
+
+/**
+ * Setup database.
+ */
+if (CLI::yn('Setup database?')) {
+
+    /**
+     * Check for MySQL.
+     */
+    CLI::out('Checking for MySQL...', false);
+    if (exec('which mysql 2>/dev/null') === '') {
+        CLI::out('FAILED');
+        CLI::err('MySQL missing');
+    } else {
+        CLI::out('OK');
+    }
+
+    /**
+     * Install only settings.
+     */
+    $install_user = CLI::in('MYSQL username for installation operations', 'root');
+    $install_pass = CLI::in('MYSQL password for installation operations', '');
+    $command = "mysql --user=\"$install_user\" --password=\"$install_pass\" ";
+
+    /**
+     * Generate database credentials.
+     */
+    $database = '';
+    while (!$database) {
+        $database = CLI::in('Database name');
+    }
+    $host = CLI::in('Database host', 'localhost');
+    $username = CLI::in('Database username', $database);
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $password = substr(str_shuffle($chars), 0, 32);
+    $password = CLI::in('Database password', $password);
+    $command .= "--host=\"$host\" --execute=";
+
+    /**
+     * Create database.
+     */
+    CLI::out('Creating database...');
+    $err = exec("$command'CREATE DATABASE `$database`' 2>&1 >/dev/null");
+    if ($err) {
+        CLI::err($err);
+    }
+
+    /**
+     * Creating user.
+     */
+    CLI::out('Granting user access...');
+    $err = exec(
+        "$command\"GRANT ALL ON $database.* TO '$username'@'$host' IDENTIFIED BY '$password'\"  2>&1 >/dev/null"
+    );
+    if ($err) {
+        CLI::err($err);
+    }
+
+    /**
+     * Write config.
+     */
+    $config['db_dsn'] = "mysql:host=$host;dbname=$database;charset=utf8mb4";
+    $config['db_user'] = $username;
+    $config['db_pass'] = $password;
+    if (
+        file_exists('config/dynamicsuite.json') &&
+        $json = json_decode(file_get_contents('config/dynamicsuite.json'), true)
+    ) $config = array_replace($json, $config);
+    $err = file_put_contents('config/dynamicsuite.json', json_encode($config, JSON_PRETTY_PRINT));
+    if (!$err) {
+        CLI::err('Error writing to config file');
+    }
+
+    CLI::out('Database setup complete!');
+
+}
+
+/**
+ * Update permissions.
+ */
+if (CLI::yn('Update permissions?')) {
+
+    /**
+     * Get the daemon user for post-setup.
+     */
+    while (1) {
+        $daemon_user = CLI::in('Daemon user', 'root');
+        if (exec("getent passwd $daemon_user")) {
+            break;
+        } else {
+            CLI::err('Daemon user does not exist', false);
+        }
+    }
+
+    /**
+     * Get the daemon group for post-setup.
+     */
+    while (1) {
+        $daemon_group = CLI::in('Daemon group', 'root');
+        if (exec("getent group $daemon_group")) {
+            break;
+        } else {
+            CLI::err('Daemon group does not exist', false);
+        }
+    }
+
+    /**
+     * Update permissions.
+     */
+    CLI::out('Updating permissions...', false);
+    if ($chown = exec("chown -R $daemon_user:$daemon_group " . getcwd())) {
+        CLI::err('FAILED', false);
+        CLI::err($chown);
+    }
+    if ($chmod = exec("chmod -R 750 " . getcwd())) {
+        CLI::err('FAILED', false);
+        CLI::err($chmod);
+    }
+    CLI::out('OK');
+
+}
+
+CLI::out('Dynamic Suite setup complete!');
+
+if (isset($hostname)) {
+    CLI::out("You can view your instance at $hostname");
+}

@@ -1,52 +1,18 @@
-<style>
-    html {
-        background-color: whitesmoke;
-        font-family: Arial, Helvetica, sans-serif;
-        width: 100%;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
-    }
-    body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    h1 {
-        margin-top: 0;
-    }
-    a {
-        text-decoration: none;
-    }
-    body {
-        display: flex;
-        align-items: center;
-        height: 100%;
-    }
-    #ds-about {
-        width: 100%;
-        text-align: center;
-    }
-    #ds-about ul {
-        list-style: none;
-    }
-    #ds-about li {
-        margin-top: 1rem;
-    }
-</style>
 <div id="ds-about">
+    <!--suppress HtmlUnknownTarget-->
+    <img src="{{favicon}}" alt="logo">
     <h1>Dynamic Suite {{version}}</h1>
-    <h3>Copyright 2020 Dynamic Suite Team</h3>
-    <p>
+    <h2>Copyright 2021 Dynamic Suite Team</h2>
+    <span>
         Dynamic Suite is licensed under the
         <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU General Public License, version 3</a>
-    </p>
+    </span>
     <h3>Dynamic Suite uses the following third-party libraries:</h3>
-    <ul>
-        <li>
-            <strong>Font Awesome Free 5.15.1</strong> by <a href="https://fontawesome.com">@fontawesome</a><br />
-            <a href="https://fontawesome.com/license/free">License</a> (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
-        </li>
-    </ul>
-    <a href="https://github.com/dynamicsuite/dynamicsuite">GitHub</a>
+    <footer>
+        <a href="https://github.com/vuejs/vue/blob/2.6/LICENSE">Vue.js 2.6.11</a>
+        <a href="https://fontawesome.com/license/free">Font Awesome Free 5.15.3</a>
+    </footer>
+    <a href="https://github.com/dynamicsuite/dynamicsuite">
+        <i class="fab fa-github"></i>
+    </a>
 </div>

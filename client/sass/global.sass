@@ -1,0 +1,65 @@
+/*
+ * This file is part of the Dynamic Suite framework.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
+ */
+
+@import "dynamicsuite"
+
+/* Vue cloaking */
+[v-cloak]
+  display: none
+
+/* Resets */
+html, body
+  margin: 0 !important
+  padding: 0 !important
+  height: 100% !important
+  width: 100% !important
+
+/* Dynamic Suite container*/
+#dynamicsuite
+  display: none
+  flex-direction: column
+  background: $color-background
+  min-height: 100%
+  font-family: Arial, Helvetica, sans-serif
+
+  /* Package content */
+  #ds-content
+    display: flex
+    flex-direction: column
+    flex: 1
+    padding: 1rem
+
+    /* If the overlay is present add margin to space */
+    &.overlay
+      margin-top: $size-slim
+
+    /* Standard DS container */
+    .ds-container
+      background: $color-container
+      color: $color-text
+      box-shadow: 0 0 12px -3px rgba(0, 0, 0, 0.47)
+      border-radius: 3px
+      padding: 1rem
+
+      &.primary
+        border-bottom: 3px solid $color-primary
+
+      &.secondary
+        border-bottom: 3px solid $color-secondary
+
+      &.failure
+        border-bottom: 3px solid $color-failure
+
+      &.warning
+        border-bottom: 3px solid $color-warning
+
+      &.success
+        border-bottom: 3px solid $color-success

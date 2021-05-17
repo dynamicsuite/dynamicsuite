@@ -1,22 +1,13 @@
-/*
- * Dynamic Suite
- * Copyright (C) 2020 Dynamic Suite Team
+/**
+ * This file is part of the Dynamic Suite framework.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation version 3.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * @package DynamicSuite
+ * @author Grant Martin <commgdog@gmail.com>
+ * @copyright 2021 Dynamic Suite Team
  */
-
-// noinspection JSUnusedGlobalSymbols
 
 /**
  * Class DynamicSuite.
@@ -25,16 +16,15 @@ class DynamicSuite
 {
 
     /**
-     * Call a Dynamic Suite API.
+     * Call a Dynamic Suite API endpoint.
      *
-     * @param package_id
-     * @param api_id
-     * @param data
-     * @param callback
-     * @returns void
+     * @param {string} api_id - The API ID of the API to call.
+     * @param {object} data - Data to send along with the request (POST).
+     * @param {function} callback - Callback to execute on response.
+     * @returns {undefined}
      */
-    static call(package_id, api_id, data, callback) {
-        fetch(`/dynamicsuite/api/${package_id}/${api_id}`, {
+    static call(api_id, data, callback) {
+        fetch(`/dynamicsuite/api/${api_id}`, {
             method: 'POST',
             body: JSON.stringify(data ? data : [])
         })
@@ -61,94 +51,148 @@ class DynamicSuite
     }
 
     /**
-     * Initialize a Dynamic Suite view.
+     * Read custom window data for the given key.
      *
-     * If the view does not show the navigation, this function will return false.
-     *
-     * @returns boolean
+     * @param {string} key - The key to read.
+     * @returns {*}
      */
-    static initView() {
-        this.nav = document.getElementById('ds-nav-container');
-        if (this.nav === null) {
-            return false;
-        }
-        this.view = document.getElementById('ds-view-container');
-        this.groups = document.getElementsByClassName('ds-nav-group');
-        this.mobile_toggle_btn = document.getElementById('ds-nav-mobile-toggle');
-        window.onresize = () => {
-            if (!this.isMobile()) {
-                this.nav.classList.remove('ds-nav-show-mobile');
-            }
-        };
-        for (let i = 0, c = this.groups.length; i < c; i++) {
-            this.groups[i].addEventListener('click', () => {
-                let hidden = this.groups[i].nextElementSibling.classList.contains("ds-hide"),
-                    sublinks = this.groups[i].nextElementSibling.classList,
-                    chevron = this.groups[i].lastElementChild.classList;
-                this.clearNav();
-                this.groups[i].classList.add('ds-nav-selected');
-                sublinks.replace(
-                    hidden ? 'ds-hide' : 'ds-show',
-                    hidden ? 'ds-show' : 'ds-hide'
-                );
-                chevron.replace(
-                    hidden ? 'fa-chevron-right' : 'fa-chevron-down',
-                    hidden ? 'fa-chevron-down' : 'fa-chevron-right'
-                );
-            });
-        }
-        this.mobile_toggle_btn.addEventListener('click', () => {
-            this.nav.classList.toggle('ds-nav-show-mobile');
-        });
-    }
-
-    /**
-     * Clear the navigation and reset all collapsable groups.
-     *
-     * @returns void
-     */
-    static clearNav() {
-        for (let i = 0, c = this.groups.length; i < c; i++) {
-            this.groups[i].classList.remove('ds-nav-selected');
-            this.groups[i].nextElementSibling.classList.remove('ds-show');
-            this.groups[i].nextElementSibling.classList.add('ds-hide');
-            this.groups[i].lastElementChild.classList.replace('fa-chevron-down', 'fa-chevron-right');
-        }
-    }
-
-    /**
-     * If the current window size is the mobile or desktop version.
-     *
-     * @returns boolean
-     */
-    static isMobile() {
-        return window.innerWidth < 1280;
-    }
-
-    /**
-     * Get the page data initialized with the view.
-     *
-     * @returns Object
-     */
-    static getPageData() {
-        if (typeof window.ds_page_data !== 'undefined') {
-            return window.ds_page_data;
+    static readCustomData(key) {
+        if (window['dynamicsuite'].hasOwnProperty('custom') && window['dynamicsuite'].custom.hasOwnProperty(key)) {
+            return window['dynamicsuite'].custom[key];
         } else {
             return false;
         }
     }
 
     /**
-     * Clear the page data on the view.
+     * Set the given key and given value to the URL data.
      *
-     * @returns void
+     * @param {string} key - The key to add.
+     * @param {string|number} value - The value to add.
+     * @param {boolean} push_state - If the state should be pushed or replaced in history.
+     * @returns {undefined}
      */
-    static clearPageData() {
-        window.ds_page_data = false;
+    static setURLSavedData(key, value, push_state = true) {
+        const url = new URLSearchParams(window.location.search);
+        url.set(key, value);
+        const params = url.toString();
+        const new_url = `${window.location.pathname}?${params}`;
+        if (push_state) {
+            history.pushState({}, null, new_url);
+        } else {
+            history.replaceState({}, null, new_url);
+        }
+    }
+    
+     /**
+     * Delete the given key from the URL data.
+     *
+     * @param {string} key - The key to remove.
+     * @param {boolean} push_state - If the state should be pushed or replaced in history.
+     * @returns {undefined}
+     */
+     static deleteURLSavedData(key, push_state = true) {
+        const url = new URLSearchParams(window.location.search);
+        url.delete(key);
+        const params = url.toString();
+        const new_url = params
+          ? `${window.location.pathname}?${params}`
+          : window.location.pathname;
+        if (push_state) {
+            history.pushState({}, null, new_url);
+        } else {
+            history.replaceState({}, null, new_url);
+        }
+    }
+
+    /**
+     * Clear the given keys from the URL data.
+     *
+     * Replaces the current history state.
+     *
+     * @param {string[]} keys - The keys to clear.
+     * @returns {undefined}
+     */
+    static clearURLSavedData(keys) {
+        const url = new URLSearchParams(window.location.search);
+        for (const key of keys) {
+            url.delete(key);
+        }
+        const params = url.toString();
+        const new_url = params
+          ? `${window.location.pathname}?${params}`
+          : window.location.pathname;
+        history.replaceState({}, null, new_url);
     }
 
 }
 
-// Initialize the view
-DynamicSuite.initView();
+/**
+ * Initialize Dynamic Suite Vue.
+ */
+window.addEventListener('load', () => {
+    DynamicSuite.vm = new Vue({
+        name: 'DynamicSuite',
+        el: '#dynamicsuite',
+        data() {
+            return {
+                selected_group: null,
+                has_session: false,
+                hide_overlay: true,
+                default_view: null,
+                overlay_nav_tree: [],
+                overlay_nav_footer_text: null,
+                overlay_nav_footer_view: null,
+                overlay_nav_alert_success: {},
+                overlay_nav_alert_warning: {},
+                overlay_nav_alert_failure: {},
+                overlay_title: null,
+                overlay_actions: []
+            };
+        },
+        methods: {
 
+            /**
+             * Set a nav alert.
+             *
+             * @param {string} type - The alert type (success, warning, failure).
+             * @param {string} id - The nav ID key.
+             * @param {string|number} value - The alert value.
+             * @returns {undefined}
+             */
+            setNavAlert(type, id, value) {
+                const key = `overlay_nav_alert_${type}`;
+                this.$set(this[key], id, value);
+            },
+
+            /**
+             * Set the active nav path on the overlay nav to the given path.
+             *
+             * @param {string} path - The path to set.
+             * @returns {undefined}
+             */
+            setNavActive(path) {
+                this.$refs['ds_overlay'].setNavActive(path);
+            }
+
+        },
+        mounted() {
+
+            // Update from the window data
+            for (const key of Object.keys(this._data)) {
+                if (window['dynamicsuite'].hasOwnProperty(key)) {
+                    this[key] = window['dynamicsuite'][key];
+                }
+            }
+
+            // Display the content (hidden until all loaded)
+            document.getElementById('dynamicsuite').style.display = 'flex';
+
+            // Hash linking for targets
+            if (location.hash) {
+                location.href = location.hash;
+            }
+
+        }
+    });
+});
