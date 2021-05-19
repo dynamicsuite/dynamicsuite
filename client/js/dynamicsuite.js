@@ -9,6 +9,8 @@
  * @copyright 2021 Dynamic Suite Team
  */
 
+// noinspection JSUnusedGlobalSymbols
+
 /**
  * Class DynamicSuite.
  */
@@ -57,11 +59,39 @@ class DynamicSuite
      * @returns {*}
      */
     static readCustomData(key) {
-        if (window['dynamicsuite'].hasOwnProperty('custom') && window['dynamicsuite'].custom.hasOwnProperty(key)) {
-            return window['dynamicsuite'].custom[key];
+        if (window['dynamicsuite'].hasOwnProperty('custom') && window['dynamicsuite']['custom'].hasOwnProperty(key)) {
+            return window['dynamicsuite']['custom'][key];
         } else {
             return false;
         }
+    }
+
+    /**
+     * Broadcast to the root event bus.
+     *
+     * @param {string} key - The key to broadcast.
+     * @param {*} value - The value to broadcast.
+     * @returns {undefined}
+     */
+    static broadcast(key, value) {
+        if (typeof this.vm === 'undefined') {
+            return;
+        }
+        this.vm.$emit(key, value);
+    }
+
+    /**
+     * Listen for a keys on the root event bus.
+     *
+     * @param {string} key - The key to listen for.
+     * @param {function} callback - The callback to execute when heard.
+     * @returns {undefined}
+     */
+    static listen(key, callback) {
+        if (typeof this.vm === 'undefined') {
+            return;
+        }
+        this.vm.$on(key, callback);
     }
 
     /**
