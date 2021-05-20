@@ -172,8 +172,6 @@ if (DS_VIEW) {
         ]);
         // Clean up the template
         $replace = [
-            '/\>[^\S ]+/s' => '>',
-            '/[^\S ]+\</s' => '<',
             '/<!--(.|\s)*?-->/' => '',
         ];
         ob_start();
