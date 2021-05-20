@@ -435,6 +435,12 @@ final class Query
         }
         if ($value === null) {
             $value = 'NULL';
+            if ($operand === '=') {
+                $operand = 'IS';
+            }
+            if ($operand === '!=') {
+                $operand = 'IS NOT';
+            }
             $literal = true;
         }
         if (!count($where)) {
