@@ -125,6 +125,22 @@ final class Database
             $args = $query->args;
             $query = $query->query;
         }
+        $stmt = $this->conn->prepare($query);
+        if ($args) {
+            for ($i = 0, $count = count($args); $i < $count; $i++) {
+                if (is_bool($args[$i])) {
+                    $type = PDO::PARAM_INT;
+                    $args[$i] = (int) $args[$i];
+                } elseif ($args[$i] === null) {
+                    $type = PDO::PARAM_NULL;
+                } elseif (is_int($args[$i])) {
+                    $type = PDO::PARAM_INT;
+                } else {
+                    $type = PDO::PARAM_STR;
+                }
+                $stmt->bindValue($i + 1, $args[$i], $type);
+            }
+        }
         if (DS_DEBUG_MODE) {
             error_log('[Query Executed]');
             $dump_query = $query;
@@ -137,21 +153,6 @@ final class Database
                 $dump_query = preg_replace('/\?/', $arg, $dump_query, 1);
             }
             error_log("  $dump_query");
-        }
-        $stmt = $this->conn->prepare($query);
-        if ($args) {
-            for ($i = 0, $count = count($args); $i < $count; $i++) {
-                if (is_bool($args[$i])) {
-                    $type = PDO::PARAM_BOOL;
-                } elseif ($args[$i] === null) {
-                    $type = PDO::PARAM_NULL;
-                } elseif (is_int($args[$i])) {
-                    $type = PDO::PARAM_INT;
-                } else {
-                    $type = PDO::PARAM_STR;
-                }
-                $stmt->bindValue($i + 1, $args[$i], $type);
-            }
         }
         $stmt->execute();
         if (strcasecmp('SELECT COUNT', substr($query, 0, 12)) === 0) {
