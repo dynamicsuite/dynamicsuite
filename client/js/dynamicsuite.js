@@ -123,6 +123,7 @@ class DynamicSuite
         } else {
             history.replaceState({}, null, new_url);
         }
+        console.log('ds')
     }
     
      /**
