@@ -183,7 +183,11 @@ final class Query
      *
      * @return void
      */
-    public function __construct(?Database $database = null) {}
+    public function __construct(?Database $database = null) {
+        if ($database) {
+            $this->database = $database;
+        }
+    }
 
     /**
      * DML statement: INSERT.
