@@ -742,10 +742,10 @@ final class Query
      *
      * @param bool $fetch_single
      * @param int $fetch_mode
-     * @return array|int
+     * @return array|int|string
      * @throws PDOException|Exception
      */
-    public function execute(bool $fetch_single = false, int $fetch_mode = PDO::FETCH_ASSOC): array | int
+    public function execute(bool $fetch_single = false, int $fetch_mode = PDO::FETCH_ASSOC): array | int | string
     {
         if ($this->database) {
             return $this->database->query($this, [], $fetch_single, $fetch_mode);

@@ -108,7 +108,7 @@ final class Database
      * @param array $args
      * @param bool $fetch_single
      * @param int $fetch_mode
-     * @return array|int
+     * @return array|int|string
      * @throws PDOException|Exception
      */
     public function query(
@@ -116,7 +116,7 @@ final class Database
         array $args = [],
         bool $fetch_single = false,
         int $fetch_mode = PDO::FETCH_ASSOC
-    ): array | int {
+    ): array | int | string {
         if (!$this->conn instanceof PDO && !$this->connect()) {
             throw new PDOException('Database not initialized');
         }
