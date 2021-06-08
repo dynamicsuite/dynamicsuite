@@ -223,6 +223,13 @@ window.addEventListener('load', () => {
                 location.href = location.hash;
             }
 
+            // Dynamic Suite initialized
+            document.dispatchEvent(new CustomEvent('dynamicsuite-init', {
+                detail: {
+                    vm: this
+                }
+            }));
+
         }
     });
 });
