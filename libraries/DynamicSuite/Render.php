@@ -338,7 +338,7 @@ final class Render
         self::$document_template->replace([
             '{{meta_description}}' => DynamicSuite::$cfg->meta_description,
             '{{title}}' => DynamicSuite::$cfg->about_title,
-            '<!--{{window_data}}-->' => '',
+            '<!--{{client_data}}-->' => '',
             '<!--{{css_variable}}-->' => '',
             '<!--{{js_variable}}-->' => '',
             '{{body}}' => self::$about_template->contents
@@ -357,7 +357,7 @@ final class Render
         self::$document_template->replace([
             '{{meta_description}}' => '404',
             '{{title}}' => DynamicSuite::$cfg->error_404_title,
-            '<!--{{window_data}}-->' => '',
+            '<!--{{client_data}}-->' => '',
             '<!--{{css_variable}}-->' => '',
             '<!--{{js_variable}}-->' => '',
             '{{body}}' => self::$error_404_template->contents
