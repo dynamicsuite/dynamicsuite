@@ -49,6 +49,9 @@ final class Session
      */
     public static function init(): void
     {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -61,12 +64,11 @@ final class Session
      */
     public static function destroy(): void
     {
+        self::$authenticated = false;
         self::$permissions = [];
         self::$root = false;
         $_SESSION = null;
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
-        }
+        self::init();
     }
 
     /**
