@@ -146,7 +146,7 @@ final class DynamicSuite
                 })();
             })();
         } catch (Error | Exception | PDOException $exception) {
-            error_log($exception->getMessage());
+            error_log($exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine());
             return new Response('SERVER_ERROR', 'A server error has occurred');
         }
         if ($return instanceof Response) {
