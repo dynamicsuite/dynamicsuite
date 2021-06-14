@@ -429,7 +429,7 @@ final class Query
     public function where(
         string | callable $term,
         ?string $operand = null,
-        null | string | bool | int | float $value = null,
+        null | string | bool | int | float | Query $value = null,
         bool $literal = false,
         string $prefix = 'AND'
     ): Query {
