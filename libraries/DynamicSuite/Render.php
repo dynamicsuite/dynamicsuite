@@ -211,6 +211,9 @@ final class Render
      */
     public static function setClientData(string $key, mixed $data): void
     {
+        if (!DS_VIEW) {
+            return;
+        }
         if (array_key_exists($key, self::$client_data['custom'])) {
             throw new Exception("Client data already set for '$key'");
         }
