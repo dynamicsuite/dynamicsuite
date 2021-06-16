@@ -95,6 +95,17 @@ class DynamicSuite
     }
 
     /**
+     * Get the given URL parameter value.
+     *
+     * @param {string} param - The search parameter to retrieve.
+     * @returns {string}
+     */
+    static readURLParam(param) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(param);
+    }
+
+    /**
      * Set the given key and given value to the URL data.
      *
      * @param {string} key - The key to add.
