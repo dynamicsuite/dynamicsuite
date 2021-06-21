@@ -80,7 +80,7 @@ final class Config extends JSONConfig
         protected string $db_user = '',
         protected string $db_pass = '',
         protected array $db_options = [
-            PDO::ATTR_TIMEOUT => 1,
+            PDO::ATTR_TIMEOUT => 5,
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_EMULATE_PREPARES => false
