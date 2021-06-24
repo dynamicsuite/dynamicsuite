@@ -125,6 +125,19 @@ final class Database
             $args = $query->args;
             $query = $query->query;
         }
+        if (DS_DEBUG_MODE) {
+            error_log('[Query Executed]');
+            $dump_query = $query;
+            foreach ($args as $arg) {
+                if (is_string($arg)) {
+                    $arg = '"' . $arg . '"';
+                } elseif (is_null($arg)) {
+                    $arg = 'NULL';
+                }
+                $dump_query = preg_replace('/\?/', $arg, $dump_query, 1);
+            }
+            error_log("  $dump_query");
+        }
         $stmt = $this->conn->prepare($query);
         if ($args) {
             for ($i = 0, $count = count($args); $i < $count; $i++) {
@@ -140,19 +153,6 @@ final class Database
                 }
                 $stmt->bindValue($i + 1, $args[$i], $type);
             }
-        }
-        if (DS_DEBUG_MODE) {
-            error_log('[Query Executed]');
-            $dump_query = $query;
-            foreach ($args as $arg) {
-                if (is_string($arg)) {
-                    $arg = '"' . $arg . '"';
-                } elseif (is_null($arg)) {
-                    $arg = 'NULL';
-                }
-                $dump_query = preg_replace('/\?/', $arg, $dump_query, 1);
-            }
-            error_log("  $dump_query");
         }
         $stmt->execute();
         if (strcasecmp('SELECT COUNT', substr($query, 0, 12)) === 0) {
