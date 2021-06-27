@@ -59,7 +59,7 @@ class DynamicSuite
      * @returns {*}
      */
     static readCustomData(key) {
-        if (window['dynamicsuite'].hasOwnProperty('custom') && window['dynamicsuite']['custom'].hasOwnProperty(key)) {
+        if (typeof window['dynamicsuite']['custom'][key] !== 'undefined') {
             return window['dynamicsuite']['custom'][key];
         } else {
             return false;
@@ -97,7 +97,7 @@ class DynamicSuite
     /**
      * Get the given URL parameter value.
      *
-     * @param {string} param - The search parameter to retrieve.
+     * @param {string} param - The search parameter to read.
      * @returns {string}
      */
     static readURLParam(param) {
@@ -106,64 +106,44 @@ class DynamicSuite
     }
 
     /**
-     * Set the given key and given value to the URL data.
+     * Update the URL to include the value for the given key.
      *
-     * @param {string} key - The key to add.
-     * @param {string|number} value - The value to add.
-     * @param {boolean} push_state - If the state should be pushed or replaced in history.
-     * @returns {undefined}
-     */
-    static setURLSavedData(key, value, push_state = true) {
-        const url = new URLSearchParams(window.location.search);
-        url.set(key, value);
-        const params = url.toString();
-        const new_url = `${window.location.pathname}?${params}`;
-        if (push_state) {
-            history.pushState({}, null, new_url);
-        } else {
-            history.replaceState({}, null, new_url);
-        }
-    }
-    
-     /**
-     * Delete the given key from the URL data.
      *
-     * @param {string} key - The key to remove.
-     * @param {boolean} push_state - If the state should be pushed or replaced in history.
-     * @returns {undefined}
+     * @param {string} key - The key for the value.
+     * @param {string|boolean|number|null} value - The value to include.
+     * @returns {string}
      */
-     static deleteURLSavedData(key, push_state = true) {
+    static #updateURL(key, value) {
         const url = new URLSearchParams(window.location.search);
-        url.delete(key);
-        const params = url.toString();
-        const new_url = params
-          ? `${window.location.pathname}?${params}`
-          : window.location.pathname;
-        if (push_state) {
-            history.pushState({}, null, new_url);
+        if (value === null) {
+            url.delete(key);
         } else {
-            history.replaceState({}, null, new_url);
+            url.set(key, value);
         }
+        const params = url.toString();
+        return params ? `${window.location.pathname}?${params}` : window.location.pathname;
     }
 
     /**
-     * Clear the given keys from the URL data.
+     * Push a new URL to the window history including the key, value pair.
      *
-     * Replaces the current history state.
-     *
-     * @param {string[]} keys - The keys to clear.
+     * @param {string} key - The key for the value.
+     * @param {string|boolean|number|null} value - The value to include.
      * @returns {undefined}
      */
-    static clearURLSavedData(keys) {
-        const url = new URLSearchParams(window.location.search);
-        for (const key of keys) {
-            url.delete(key);
-        }
-        const params = url.toString();
-        const new_url = params
-          ? `${window.location.pathname}?${params}`
-          : window.location.pathname;
-        history.replaceState({}, null, new_url);
+    static pushURLHistory(key, value) {
+        history.pushState({}, null, DynamicSuite.#updateURL(key, value));
+    }
+
+    /**
+     * Replace the current URL in the window history including the key, value pair.
+     *
+     * @param {string} key - The key for the value.
+     * @param {string|boolean|number|null} value - The value to include.
+     * @returns {undefined}
+     */
+    static replaceURLHistory(key, value) {
+        history.replaceState({}, null, DynamicSuite.#updateURL(key, value));
     }
 
 }
