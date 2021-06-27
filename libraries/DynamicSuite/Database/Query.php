@@ -454,9 +454,6 @@ final class Query
             if (!is_string($operand)) {
                 throw new Exception('Query where operand must be a string');
             }
-            if (!is_scalar($value) && $value !== null && $operand !== 'IN' && substr($operand, -3) !== 'ALL') {
-                throw new Exception('Query where value must be scalar or null');
-            }
             if ($operand === 'IN' && !is_array($value) && !$value instanceof Query) {
                 throw new Exception('Query where value must be an array or sub-query when using IN');
             }
@@ -782,7 +779,7 @@ final class Query
                 }
                 if ($expression['literal']) {
                     $string .= "{$expression['column']} {$expression['operand']} {$expression['value']}";
-                } elseif ($expression['operand'] === 'IN' || $expression['operand'] === '= ALL') {
+                } elseif (is_array($expression['value']) || $expression['value'] instanceof Query) {
                     $string .= "{$expression['column']} {$expression['operand']} (";
                     if (is_array($expression['value'])) {
                         foreach ($expression['value'] as $in) {
