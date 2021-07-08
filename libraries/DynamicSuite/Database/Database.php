@@ -125,7 +125,7 @@ final class Database
             $args = $query->args;
             $query = $query->query;
         }
-        if (DS_DEBUG_MODE) {
+        if (DS_DEBUG_MODE && !defined('DS_NO_QUERY_DEBUG')) {
             error_log('[Query Executed]');
             $dump_query = $query;
             foreach ($args as $arg) {
