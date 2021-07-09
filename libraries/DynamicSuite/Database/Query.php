@@ -454,9 +454,6 @@ final class Query
             if (!is_string($operand)) {
                 throw new Exception('Query where operand must be a string');
             }
-            if ($operand === 'IN' && !is_array($value) && !$value instanceof Query) {
-                throw new Exception('Query where value must be an array or sub-query when using IN');
-            }
             if (substr($operand, -3) === 'ALL' && !$value instanceof Query) {
                 throw new Exception('Query where value must be a sub-query when using ALL');
             }
