@@ -8,7 +8,7 @@
  * @package DynamicSuite\Database
  * @author Grant Martin <commgdog@gmail.com>
  * @copyright 2021 Dynamic Suite Team
- * @noinspection PhpUnused
+ * @noinspection PhpUnused DuplicatedCode
  */
 
 namespace DynamicSuite\Database;
@@ -37,6 +37,7 @@ use PDOException;
  * @property array $order_by
  * @property int|null $limit
  * @property int|null $offset
+ * @property ?string $delete_from
  * @property string|null $table_alias
  * @property string|null $query_alias
  */
@@ -163,6 +164,13 @@ final class Query
      * @var int|null
      */
     public ?int $offset = null;
+
+    /**
+     * Delete from for joined deletes.
+     *
+     * @var string|null
+     */
+    public ?string $delete_from = null;
 
     /**
      * Table alias for deeper queries.
@@ -407,11 +415,13 @@ final class Query
     /**
      * DML statement: DELETE.
      *
+     * @param ?string $delete_from
      * @return Query
      */
-    public function delete(): Query
+    public function delete(?string $delete_from = null): Query
     {
         $this->statement = 'DELETE';
+        $this->delete_from = $delete_from;
         return $this;
     }
 
@@ -716,7 +726,21 @@ final class Query
                 break;
             case 'DELETE':
                 $this->query .= 'DELETE ';
+                if ($this->delete_from) {
+                    $this->query .= "$this->delete_from ";
+                }
                 $this->query .= "FROM $this->table";
+                if ($this->joins) {
+                    $joins = '';
+                    foreach ($this->joins as $join) {
+                        if (empty($join['on'])) {
+                            throw new Exception('Query join missing "on" criteria');
+                        }
+                        $joins .= " {$join['type']} JOIN {$join['table']} ON ";
+                        $joins .= "{$join['on']['column_1']} {$join['on']['operand']} {$join['on']['column_2']}";
+                    }
+                    $this->query .= $joins;
+                }
                 if ($this->where) {
                     $this->query .= ' WHERE ' . $this->buildWhere($this->where, $this->args);
                 }
