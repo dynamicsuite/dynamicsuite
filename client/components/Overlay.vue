@@ -250,11 +250,11 @@ export default {
     /**
      * Classes to apply to the nav group chevron.
      *
-     * @returns {{
-     *   'fas': boolean,
-     *   'fa-chevron-right': boolean,
-     *   'fa-chevron-down': boolean
-     * }}
+     * @returns {
+     *   {'fas': boolean},
+     *   {'fa-chevron-right': boolean},
+     *   {'fa-chevron-down': boolean}
+     * }
      */
     chevronClasses(group) {
       return {
