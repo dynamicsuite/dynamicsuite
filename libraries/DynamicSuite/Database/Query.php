@@ -16,6 +16,7 @@ use DynamicSuite\DynamicSuite;
 use Exception;
 use PDO;
 use PDOException;
+use PDOStatement;
 
 /**
  * Class Query.
@@ -760,15 +761,19 @@ final class Query
      *
      * @param bool $fetch_single
      * @param int $fetch_mode
-     * @return array|int|string|null
+     * @param bool $return_as_statement
+     * @return array|int|string|null|PDOStatement
      * @throws PDOException|Exception
      */
-    public function execute(bool $fetch_single = false, int $fetch_mode = PDO::FETCH_ASSOC): array | int | string | null
-    {
+    public function execute(
+        bool $fetch_single = false,
+        int $fetch_mode = PDO::FETCH_ASSOC,
+        bool $return_as_statement = false
+    ): array | int | string | null | PDOStatement {
         if ($this->database) {
-            return $this->database->query($this, [], $fetch_single, $fetch_mode);
+            return $this->database->query($this, [], $fetch_single, $fetch_mode, $return_as_statement);
         } else {
-            return DynamicSuite::$db->query($this, [], $fetch_single, $fetch_mode);
+            return DynamicSuite::$db->query($this, [], $fetch_single, $fetch_mode, $return_as_statement);
         }
     }
 

@@ -15,6 +15,7 @@ namespace DynamicSuite\Database;
 use Exception;
 use PDO;
 use PDOException;
+use PDOStatement;
 
 /**
  * Class Database.
@@ -108,15 +109,17 @@ final class Database
      * @param array $args
      * @param bool $fetch_single
      * @param int $fetch_mode
-     * @return array|int|string|null
+     * @param bool $return_as_statement
+     * @return array|int|string|null|PDOStatement
      * @throws PDOException|Exception
      */
     public function query(
         string | Query $query,
         array $args = [],
         bool $fetch_single = false,
-        int $fetch_mode = PDO::FETCH_ASSOC
-    ): array | int | string | null {
+        int $fetch_mode = PDO::FETCH_ASSOC,
+        bool $return_as_statement = false
+    ): array | int | string | null | PDOStatement {
         if (!$this->conn instanceof PDO && !$this->connect()) {
             throw new PDOException('Database not initialized');
         }
@@ -155,7 +158,9 @@ final class Database
             }
         }
         $stmt->execute();
-        if (strcasecmp('SELECT COUNT', substr($query, 0, 12)) === 0) {
+        if ($return_as_statement) {
+            return $stmt;
+        } elseif (strcasecmp('SELECT COUNT', substr($query, 0, 12)) === 0) {
             return $stmt->fetch(PDO::FETCH_NUM)[0];
         } elseif (strcasecmp('SELECT', substr($query, 0, 6)) === 0 || strcasecmp('WITH', substr($query, 0, 4))  === 0) {
             return $fetch_single ? $stmt->fetch($fetch_mode) : $stmt->fetchAll($fetch_mode);
