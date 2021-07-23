@@ -228,12 +228,19 @@ if (options.component_dir) {
               component.indexOf('<style lang="sass">') + 19,
               component.lastIndexOf('</style>')
             );
-            // noinspection JSUnresolvedFunction
-            output_css += sass_compiler.renderSync({
-                data: style,
-                indentedSyntax: true,
-                outputStyle: 'compressed'
-            }).css.toString();
+            try {
+                // noinspection JSUnresolvedFunction
+                output_css += sass_compiler.renderSync({
+                    data: style.trim(),
+                    indentedSyntax: true,
+                    outputStyle: 'compressed'
+                }).css.toString();
+            } catch (error) {
+                console.log('Error in file: ' + file);
+                console.log(error);
+                process.exit(1);
+            }
+
         }
 
     }
