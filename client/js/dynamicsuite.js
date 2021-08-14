@@ -113,7 +113,7 @@ class DynamicSuite
      * @param {string|boolean|number|null} value - The value to include.
      * @returns {string}
      */
-    static #updateURL(key, value) {
+    static updateURL(key, value) {
         const url = new URLSearchParams(window.location.search);
         if (value === null) {
             url.delete(key);
@@ -132,7 +132,7 @@ class DynamicSuite
      * @returns {undefined}
      */
     static pushURLHistory(key, value) {
-        history.pushState({}, null, DynamicSuite.#updateURL(key, value));
+        history.pushState({}, null, DynamicSuite.updateURL(key, value));
     }
 
     /**
@@ -143,7 +143,7 @@ class DynamicSuite
      * @returns {undefined}
      */
     static replaceURLHistory(key, value) {
-        history.replaceState({}, null, DynamicSuite.#updateURL(key, value));
+        history.replaceState({}, null, DynamicSuite.updateURL(key, value));
     }
 
 }
